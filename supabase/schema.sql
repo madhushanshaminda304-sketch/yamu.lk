@@ -125,3 +125,122 @@ create table public.double_blind_ratings (
   created_at timestamptz not null default now(),
   unique (booking_id, from_user_id)
 );
+
+
+-- =============================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- =============================================================
+
+alter table public.hubs enable row level security;
+alter table public.profiles enable row level security;
+alter table public.rides enable row level security;
+alter table public.ride_stops enable row level security;
+alter table public.bookings enable row level security;
+alter table public.ride_alerts enable row level security;
+alter table public.messages enable row level security;
+alter table public.double_blind_ratings enable row level security;
+
+-- 1. Hubs Policies
+create policy "Hubs are public"
+  on public.hubs for select
+  using (true);
+
+-- 2. Profiles Policies
+create policy "Public profile viewing"
+  on public.profiles for select
+  using (true);
+
+create policy "Users can update own profile"
+  on public.profiles for update
+  using (auth.uid() = id);
+
+-- 3. Rides & Stops Policies
+create policy "Published rides viewable by all"
+  on public.rides for select
+  using (status = 'published');
+
+create policy "Drivers manage own rides"
+  on public.rides for all
+  using (auth.uid() = driver_id);
+
+create policy "Ride stops viewable by all"
+  on public.ride_stops for select
+  using (true);
+
+create policy "Drivers manage own ride stops"
+  on public.ride_stops for all
+  using (exists (
+    select 1 from public.rides r
+    where r.id = ride_stops.ride_id and r.driver_id = auth.uid()
+  ));
+
+-- 4. Bookings Policies
+create policy "Bookings viewable by participant"
+  on public.bookings for select
+  using (
+    auth.uid() = passenger_id or
+    auth.uid() in (select driver_id from public.rides where id = bookings.ride_id)
+  );
+
+create policy "Passengers can create bookings"
+  on public.bookings for insert
+  with check (auth.uid() = passenger_id);
+
+create policy "Participants can update booking status"
+  on public.bookings for update
+  using (
+    auth.uid() = passenger_id or
+    auth.uid() in (select driver_id from public.rides where id = bookings.ride_id)
+  );
+
+-- 5. Ride Alerts Policies
+create policy "Alerts viewable by owner"
+  on public.ride_alerts for select
+  using (email = auth.email());
+
+create policy "Anyone can subscribe to ride alerts"
+  on public.ride_alerts for insert
+  with check (true);
+
+-- 6. Messages Policies (Ride coordination)
+create policy "Messages viewable by booking participants"
+  on public.messages for select
+  using (
+    exists (
+      select 1 from public.bookings b
+      left join public.rides r on r.id = b.ride_id
+      where b.id = messages.booking_id
+        and (b.passenger_id = auth.uid() or r.driver_id = auth.uid())
+    )
+  );
+
+create policy "Booking participants can send messages"
+  on public.messages for insert
+  with check (
+    auth.uid() = sender_id and
+    exists (
+      select 1 from public.bookings b
+      left join public.rides r on r.id = b.ride_id
+      where b.id = messages.booking_id
+        and (b.passenger_id = auth.uid() or r.driver_id = auth.uid())
+    )
+  );
+
+-- 7. Double-Blind Ratings Policies (14-day or Mutual reveal)
+create policy "Participants can submit rating"
+  on public.double_blind_ratings for insert
+  with check (auth.uid() = from_user_id);
+
+create policy "Double-blind ratings revealed only after mutual rating or 14 days"
+  on public.double_blind_ratings for select
+  using (
+    -- Author can always see their submitted review
+    auth.uid() = from_user_id
+    -- Counterparty can only see it if 14 days passed OR both parties rated
+    or now() >= (trip_arrival_at + interval '14 days')
+    or (
+      select count(distinct r2.from_user_id)
+      from public.double_blind_ratings r2
+      where r2.booking_id = double_blind_ratings.booking_id
+    ) >= 2
+  );
