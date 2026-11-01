@@ -69,13 +69,17 @@ export function registerBackButtonHandler(
 
       // Handle async promise returned by addListener
       if (listenerPromise && typeof listenerPromise.then === 'function') {
-        listenerPromise.then((handle: any) => {
-          if (isCleanedUp) {
-            handle?.remove?.();
-          } else {
-            nativeListenerHandle = handle;
-          }
-        });
+        listenerPromise
+          .then((handle: any) => {
+            if (isCleanedUp) {
+              handle?.remove?.();
+            } else {
+              nativeListenerHandle = handle;
+            }
+          })
+          .catch((err: unknown) => {
+            console.warn('Failed to register native backButton handle:', err);
+          });
       }
     } catch (err) {
       console.warn('Could not register native backButton listener:', err);

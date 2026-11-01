@@ -14,7 +14,7 @@ export async function setAppStatusBar(colorHex: string, isDark: boolean): Promis
         await nativeStatusBar.setBackgroundColor({ color: colorHex });
       }
       if (typeof nativeStatusBar.setStyle === 'function') {
-        // 'DARK' means dark text/icons (for light backgrounds); 'LIGHT' means light text/icons (for dark backgrounds)
+        // Capacitor Style.Dark = light text (for dark backgrounds); Style.Light = dark text (for light backgrounds)
         await nativeStatusBar.setStyle({ style: isDark ? 'DARK' : 'LIGHT' });
       }
     }
