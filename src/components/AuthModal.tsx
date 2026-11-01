@@ -141,7 +141,7 @@ export function AuthModal({
     }
 
     toast.success('Account created and verified!', {
-      description: 'Welcome to Yamu.',
+      description: 'Welcome to Yamo.',
     });
     onSuccess?.();
     onClose();
@@ -161,7 +161,7 @@ export function AuthModal({
                 <DeviceMobile size={28} color="var(--bbc-blue)" weight="duotone" />
               </div>
               <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--bbc-navy)', marginTop: '12px' }}>
-                Sign In to Yamu
+                Sign In to Yamo
               </h2>
               <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '6px' }}>
                 Enter your Sri Lankan mobile number to receive a secure 6-digit login code.
@@ -278,7 +278,7 @@ export function AuthModal({
                 Complete Your Profile
               </h2>
               <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '6px' }}>
-                Welcome to Yamu! Set your name so co-travellers can identify you.
+                Welcome to Yamo! Set your name so co-travellers can identify you.
               </p>
             </div>
 

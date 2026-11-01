@@ -80,7 +80,7 @@ export function createInitialState(): MarketplaceState {
     notifications: [
       {
         id: 'notif-welcome',
-        title: 'Welcome to Yamu (Sri Lanka)',
+        title: 'Welcome to Yamo (Sri Lanka)',
         body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.',
         createdAt: new Date().toISOString(),
       },
@@ -646,7 +646,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         verifiedNic: isNicValid,
         verifiedLicence: false,
         hasProfilePhoto: false,
-        bio: 'Commuter on Yamu.',
+        bio: 'Commuter on Yamo.',
         completedRidesLast12Months: 0,
         overallRating: 5.0,
         ratingsCount: 0,

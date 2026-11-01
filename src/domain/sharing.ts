@@ -42,7 +42,7 @@ export function buildWhatsAppCoordinationUrl(
     : ride.departureAt;
 
   const message =
-    `Hi ${ride.driver.name}, I booked ${booking.seats} seat(s) on Yamu for your trip from ${fromName} to ${toName} ` +
+    `Hi ${ride.driver.name}, I booked ${booking.seats} seat(s) on Yamo for your trip from ${fromName} to ${toName} ` +
     `departing at ${timeFormatted}. My pickup point is ${pickupLandmark}. ` +
     `Passenger: ${booking.passengerName}. Looking forward to the ride!`;
 
@@ -74,12 +74,12 @@ export function buildSafetyShareText(
   const ratingText = driver.overallRating > 0 ? `${driver.overallRating.toFixed(1)}★` : 'New Driver';
 
   return (
-    `🛡️ Yamu Trip Share:\n` +
+    `🛡️ Yamo Trip Share:\n` +
     `I am traveling from ${fromName} to ${toName} with driver ${driver.name} (${ratingText}, ${vehicle}).\n` +
     `Scheduled departure: ${ride.departureAt}\n` +
     `Driver contact: ${driver.phone}\n` +
     `Boarding PIN: #${pin}\n` +
-    `Shared via Yamu (yamu.lk)`
+    `Shared via Yamo (yamo.lk)`
   );
 }
 
@@ -89,7 +89,7 @@ export async function shareTripDetails(
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
       await navigator.share({
-        title: 'Yamu Trip Share',
+        title: 'Yamo Trip Share',
         text,
       });
       return { success: true, method: 'native' };

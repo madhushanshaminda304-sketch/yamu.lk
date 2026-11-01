@@ -10,7 +10,7 @@ import {
   CheckCircle,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { YamuIcon } from './YamuLogo.tsx';
+import { YamoIcon } from './YamoLogo.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, t, type LocaleCode } from '../domain/i18n.ts';
 import {
@@ -112,8 +112,8 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
         <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 text-white p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <YamuIcon size={24} />
-              <span className="font-bold text-lg tracking-wide">Yamu {t(currentLocale, 'ridepass.title')}</span>
+              <YamoIcon size={24} />
+              <span className="font-bold text-lg tracking-wide">Yamo {t(currentLocale, 'ridepass.title')}</span>
             </div>
             <button
               onClick={onClose}

@@ -2,7 +2,7 @@ export type LocaleCode = 'en-LK' | 'si-LK' | 'ta-LK';
 
 export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
   'en-LK': {
-    'brand.name': 'Yamu',
+    'brand.name': 'Yamo',
     'brand.tagline': 'Ride together across Sri Lanka. Split fuel & tolls fairly.',
     'nav.search': 'Search',
     'nav.publish': 'Offer a ride',
@@ -62,8 +62,8 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'booking.instant_notice': 'Your seat is confirmed immediately!',
   },
   'si-LK': {
-    'brand.name': 'යමු',
-    'brand.tagline': 'ශ්‍රී ලංකාව පුරා එකටම යමු. වියදම සාධාරණව බෙදාගමු.',
+    'brand.name': 'යමෝ',
+    'brand.tagline': 'ශ්‍රී ලංකාව පුරා එකටම යමෝ. වියදම සාධාරණව බෙදාගමු.',
     'nav.search': 'ගමනක් සොයන්න',
     'nav.publish': 'රයිඩ් එකක් දාන්න',
     'nav.rides': 'මගේ රයිඩ්ස්',
@@ -122,7 +122,7 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'booking.instant_notice': 'ඔබගේ ආසනය ක්ෂණිකවම වෙන්වේ!',
   },
   'ta-LK': {
-    'brand.name': 'யமு',
+    'brand.name': 'யாமோ',
     'brand.tagline': 'இலங்கை முழுவதும் ஒன்றாகப் போவோம். செலவை நியாயமாகப் பகிர்வோம்.',
     'nav.search': 'தேடுக',
     'nav.publish': 'பயணத்தைப் பகிருங்கள்',

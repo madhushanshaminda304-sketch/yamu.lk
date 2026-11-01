@@ -14,7 +14,7 @@ import { t } from './domain/i18n.ts';
 import { createMarketplaceStore } from './state/store.ts';
 import { initRemoteSync } from './state/supabaseSync.ts';
 import { AuthModal } from './components/AuthModal.tsx';
-import { YamuBrand } from './components/YamuLogo.tsx';
+import { YamoBrand } from './components/YamoLogo.tsx';
 
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
@@ -62,8 +62,8 @@ export default function App() {
 
       <header className="site-header">
         <div className="shell header-inner">
-          <Link to="/" style={{ textDecoration: 'none' }} aria-label="Yamu Home">
-            <YamuBrand />
+          <Link to="/" style={{ textDecoration: 'none' }} aria-label="Yamo Home">
+            <YamoBrand />
           </Link>
 
           <nav className="nav-links">

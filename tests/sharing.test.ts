@@ -145,7 +145,7 @@ test('sharing & navigation domain', async (t) => {
 
   await t.test('builds comprehensive safety share text with driver details and boarding pin', () => {
     const text = buildSafetyShareText(dummyRide, dummyBooking, dummyDriver);
-    assert.equal(text.includes('🛡️ Yamu Trip Share:'), true);
+    assert.equal(text.includes('🛡️ Yamo Trip Share:'), true);
     assert.equal(text.includes('Ashan Jayawardena'), true);
     assert.equal(text.includes('Toyota Aqua - Silver'), true);
     assert.equal(text.includes('Boarding PIN: #2419'), true);
