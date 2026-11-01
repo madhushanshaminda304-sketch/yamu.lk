@@ -933,3 +933,142 @@ button {
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(0, 175, 245, 0.15);
 }
+
+/* ==========================================================================
+   Mobile 5-Tab Navigation & Responsive Mobile App Bar Shell
+   ========================================================================== */
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #ffffff;
+  border-top: 1px solid var(--bbc-border, #e2e8f0);
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -2px 12px rgba(6, 78, 59, 0.08);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 48px;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--bbc-text-muted, #64748b);
+  position: relative;
+  transition: color 0.15s ease, transform 0.1s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.94);
+}
+
+.mobile-nav-item.active {
+  color: #00875A;
+}
+
+.mobile-nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  min-width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full, 9999px);
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile Top Header Bar */
+.mobile-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #ffffff;
+  border-bottom: 1px solid var(--bbc-border, #e2e8f0);
+  padding-top: env(safe-area-inset-top, 0px);
+  box-shadow: 0 1px 4px rgba(6, 78, 59, 0.05);
+}
+
+.mobile-lang-pill .lang-pill-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  background: transparent;
+  color: var(--bbc-text-muted, #64748b);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-lang-pill .lang-pill-btn.active {
+  background: #00875A;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* Responsive Visibility & Shell Cohesion */
+@media (max-width: 768px) {
+  .site-header {
+    display: none !important;
+  }
+  .site-footer {
+    display: none !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  .mobile-top-bar {
+    display: block !important;
+  }
+  .md\:hidden {
+    display: block !important;
+  }
+  .hidden.md\:block {
+    display: none !important;
+  }
+  /* Padding on mobile main content to prevent bottom navigation bar overlay */
+  .app-root main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only,
+  .mobile-bottom-nav,
+  .mobile-top-bar,
+  .md\:hidden {
+    display: none !important;
+  }
+  .desktop-only,
+  .site-header,
+  .site-footer,
+  .hidden.md\:block {
+    display: block !important;
+  }
+}

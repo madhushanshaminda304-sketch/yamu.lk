@@ -1,5 +1,5 @@
 import React, { useSyncExternalStore, useState, useEffect } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import {
   MagnifyingGlass,
   PlusCircle,
@@ -8,13 +8,17 @@ import {
   SignIn,
   CheckCircle,
 } from '@phosphor-icons/react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 
 import { t } from './domain/i18n.ts';
 import { createMarketplaceStore } from './state/store.ts';
 import { initRemoteSync } from './state/supabaseSync.ts';
 import { AuthModal } from './components/AuthModal.tsx';
 import { YamoBrand } from './components/YamoLogo.tsx';
+import { MobileTopBar } from './components/MobileTopBar.tsx';
+import { MobileBottomNav } from './components/MobileBottomNav.tsx';
+import { registerBackButtonHandler } from './native/backButton.ts';
+import { setAppStatusBar } from './native/statusBar.ts';
 
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
@@ -27,6 +31,7 @@ import { ProfileView } from './views/ProfileView.tsx';
 const store = createMarketplaceStore();
 
 export default function App() {
+  const navigate = useNavigate();
   const state = useSyncExternalStore(store.subscribe, store.getState);
   const locale = state.locale;
   const user = state.currentUser;
@@ -48,10 +53,35 @@ export default function App() {
     setAuthModalState({ isOpen: false });
   };
 
+  useEffect(() => {
+    // 1. Initialize native status bar styling with brand emerald and light text
+    setAppStatusBar('#00875A', true);
+
+    // 2. Register Android hardware back button handler
+    const unregisterBack = registerBackButtonHandler(
+      (path) => {
+        if (typeof path === 'number') {
+          navigate(path);
+        } else {
+          navigate(path);
+        }
+      },
+      () => authModalState.isOpen,
+      () => closeAuthModal(),
+      () => {
+        toast('Press back again to exit Yamo', { duration: 2000 });
+      }
+    );
+
+    return () => {
+      unregisterBack();
+    };
+  }, [navigate, authModalState.isOpen]);
+
   return (
     <div className="app-root">
-      {/* Sonner Toaster: Mounted once at application root */}
-      <Toaster richColors position="top-right" closeButton />
+      {/* Sonner Toaster: Mounted once at application root with mobile bottom nav offset */}
+      <Toaster richColors position="top-right" closeButton mobileOffset={{ bottom: 76 }} />
 
       <AuthModal
         isOpen={authModalState.isOpen}
@@ -60,7 +90,11 @@ export default function App() {
         store={store}
       />
 
-      <header className="site-header">
+      {/* Mobile Top Header Bar: visible on mobile viewports (< 769px) */}
+      <MobileTopBar state={state} store={store} openAuthModal={openAuthModal} />
+
+      {/* Desktop Site Header: hidden on mobile viewports */}
+      <header className="site-header hidden md:block">
         <div className="shell header-inner">
           <Link to="/" style={{ textDecoration: 'none' }} aria-label="Yamo Home">
             <YamoBrand />
@@ -142,11 +176,16 @@ export default function App() {
           <Route path="/rides/:id" element={<RideDetailView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/publish" element={<PublishRideView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
+          <Route path="/your-rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
         </Routes>
       </main>
 
-      <footer style={{ background: '#064e3b', color: '#ffffff', padding: '48px 0 32px', marginTop: '64px' }}>
+      {/* Mobile 5-Tab Bottom Navigation Bar: visible on mobile viewports (< 769px) */}
+      <MobileBottomNav state={state} store={store} />
+
+      {/* Desktop Website Footer: hidden on mobile viewports */}
+      <footer className="site-footer hidden md:block" style={{ background: '#064e3b', color: '#ffffff', padding: '48px 0 32px', marginTop: '64px' }}>
         <div className="shell">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px', marginBottom: '40px' }}>
             <div>

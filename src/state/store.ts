@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { findRouteOptions, getHubById } from '../domain/corridors.ts';
 import {
   type TollPolicy,
@@ -106,6 +107,12 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
     subscribe(listener: () => void): () => void {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+
+    setState(updater: Partial<MarketplaceState> | ((prev: MarketplaceState) => Partial<MarketplaceState>)): void {
+      const patch = typeof updater === 'function' ? updater(state) : updater;
+      state = { ...state, ...patch };
+      notify();
     },
 
     setLocale(locale: LocaleCode): void {
@@ -748,3 +755,19 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 }
 
 export type MarketplaceStore = ReturnType<typeof createMarketplaceStore>;
+
+export const defaultMarketplaceStore = createMarketplaceStore();
+
+export function useMarketplaceStore<T = MarketplaceState>(
+  selector?: (state: MarketplaceState) => T
+): T {
+  const state = useSyncExternalStore(
+    defaultMarketplaceStore.subscribe,
+    defaultMarketplaceStore.getState
+  );
+  return selector ? selector(state) : (state as unknown as T);
+}
+
+useMarketplaceStore.getState = defaultMarketplaceStore.getState;
+useMarketplaceStore.subscribe = defaultMarketplaceStore.subscribe;
+useMarketplaceStore.setState = defaultMarketplaceStore.setState;
