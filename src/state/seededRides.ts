@@ -84,6 +84,7 @@ export function buildSeededRides(date = getColomboDateOffset(1)): Ride[] {
       ],
       approvalMode: 'instant',
       boostEnabled: true,
+      luggageCapacity: 'medium',
       vehicle: {
         makeModel: 'Toyota Prius 4th Gen Hybrid · Pearl White',
         category: 'car',
@@ -195,6 +196,7 @@ export function buildSeededRides(date = getColomboDateOffset(1)): Ride[] {
       ],
       approvalMode: 'manual',
       boostEnabled: true,
+      luggageCapacity: 'small',
       vehicle: {
         makeModel: 'Suzuki WagonR Stingray Hybrid · Silver',
         category: 'car',
@@ -315,6 +317,7 @@ export function buildSeededRides(date = getColomboDateOffset(1)): Ride[] {
       ],
       approvalMode: 'instant',
       boostEnabled: true,
+      luggageCapacity: 'large',
       vehicle: {
         makeModel: 'Toyota Raize Turbo SUV · Metallic Grey',
         category: 'suv',
@@ -426,6 +429,7 @@ export function buildSeededRides(date = getColomboDateOffset(1)): Ride[] {
       ],
       approvalMode: 'manual',
       boostEnabled: true,
+      luggageCapacity: 'medium',
       vehicle: {
         makeModel: 'Toyota Aqua G-Sports · Dark Blue',
         category: 'car',
@@ -547,6 +551,7 @@ export function buildSeededRides(date = getColomboDateOffset(1)): Ride[] {
       ],
       approvalMode: 'instant',
       boostEnabled: true,
+      luggageCapacity: 'large',
       vehicle: {
         makeModel: 'Toyota HiAce KDH Super GL · Dual AC Van',
         category: 'van',

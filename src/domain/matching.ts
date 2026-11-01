@@ -79,6 +79,7 @@ export interface Ride {
   comfort: ComfortProfile;
   driver: DriverSummary;
   notes: string;
+  returnRideId?: string;
   status: 'published' | 'cancelled';
 }
 

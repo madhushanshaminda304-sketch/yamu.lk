@@ -46,6 +46,7 @@ import {
   SEEDED_USERS,
 } from './types.ts';
 import { loadPersistedAuth, persistAuth } from './persistence.ts';
+import { addMinutesIso, buildReturnRide } from './rideBuilder.ts';
 
 export {
   buildSeededRides,
@@ -61,24 +62,6 @@ export {
   type MarketplaceState,
   type LuggageCapacity,
 };
-
-function addMinutesIso(dateStr: string, timeStr: string, minutesToAdd: number): string {
-  const base = new Date(`${dateStr}T${timeStr}:00+05:30`);
-  const target = new Date(base.getTime() + minutesToAdd * 60000);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const localParts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Colombo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(target);
-  const get = (t: string) => localParts.find((p) => p.type === t)?.value ?? '00';
-  return `${get('year')}-${get('month')}-${get('day')}T${pad(Number(get('hour')) % 24)}:${get('minute')}:00+05:30`;
-}
 
 export function createInitialState(): MarketplaceState {
   const tomorrow = getColomboDateOffset(1);
@@ -220,6 +203,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         stops,
         approvalMode: input.approvalMode,
         boostEnabled: input.boostEnabled,
+        luggageCapacity: input.luggageCapacity ?? input.comfort.luggage ?? 'medium',
         vehicle: {
           makeModel: input.vehicleMakeModel || currentUser.defaultVehicle,
           category: input.vehicleCategory,
@@ -245,6 +229,12 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         status: 'published',
       };
 
+      let returnRide: Ride | undefined;
+      if (input.returnTripEnabled) {
+        returnRide = buildReturnRide(input, newRide, currentUser, clampedPriceLkr, recommendedLkr);
+        newRide.returnRideId = returnRide.id;
+      }
+
       // Check if any RideAlert matches any leg on this newly published ride
       const triggeredNotifications: AppNotification[] = [];
       for (const alert of state.rideAlerts) {
@@ -263,9 +253,10 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         }
       }
 
+      const newRidesToAdd = returnRide ? [newRide, returnRide] : [newRide];
       state = {
         ...state,
-        rides: [newRide, ...state.rides],
+        rides: [...newRidesToAdd, ...state.rides],
         notifications: [...triggeredNotifications, ...state.notifications],
       };
       notify();
