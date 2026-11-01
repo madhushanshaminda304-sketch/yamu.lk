@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: blablacar-lk-service
+  namespace: default
+  labels:
+    app: blablacar-lk
+spec:
+  type: LoadBalancer
+  selector:
+    app: blablacar-lk
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: http

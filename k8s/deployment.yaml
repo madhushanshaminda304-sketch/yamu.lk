@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blablacar-lk
+  namespace: default
+  labels:
+    app: blablacar-lk
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blablacar-lk
+  template:
+    metadata:
+      labels:
+        app: blablacar-lk
+        tier: frontend
+    spec:
+      containers:
+        - name: web
+          image: asia-south1-docker.pkg.dev/PROJECT_ID/blablacar-repo/blablacar-lk:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
