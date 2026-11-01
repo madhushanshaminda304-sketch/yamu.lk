@@ -47,6 +47,7 @@ import {
 } from './types.ts';
 import { loadPersistedAuth, persistAuth } from './persistence.ts';
 import { addMinutesIso, buildReturnRide } from './rideBuilder.ts';
+import { persistRemoteRide, persistRemoteBooking } from './supabaseSync.ts';
 
 export {
   buildSeededRides,
@@ -109,6 +110,11 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 
     setLocale(locale: LocaleCode): void {
       state = { ...state, locale };
+      notify();
+    },
+
+    setRides(rides: Ride[]): void {
+      state = { ...state, rides };
       notify();
     },
 
@@ -261,6 +267,9 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         notifications: [...triggeredNotifications, ...state.notifications],
       };
       notify();
+      for (const r of newRidesToAdd) {
+        persistRemoteRide(r).catch(() => {});
+      }
       return newRide;
     },
 
@@ -347,6 +356,8 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         notifications: [newNotif, ...state.notifications],
       };
       notify();
+      persistRemoteBooking(booking).catch(() => {});
+      persistRemoteRide(nextRide).catch(() => {});
       return booking;
     },
 

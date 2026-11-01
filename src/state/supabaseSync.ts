@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase.ts';
-import type { Ride, LuggageSize } from '../domain/matching.ts';
+import type { Ride, LuggageSize, RideStop } from '../domain/matching.ts';
 import type { BookingRecord } from './types.ts';
+import { deriveBoardingPin } from '../domain/sharing.ts';
 
 export interface PostgresRideRow {
   id: string;
@@ -45,6 +46,15 @@ export interface PostgresBookingRow {
 }
 
 export function mapRideToRow(ride: Ride): PostgresRideRow {
+  const minAvailable =
+    ride.segmentSeatsAvailable && ride.segmentSeatsAvailable.length > 0
+      ? Math.min(...ride.segmentSeatsAvailable)
+      : ride.totalSeats;
+
+  const depTime = ride.departureAt.includes('T')
+    ? ride.departureAt.split('T')[1].slice(0, 5)
+    : '07:00';
+
   return {
     id: ride.id,
     driver_id: ride.driverId,
@@ -53,11 +63,11 @@ export function mapRideToRow(ride: Ride): PostgresRideRow {
     corridor_id: ride.corridorId,
     corridor_code: ride.corridorCode,
     departure_date: ride.departureDate,
-    departure_time: ride.departureTime,
+    departure_time: depTime,
     departure_at: ride.departureAt,
     return_ride_id: ride.returnRideId || null,
     total_seats: ride.totalSeats,
-    available_seats: ride.availableSeats,
+    available_seats: minAvailable,
     full_price_lkr: ride.fullPriceLkr,
     approval_mode: ride.approvalMode,
     luggage_capacity: ride.luggageCapacity ?? ride.comfort?.luggage ?? 'medium',
@@ -70,6 +80,11 @@ export function mapRideToRow(ride: Ride): PostgresRideRow {
 }
 
 export function mapRowToRide(row: PostgresRideRow): Ride {
+  const stops = (row.stops || []) as RideStop[];
+  const lastStop = stops[stops.length - 1];
+  const totalSeats = Number(row.total_seats) || 3;
+  const availSeats = Number(row.available_seats) || totalSeats;
+
   return {
     id: row.id,
     driverId: row.driver_id,
@@ -77,20 +92,28 @@ export function mapRowToRide(row: PostgresRideRow): Ride {
     destinationHubId: row.destination_hub_id,
     corridorId: row.corridor_id,
     corridorCode: row.corridor_code,
+    corridorName: row.corridor_code,
+    hasTolls: Boolean(row.has_tolls),
+    tollPolicy: 'included',
+    estimatedTollLkr: 0,
     departureDate: row.departure_date,
-    departureTime: row.departure_time,
     departureAt: row.departure_at,
-    returnRideId: row.return_ride_id || undefined,
-    totalSeats: Number(row.total_seats),
-    availableSeats: Number(row.available_seats),
+    arrivalAt: lastStop?.arrivalAt || row.departure_at,
+    totalDistanceKm: lastStop?.kmFromOrigin || 100,
     fullPriceLkr: Number(row.full_price_lkr),
+    recommendedPriceLkr: Number(row.full_price_lkr),
+    totalSeats,
+    segmentSeatsAvailable: stops.length > 1 ? Array(stops.length - 1).fill(availSeats) : [availSeats],
+    stops,
     approvalMode: (row.approval_mode as Ride['approvalMode']) || 'instant',
     luggageCapacity: (row.luggage_capacity as LuggageSize) || 'medium',
-    hasTolls: Boolean(row.has_tolls),
+    returnRideId: row.return_ride_id || undefined,
     driver: row.driver as Ride['driver'],
     vehicle: row.vehicle as Ride['vehicle'],
     comfort: row.comfort as Ride['comfort'],
-    stops: row.stops as Ride['stops'],
+    boostEnabled: true,
+    notes: '',
+    status: 'published',
   };
 }
 
@@ -108,12 +131,15 @@ export function mapBookingToRow(b: BookingRecord): PostgresBookingRow {
     seats: b.seats,
     total_price_lkr: b.totalPriceLkr,
     settlement_method: b.settlementMethod,
-    boarding_pin: b.boardingPin,
+    boarding_pin: deriveBoardingPin(b.id),
     status: b.status,
   };
 }
 
 export function mapRowToBooking(row: PostgresBookingRow): BookingRecord {
+  const seats = Number(row.seats) || 1;
+  const totalPrice = Number(row.total_price_lkr) || 0;
+
   return {
     id: row.id,
     rideId: row.ride_id,
@@ -124,11 +150,13 @@ export function mapRowToBooking(row: PostgresBookingRow): BookingRecord {
     toHubId: row.to_hub_id,
     fromIndex: Number(row.from_index),
     toIndex: Number(row.to_index),
-    seats: Number(row.seats),
-    totalPriceLkr: Number(row.total_price_lkr),
-    settlementMethod: row.settlement_method as BookingRecord['settlementMethod'],
-    boardingPin: row.boarding_pin,
-    status: row.status as BookingRecord['status'],
+    seats,
+    unitPriceLkr: seats > 0 ? Math.round(totalPrice / seats) : totalPrice,
+    totalPriceLkr: totalPrice,
+    isBoostLeg: false,
+    settlementMethod: (row.settlement_method as BookingRecord['settlementMethod']) || 'lankaqr',
+    status: (row.status as BookingRecord['status']) || 'accepted',
+    message: '',
     createdAt: row.created_at || new Date().toISOString(),
   };
 }
@@ -159,7 +187,6 @@ export async function persistRemoteRide(ride: Ride): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
   try {
     const row = mapRideToRow(ride);
-    // 1. Ensure driver profile exists in profiles table
     if (ride.driver) {
       await supabase.from('profiles').upsert({
         id: ride.driverId,
@@ -175,7 +202,6 @@ export async function persistRemoteRide(ride: Ride): Promise<boolean> {
       });
     }
 
-    // 2. Upsert ride
     const { error } = await supabase.from('rides').upsert(row);
     if (error) {
       console.warn('Supabase persistRemoteRide error:', error.message);
@@ -217,5 +243,22 @@ export async function seedRemoteRidesIfEmpty(seededRides: Ride[]): Promise<void>
     }
   } catch {
     // Non-blocking fallback
+  }
+}
+
+export async function initRemoteSync(store: {
+  getState: () => { rides: Ride[] };
+  setRides: (rides: Ride[]) => void;
+}): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const localRides = store.getState().rides;
+    await seedRemoteRidesIfEmpty(localRides);
+    const remoteRides = await fetchRemoteRides();
+    if (remoteRides && remoteRides.length > 0) {
+      store.setRides(remoteRides);
+    }
+  } catch (err) {
+    console.warn('initRemoteSync non-blocking error:', err);
   }
 }

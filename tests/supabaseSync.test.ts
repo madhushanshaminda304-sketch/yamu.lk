@@ -11,21 +11,30 @@ const mockRide: Ride = {
   destinationHubId: 'galle',
   corridorId: 'southern-expressway-e01',
   corridorCode: 'E01',
+  corridorName: 'Southern Expressway',
+  hasTolls: true,
+  tollPolicy: 'included',
+  estimatedTollLkr: 600,
   departureDate: '2026-11-02',
-  departureTime: '07:30',
   departureAt: '2026-11-02T07:30:00+05:30',
-  totalSeats: 3,
-  availableSeats: 3,
+  arrivalAt: '2026-11-02T09:00:00+05:30',
+  totalDistanceKm: 119,
   fullPriceLkr: 1850,
+  recommendedPriceLkr: 1850,
+  totalSeats: 3,
+  segmentSeatsAvailable: [3],
   approvalMode: 'instant',
   luggageCapacity: 'medium',
-  hasTolls: true,
+  boostEnabled: true,
+  notes: 'Clean ride',
+  status: 'published',
   driver: {
     id: '+94772345678',
     name: 'Kasun Perera',
     rating: 4.9,
     ratingsCount: 38,
     isSuperDriver: true,
+    drivingSkillScore: 4.8,
     verifiedPhone: true,
     verifiedNic: true,
     verifiedLicence: true,
@@ -34,25 +43,27 @@ const mockRide: Ride = {
   },
   vehicle: {
     makeModel: 'Toyota Aqua',
-    color: 'Pearl White',
-    licensePlate: 'WP CAB-1234',
-    category: 'compact',
+    plateHint: 'WP CAB-1234',
+    category: 'car',
     acGuaranteed: true,
   },
   comfort: {
-    ac: true,
+    chattiness: 'bla',
     smoking: 'no',
     pets: 'no',
-    max2InBack: true,
+    maxTwoInBack: true,
     music: 'yes',
     luggage: 'medium',
+    womenOnly: false,
   },
   stops: [
     {
       hubId: 'colombo',
       stopIndex: 0,
       departureAt: '2026-11-02T07:30:00+05:30',
+      arrivalAt: '2026-11-02T07:30:00+05:30',
       kmFromOrigin: 0,
+      priceFromOriginLkr: 0,
       pickupLandmark: 'Fort Railway Station Entrance',
     },
     {
@@ -61,6 +72,7 @@ const mockRide: Ride = {
       departureAt: '2026-11-02T09:00:00+05:30',
       arrivalAt: '2026-11-02T09:00:00+05:30',
       kmFromOrigin: 119,
+      priceFromOriginLkr: 1850,
       pickupLandmark: 'Galle Fort Main Gate',
     },
   ],
@@ -102,10 +114,12 @@ test('mapBookingToRow and mapRowToBooking bidirectional parity', () => {
     fromIndex: 0,
     toIndex: 1,
     seats: 2,
+    unitPriceLkr: 1850,
     totalPriceLkr: 3700,
+    isBoostLeg: false,
     settlementMethod: 'lankaqr',
-    boardingPin: '5821',
     status: 'accepted',
+    message: 'Hello',
     createdAt: '2026-11-02T08:00:00Z',
   };
 
@@ -113,12 +127,11 @@ test('mapBookingToRow and mapRowToBooking bidirectional parity', () => {
   assert.equal(row.id, booking.id);
   assert.equal(row.ride_id, booking.rideId);
   assert.equal(row.passenger_id, booking.passengerId);
-  assert.equal(row.boarding_pin, '5821');
+  assert.equal(row.boarding_pin.length, 4);
 
   const reconstructed = mapRowToBooking(row);
   assert.equal(reconstructed.id, booking.id);
   assert.equal(reconstructed.rideId, booking.rideId);
   assert.equal(reconstructed.seats, 2);
-  assert.equal(reconstructed.boardingPin, '5821');
   assert.equal(reconstructed.settlementMethod, 'lankaqr');
 });

@@ -1,4 +1,4 @@
-import React, { useSyncExternalStore, useState } from 'react';
+import React, { useSyncExternalStore, useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   MagnifyingGlass,
@@ -12,6 +12,7 @@ import { Toaster } from 'sonner';
 
 import { t } from './domain/i18n.ts';
 import { createMarketplaceStore } from './state/store.ts';
+import { initRemoteSync } from './state/supabaseSync.ts';
 import { AuthModal } from './components/AuthModal.tsx';
 import { YamuBrand } from './components/YamuLogo.tsx';
 
@@ -29,6 +30,10 @@ export default function App() {
   const state = useSyncExternalStore(store.subscribe, store.getState);
   const locale = state.locale;
   const user = state.currentUser;
+
+  useEffect(() => {
+    initRemoteSync(store);
+  }, []);
 
   const [authModalState, setAuthModalState] = useState<{
     isOpen: boolean;
