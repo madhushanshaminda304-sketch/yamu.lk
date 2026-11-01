@@ -87,7 +87,7 @@ export default function App() {
                 <UserCheck size={18} weight="bold" />
                 <span>{user.name.split(' ')[0]}</span>
                 {user.verifiedPhone && (
-                  <CheckCircle size={14} color="#00aff5" weight="fill" />
+                  <CheckCircle size={14} color="#047857" weight="fill" />
                 )}
               </Link>
             ) : (
@@ -146,20 +146,20 @@ export default function App() {
         </Routes>
       </main>
 
-      <footer style={{ background: '#054752', color: '#ffffff', padding: '48px 0 32px', marginTop: '64px' }}>
+      <footer style={{ background: '#064e3b', color: '#ffffff', padding: '48px 0 32px', marginTop: '64px' }}>
         <div className="shell">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px', marginBottom: '40px' }}>
             <div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#00aff5', marginBottom: '12px' }}>
-                yamu<span style={{ color: '#ffffff' }}>.lk</span>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#f59e0b', marginBottom: '12px' }}>
+                yamo<span style={{ color: '#ffffff' }}>.lk</span>
               </div>
-              <p style={{ color: '#b2c8cc', fontSize: '14px', lineHeight: 1.6 }}>
+              <p style={{ color: '#d1fae5', fontSize: '14px', lineHeight: 1.6 }}>
                 Sri Lanka’s trusted intercity carpooling network. Share travel costs fairly on Southern Expressway (E01), Central Corridor (E04), and A9.
               </p>
             </div>
             <div>
               <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>Top Corridors</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#b2c8cc' }}>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#a7f3d0' }}>
                 <li><Link to="/search?from=colombo&to=kandy">Colombo ↔ Kandy (A1 / E04)</Link></li>
                 <li><Link to="/search?from=makumbura&to=galle">Makumbura ↔ Galle (E01)</Link></li>
                 <li><Link to="/search?from=colombo&to=matara">Colombo ↔ Matara (E01)</Link></li>
@@ -168,7 +168,7 @@ export default function App() {
             </div>
             <div>
               <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>Trust & Safety</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#b2c8cc' }}>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#a7f3d0' }}>
                 <li>✓ Sri Lankan NIC & Driving Licence Verification</li>
                 <li>✓ Super Driver Criteria & Rating System</li>
                 <li>✓ Onboard Cash / LankaQR (Zero online payment)</li>
@@ -176,8 +176,8 @@ export default function App() {
               </ul>
             </div>
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', fontSize: '13px', color: '#8fa5a9', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <span>© {new Date().getFullYear()} Yamu.lk Carpooling. All rights reserved.</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', fontSize: '13px', color: '#a7f3d0', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <span>© {new Date().getFullYear()} Yamo.lk Carpooling. All rights reserved.</span>
             <span>Made for Sri Lanka · LKR Cost-Sharing Marketplace</span>
           </div>
         </div>

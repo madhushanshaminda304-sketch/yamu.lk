@@ -311,7 +311,7 @@ export function PublishRideView({
                       </div>
                     </div>
                   </div>
-                  {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#00875a', background: '#e3fcef', padding: '3px 8px', borderRadius: '9999px' }}>Expressway</span>}
+                  {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>Expressway</span>}
                 </label>
               ))}
             </div>

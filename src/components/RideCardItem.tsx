@@ -66,7 +66,7 @@ export function RideCardItem({
             </span>
           ))}
           {ride.hasTolls && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#00875a', background: '#e3fcef', padding: '3px 8px', borderRadius: '9999px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>
               Expressway (Tolls Included)
             </span>
           )}

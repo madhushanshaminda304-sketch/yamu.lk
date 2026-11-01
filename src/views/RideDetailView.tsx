@@ -109,7 +109,7 @@ export function RideDetailView({
                 </h1>
               </div>
               {ride.hasTolls && (
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#00875a', background: '#e3fcef', padding: '4px 12px', borderRadius: '9999px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '4px 12px', borderRadius: '9999px' }}>
                   {ride.corridorCode} Tolls Included
                 </span>
               )}
@@ -129,7 +129,7 @@ export function RideDetailView({
                     <div style={{ width: '60px', fontSize: '16px', fontWeight: 800, color: isBoarding ? 'var(--bbc-navy)' : 'var(--bbc-text-muted)' }}>
                       {formatColomboTime(stop.departureAt)}
                     </div>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '9999px', background: isSelectedFrom || isSelectedTo ? 'var(--bbc-blue)' : isBoarding ? '#00875a' : '#c2cbd0', border: '3px solid #ffffff', boxShadow: 'var(--shadow-sm)', marginTop: '4px' }} />
+                    <div style={{ width: '16px', height: '16px', borderRadius: '9999px', background: isSelectedFrom || isSelectedTo ? 'var(--bbc-blue)' : isBoarding ? '#047857' : '#c2cbd0', border: '3px solid #ffffff', boxShadow: 'var(--shadow-sm)', marginTop: '4px' }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '16px', fontWeight: 700, color: isBoarding ? 'var(--bbc-navy)' : 'var(--bbc-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{stopName}</span>

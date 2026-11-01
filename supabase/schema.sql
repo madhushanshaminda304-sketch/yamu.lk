@@ -1,4 +1,4 @@
--- Yamu (Sri Lanka Intercity Carpooling) Database Schema
+-- Yamo (Sri Lanka Intercity Carpooling) Database Schema
 -- Run this in your Supabase SQL Editor: https://supabase.com/dashboard/project/ykjmjwlvucbzmgfdyjfd/sql
 
 -- 1. Profiles Table (Commuters & Verified Drivers)
@@ -89,7 +89,7 @@ ALTER TABLE public.rides ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
--- 7. Public API Access Policies (For Yamu web app)
+-- 7. Public API Access Policies (For Yamo web app)
 CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Public insert profiles" ON public.profiles FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update profiles" ON public.profiles FOR UPDATE USING (true);

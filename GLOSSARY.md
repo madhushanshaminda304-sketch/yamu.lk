@@ -1,4 +1,4 @@
-# Yamu Sri Lanka (yamu.lk)
+# Yamo Sri Lanka (yamo.lk)
 
 An island-wide intercity carpooling marketplace for Sri Lanka, reverse-engineered from the global carpooling model and adapted to Sri Lankan road corridors, expressways, cost-sharing regulations, and trilingual (`en-LK`, `si-LK`, `ta-LK`) commuter expectations.
 
@@ -6,8 +6,8 @@ An island-wide intercity carpooling marketplace for Sri Lanka, reverse-engineere
 
 ### Brand & Product Identity
 
-**Yamu (yamu.lk)**:
-The canonical brand and product identity for Sri Lanka's intercity carpooling network, derived from the everyday colloquial Sinhala and Tamil invitation for "Let's go together" (Sinhala: යමු, Tamil: போவோம்).
+**Yamo (yamo.lk)**:
+The canonical brand and product identity for Sri Lanka's intercity carpooling network, derived from the everyday colloquial Sinhala and Tamil invitation for "Let's go together" (Sinhala: යමෝ, Tamil: போவோம் / யாமோ).
 _Avoid_: BlaBlaCar Sri Lanka, BlaBlaLanka, RideLanka, PickMe Carpool
 
 ### Corridor & Routing

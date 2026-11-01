@@ -82,7 +82,3 @@ export function YamoBrand({
     </div>
   );
 }
-
-// Backwards compatibility aliases
-export const YamuIcon = YamoIcon;
-export const YamuBrand = YamoBrand;
