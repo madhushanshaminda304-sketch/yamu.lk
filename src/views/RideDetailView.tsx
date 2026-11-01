@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { RidePassModal } from '../components/RidePassModal.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
-import { formatLkr, formatColomboDate, formatColomboTime } from '../domain/i18n.ts';
+import { formatLkr, formatColomboDate, formatColomboTime, t } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState, SettlementMethod, BookingRecord } from '../state/store.ts';
 import { getDriverInitials } from '../components/RideCardItem.tsx';
 
@@ -45,6 +45,12 @@ export function RideDetailView({
       </div>
     );
   }
+
+  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const fromHub = getHubById(fromHubId);
+  const toHub = getHubById(toHubId);
+  const fromName = fromHub?.name[langKey] || fromHub?.name.en || fromHubId;
+  const toName = toHub?.name[langKey] || toHub?.name.en || toHubId;
 
   const legCheck = canBookLeg(ride, fromHubId, toHubId, seats);
   const fromStop = legCheck.fromStop || ride.stops[0];
@@ -99,7 +105,7 @@ export function RideDetailView({
                   {formatColomboDate(ride.departureAt)}
                 </span>
                 <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--bbc-navy)', marginTop: '4px' }}>
-                  {getHubById(fromHubId)?.name.en} → {getHubById(toHubId)?.name.en}
+                  {fromName} → {toName}
                 </h1>
               </div>
               {ride.hasTolls && (
@@ -115,6 +121,8 @@ export function RideDetailView({
                 const isSelectedFrom = stop.hubId === fromHubId;
                 const isSelectedTo = stop.hubId === toHubId;
                 const isBoarding = stop.stopIndex >= (legCheck.fromIndex ?? 0) && stop.stopIndex <= (legCheck.toIndex ?? ride.stops.length - 1);
+                const stopHub = getHubById(stop.hubId);
+                const stopName = stopHub?.name[langKey] || stopHub?.name.en || stop.hubId;
 
                 return (
                   <div key={stop.hubId} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
@@ -124,7 +132,7 @@ export function RideDetailView({
                     <div style={{ width: '16px', height: '16px', borderRadius: '9999px', background: isSelectedFrom || isSelectedTo ? 'var(--bbc-blue)' : isBoarding ? '#00875a' : '#c2cbd0', border: '3px solid #ffffff', boxShadow: 'var(--shadow-sm)', marginTop: '4px' }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '16px', fontWeight: 700, color: isBoarding ? 'var(--bbc-navy)' : 'var(--bbc-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{getHubById(stop.hubId)?.name.en}</span>
+                        <span>{stopName}</span>
                         {stop.isBoostStop && (
                           <span style={{ fontSize: '11px', fontWeight: 700, background: '#fff3e0', color: '#e65100', padding: '1px 6px', borderRadius: '4px' }}>
                             Boost Stopover
@@ -208,7 +216,9 @@ export function RideDetailView({
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '28px', boxShadow: 'var(--shadow-md)', position: 'sticky', top: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
-                <span style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', fontWeight: 700 }}>Contribution</span>
+                <span style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', fontWeight: 700 }}>
+                  {t(state.locale, 'booking.total_cost')}
+                </span>
                 <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
                   {formatLkr(legCheck.legPriceLkr)}
                 </div>
@@ -230,7 +240,7 @@ export function RideDetailView({
                 <div style={{ marginTop: '18px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button type="button" className="btn-primary btn-sm" onClick={() => setShowRidePass(true)} style={{ background: '#0284c7' }}>
                     <Ticket size={16} weight="bold" />
-                    <span>View Digital Ride Pass</span>
+                    <span>{t(state.locale, 'ridepass.title')}</span>
                   </button>
                   <button type="button" className="btn-secondary btn-sm" onClick={() => navigate('/rides')}>
                     View in Your Rides
@@ -240,7 +250,9 @@ export function RideDetailView({
             ) : (
               <form onSubmit={handleBook} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div>
-                  <label htmlFor="seats-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Number of Seats</label>
+                  <label htmlFor="seats-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
+                    {t(state.locale, 'booking.seats_needed')}
+                  </label>
                   <select
                     id="seats-select"
                     value={seats}
@@ -313,10 +325,10 @@ export function RideDetailView({
                   {ride.approvalMode === 'instant' ? (
                     <>
                       <Sparkle size={18} weight="fill" />
-                      <span>Instant Book Seat ({formatLkr(legCheck.legPriceLkr * seats)})</span>
+                      <span>{t(state.locale, 'booking.instant')} ({formatLkr(legCheck.legPriceLkr * seats)})</span>
                     </>
                   ) : (
-                    <span>Request to Book</span>
+                    <span>{t(state.locale, 'booking.manual')}</span>
                   )}
                 </button>
 
@@ -336,6 +348,7 @@ export function RideDetailView({
           ride={ride}
           booking={bookingConfirmed}
           driver={state.currentUser?.id === ride.driverId ? state.currentUser : undefined}
+          locale={state.locale}
         />
       )}
     </div>

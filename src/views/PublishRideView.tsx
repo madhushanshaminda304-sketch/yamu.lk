@@ -19,7 +19,7 @@ import type {
   VehicleCategory,
   LuggageSize,
 } from '../domain/matching.ts';
-import { formatLkr, getColomboDateOffset } from '../domain/i18n.ts';
+import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 
 export function PublishRideView({
@@ -206,16 +206,24 @@ export function PublishRideView({
               Where are you leaving from and going to?
             </h2>
             <div>
-              <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Leaving from</label>
+              <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
+                {t(state.locale, 'search.from')}
+              </label>
               <select
                 id="publish-origin-select"
                 value={originHubId}
                 onChange={(e) => setOriginHubId(e.target.value)}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               >
-                {HUBS.map((h) => (
-                  <option key={h.id} value={h.id}>{h.name.en} {h.isExpresswayInterchange ? '⚡' : ''}</option>
-                ))}
+                {HUBS.map((h) => {
+                  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+                  const hubName = h.name[langKey] || h.name.en;
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {hubName} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -230,16 +238,24 @@ export function PublishRideView({
               />
             </div>
             <div>
-              <label htmlFor="publish-dest-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Going to</label>
+              <label htmlFor="publish-dest-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
+                {t(state.locale, 'search.to')}
+              </label>
               <select
                 id="publish-dest-select"
                 value={destinationHubId}
                 onChange={(e) => setDestinationHubId(e.target.value)}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               >
-                {HUBS.filter((h) => h.id !== originHubId).map((h) => (
-                  <option key={h.id} value={h.id}>{h.name.en} {h.isExpresswayInterchange ? '⚡' : ''}</option>
-                ))}
+                {HUBS.filter((h) => h.id !== originHubId).map((h) => {
+                  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+                  const hubName = h.name[langKey] || h.name.en;
+                  return (
+                    <option key={h.id} value={h.id}>
+                      {hubName} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -411,7 +427,7 @@ export function PublishRideView({
             <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer', marginBottom: '12px' }}>
                 <input type="checkbox" checked={hasReturnRide} onChange={(e) => setHasReturnRide(e.target.checked)} />
-                <strong>Publish a return ride as well</strong>
+                <strong>{t(state.locale, 'publish.return_trip')}</strong>
               </label>
 
               {hasReturnRide && (
@@ -507,13 +523,13 @@ export function PublishRideView({
 
             <div>
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
-                Luggage & Boot Space Allowed
+                {t(state.locale, 'luggage.title')}
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {[
-                  { key: 'small', label: 'Backpack Only', icon: '🎒', desc: 'No boot space' },
-                  { key: 'medium', label: 'Medium Bag', icon: '🧳', desc: 'Standard suitcase' },
-                  { key: 'large', label: 'Large Luggage', icon: '✈️', desc: 'Airport / surf' },
+                  { key: 'small', label: t(state.locale, 'luggage.backpack'), icon: '🎒', desc: 'No boot space' },
+                  { key: 'medium', label: t(state.locale, 'luggage.medium'), icon: '🧳', desc: 'Standard suitcase' },
+                  { key: 'large', label: t(state.locale, 'luggage.large'), icon: '✈️', desc: 'Airport / surf' },
                 ].map((opt) => {
                   const isSelected = luggage === opt.key;
                   return (

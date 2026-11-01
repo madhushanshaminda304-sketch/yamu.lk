@@ -12,7 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import type { MatchedRideResult } from '../domain/matching.ts';
 import { getHubById } from '../domain/corridors.ts';
-import { formatLkr, formatColomboTime } from '../domain/i18n.ts';
+import { formatLkr, formatColomboTime, t, type LocaleCode } from '../domain/i18n.ts';
 
 export function getDriverInitials(name: string): string {
   return name
@@ -24,9 +24,22 @@ export function getDriverInitials(name: string): string {
     .toUpperCase();
 }
 
-export function RideCardItem({ result }: { result: MatchedRideResult }) {
+export function RideCardItem({
+  result,
+  locale,
+}: {
+  result: MatchedRideResult;
+  locale?: LocaleCode;
+}) {
   const { ride, fromStop, toStop, legPriceLkr, legDurationMinutes, availableSeatsOnLeg, smartTags } = result;
   const navigate = useNavigate();
+  const currentLocale = locale ?? 'en-LK';
+  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
+
+  const fromHub = getHubById(fromStop.hubId);
+  const toHub = getHubById(toStop.hubId);
+  const fromCity = fromHub?.name[langKey] || fromHub?.name.en || fromStop.hubId;
+  const toCity = toHub?.name[langKey] || toHub?.name.en || toStop.hubId;
 
   return (
     <article
@@ -34,7 +47,7 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
       onClick={() => navigate(`/rides/${ride.id}?from=${fromStop.hubId}&to=${toStop.hubId}`)}
       tabIndex={0}
       role="button"
-      aria-label={`Ride from ${getHubById(fromStop.hubId)?.name.en} to ${getHubById(toStop.hubId)?.name.en} with ${ride.driver.name}`}
+      aria-label={`Ride from ${fromCity} to ${toCity} with ${ride.driver.name}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           navigate(`/rides/${ride.id}?from=${fromStop.hubId}&to=${toStop.hubId}`);
@@ -45,11 +58,11 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
         <div className="smart-tags-row">
           {smartTags.map((tag) => (
             <span key={tag} className={`smart-tag ${tag}`}>
-              {tag === 'cheapest_and_earliest' && '★ ⏰ Cheapest & Earliest'}
-              {tag === 'cheapest' && '★ Cheapest'}
-              {tag === 'earliest' && '⏰ Earliest'}
-              {tag === 'fastest' && '⚡ Fastest'}
-              {tag === 'boost' && '✨ Boost Stopover'}
+              {tag === 'cheapest_and_earliest' && `★ ⏰ ${t(currentLocale, 'tag.cheapest_and_earliest')}`}
+              {tag === 'cheapest' && `★ ${t(currentLocale, 'tag.cheapest')}`}
+              {tag === 'earliest' && `⏰ ${t(currentLocale, 'tag.earliest')}`}
+              {tag === 'fastest' && `⚡ ${t(currentLocale, 'tag.fastest')}`}
+              {tag === 'boost' && `✨ ${t(currentLocale, 'tag.boost')}`}
             </span>
           ))}
           {ride.hasTolls && (
@@ -71,7 +84,7 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
           <div className="itinerary-point">
             <span className="itinerary-time">{formatColomboTime(fromStop.departureAt)}</span>
             <div className="itinerary-detail">
-              <span className="itinerary-city">{getHubById(fromStop.hubId)?.name.en}</span>
+              <span className="itinerary-city">{fromCity}</span>
               <span className="itinerary-landmark">{fromStop.pickupLandmark}</span>
             </div>
           </div>
@@ -84,7 +97,7 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
           <div className="itinerary-point">
             <span className="itinerary-time">{formatColomboTime(toStop.arrivalAt)}</span>
             <div className="itinerary-detail">
-              <span className="itinerary-city">{getHubById(toStop.hubId)?.name.en}</span>
+              <span className="itinerary-city">{toCity}</span>
               <span className="itinerary-landmark">{toStop.pickupLandmark}</span>
             </div>
           </div>
@@ -98,11 +111,11 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
           {ride.approvalMode === 'instant' ? (
             <div style={{ fontSize: '12px', color: 'var(--bbc-blue)', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
               <Sparkle size={14} weight="fill" />
-              <span>Instant Booking</span>
+              <span>{t(currentLocale, 'booking.instant')}</span>
             </div>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
-              Request to Book
+              {t(currentLocale, 'booking.manual')}
             </div>
           )}
         </div>
@@ -119,7 +132,7 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
               {ride.driver.isSuperDriver && (
                 <span className="super-driver-badge">
                   <Star size={11} weight="fill" />
-                  Super Driver
+                  {t(currentLocale, 'trust.super_driver')}
                 </span>
               )}
             </div>

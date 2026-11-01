@@ -545,6 +545,7 @@ export function YourRidesView({
           onClose={() => setActivePass(null)}
           ride={activePass.ride}
           booking={activePass.booking}
+          locale={state.locale}
         />
       )}
     </div>

@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner';
 import { YamuIcon } from './YamuLogo.tsx';
 import { getHubById } from '../domain/corridors.ts';
-import { formatLkr } from '../domain/i18n.ts';
+import { formatLkr, t, type LocaleCode } from '../domain/i18n.ts';
 import {
   buildWhatsAppCoordinationUrl,
   buildGoogleMapsLandmarkUrl,
@@ -29,6 +29,7 @@ export interface RidePassModalProps {
   ride: Ride;
   booking: BookingRecord;
   driver?: UserProfile;
+  locale?: LocaleCode;
 }
 
 export const RidePassModal: React.FC<RidePassModalProps> = ({
@@ -37,13 +38,16 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   ride,
   booking,
   driver,
+  locale,
 }) => {
   if (!isOpen) return null;
 
+  const currentLocale = locale ?? 'en-LK';
+  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
-  const fromName = fromHub?.name.en ?? booking.fromHubId;
-  const toName = toHub?.name.en ?? booking.toHubId;
+  const fromName = fromHub?.name[langKey] ?? fromHub?.name.en ?? booking.fromHubId;
+  const toName = toHub?.name[langKey] ?? toHub?.name.en ?? booking.toHubId;
 
   const effectiveDriver: UserProfile = driver ?? {
     id: ride.driver.id,
@@ -109,7 +113,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <YamuIcon size={24} />
-              <span className="font-bold text-lg tracking-wide">Yamu Digital Boarding Pass</span>
+              <span className="font-bold text-lg tracking-wide">Yamu {t(currentLocale, 'ridepass.title')}</span>
             </div>
             <button
               onClick={onClose}
@@ -143,13 +147,13 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           {/* Boarding PIN Banner */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
             <span className="text-xs uppercase tracking-wider text-amber-800 font-semibold block">
-              Passenger Boarding PIN
+              {t(currentLocale, 'ridepass.pin')}
             </span>
             <span className="text-3xl font-mono font-black text-amber-900 tracking-widest block my-1">
               #{boardingPin}
             </span>
             <span className="text-xs text-amber-700">
-              Mention this code to your driver upon entering the car to confirm your seat.
+              {t(currentLocale, 'ridepass.pin_desc')}
             </span>
           </div>
 
@@ -192,7 +196,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           {/* Driver Information Card */}
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
             <span className="text-xs uppercase font-semibold text-gray-500 tracking-wider block mb-2">
-              Driver & Vehicle Information
+              {t(currentLocale, 'ridepass.driver')} & Vehicle Information
             </span>
             <div className="flex items-center justify-between">
               <div>
@@ -246,7 +250,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
             className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow transition"
           >
             <WhatsappLogo size={18} weight="fill" />
-            <span>WhatsApp Driver</span>
+            <span>{t(currentLocale, 'ridepass.whatsapp')}</span>
           </a>
 
           <button
@@ -254,7 +258,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
             className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold text-sm shadow transition"
           >
             <ShareNetwork size={18} weight="bold" />
-            <span>Share with Family</span>
+            <span>{t(currentLocale, 'ridepass.safety_share')}</span>
           </button>
         </div>
       </div>

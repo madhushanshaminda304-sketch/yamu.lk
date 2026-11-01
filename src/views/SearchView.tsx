@@ -308,7 +308,11 @@ export function SearchView({
           ) : (
             <div className="rides-list">
               {results.map((item) => (
-                <RideCardItem key={`${item.ride.id}-${item.fromStop.hubId}-${item.toStop.hubId}`} result={item} />
+                <RideCardItem
+                  key={`${item.ride.id}-${item.fromStop.hubId}-${item.toStop.hubId}`}
+                  result={item}
+                  locale={locale}
+                />
               ))}
             </div>
           )}
