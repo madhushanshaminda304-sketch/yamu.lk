@@ -25,111 +25,73 @@ import {
 } from '../domain/trust.ts';
 import { inspectChatMessage, type ChatInspectionResult } from '../domain/scamGuard.ts';
 import { getColomboDateOffset, type LocaleCode } from '../domain/i18n.ts';
+import {
+  type OtpChallenge,
+  normalizeSriLankanMobile,
+  createOtpChallenge,
+  verifyOtpCode,
+} from '../domain/auth.ts';
 import { buildSeededRides } from './seededRides.ts';
+import {
+  type SettlementMethod,
+  type BookingRecord,
+  type RideAlertSubscription,
+  type ChatMessage,
+  type AppNotification,
+  type UserProfile,
+  type PublishRideInput,
+  type MarketplaceState,
+  SEEDED_USERS,
+} from './types.ts';
 
-export { buildSeededRides };
+export {
+  buildSeededRides,
+  SEEDED_USERS,
+  type SettlementMethod,
+  type BookingRecord,
+  type RideAlertSubscription,
+  type ChatMessage,
+  type AppNotification,
+  type UserProfile,
+  type PublishRideInput,
+  type MarketplaceState,
+};
 
-export type SettlementMethod = 'cash_lkr' | 'lankaqr';
-
-export interface BookingRecord {
-  id: string;
-  rideId: string;
-  passengerId: string;
-  passengerName: string;
-  passengerPhone: string;
-  fromHubId: string;
-  toHubId: string;
-  fromIndex: number;
-  toIndex: number;
-  seats: number;
-  unitPriceLkr: number;
-  totalPriceLkr: number;
-  isBoostLeg: boolean;
-  settlementMethod: SettlementMethod;
-  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
-  message: string;
-  createdAt: string;
+function loadPersistedAuth(): {
+  currentUser: UserProfile | null;
+  registeredUsers: Record<string, UserProfile>;
+} {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem('blablacar_lk_auth_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          currentUser: parsed.currentUser ?? SEEDED_USERS['+94772345678'],
+          registeredUsers: { ...SEEDED_USERS, ...(parsed.registeredUsers || {}) },
+        };
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return {
+    currentUser: SEEDED_USERS['+94772345678'],
+    registeredUsers: { ...SEEDED_USERS },
+  };
 }
 
-export interface RideAlertSubscription {
-  id: string;
-  fromHubId: string;
-  toHubId: string;
-  date: string;
-  email: string;
-  createdAt: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  bookingId: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  createdAt: string;
-}
-
-export interface AppNotification {
-  id: string;
-  title: string;
-  body: string;
-  createdAt: string;
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  nicNumber: string;
-  licenceNumber: string;
-  verifiedPhone: boolean;
-  verifiedNic: boolean;
-  verifiedLicence: boolean;
-  hasProfilePhoto: boolean;
-  bio: string;
-  completedRidesLast12Months: number;
-  overallRating: number;
-  ratingsCount: number;
-  drivingSkillScore: number;
-  cancellationRatePercent: number;
-  avgResponseHours: number;
-  defaultVehicle: string;
-  comfort: ComfortProfile;
-}
-
-export interface PublishRideInput {
-  originHubId: string;
-  destinationHubId: string;
-  corridorId?: string;
-  date: string;
-  departureTime: string; // HH:mm
-  returnDate?: string;
-  returnTime?: string;
-  pickupLandmark: string;
-  dropoffLandmark: string;
-  selectedStopoverHubIds: string[];
-  boostEnabled: boolean;
-  seats: number;
-  priceLkr: number;
-  tollPolicy: TollPolicy;
-  approvalMode: ApprovalMode;
-  vehicleMakeModel: string;
-  vehicleCategory: VehicleCategory;
-  acGuaranteed: boolean;
-  comfort: ComfortProfile;
-  notes: string;
-}
-
-export interface MarketplaceState {
-  locale: LocaleCode;
-  currentUser: UserProfile;
-  rides: Ride[];
-  bookings: BookingRecord[];
-  rideAlerts: RideAlertSubscription[];
-  messages: ChatMessage[];
-  ratings: DoubleBlindRating[];
-  notifications: AppNotification[];
+function persistAuth(currentUser: UserProfile | null, registeredUsers: Record<string, UserProfile>) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(
+        'blablacar_lk_auth_v1',
+        JSON.stringify({ currentUser, registeredUsers })
+      );
+    }
+  } catch {
+    // ignore
+  }
 }
 
 function addMinutesIso(dateStr: string, timeStr: string, minutesToAdd: number): string {
@@ -150,41 +112,14 @@ function addMinutesIso(dateStr: string, timeStr: string, minutesToAdd: number): 
   return `${get('year')}-${get('month')}-${get('day')}T${pad(Number(get('hour')) % 24)}:${get('minute')}:00+05:30`;
 }
 
-
-
 export function createInitialState(): MarketplaceState {
   const tomorrow = getColomboDateOffset(1);
+  const auth = loadPersistedAuth();
   return {
     locale: 'en-LK',
-    currentUser: {
-      id: 'usr-traveller-1',
-      name: 'ashan Jayawardena',
-      email: 'ashan.j@lanka.lk',
-      phone: '+94772345678',
-      nicNumber: '199614502341',
-      licenceNumber: 'B3498210',
-      verifiedPhone: true,
-      verifiedNic: true,
-      verifiedLicence: true,
-      hasProfilePhoto: true,
-      bio: 'Frequent traveller between Colombo, Kandy, and Galle. Always on time!',
-      completedRidesLast12Months: 6,
-      overallRating: 4.88,
-      ratingsCount: 14,
-      drivingSkillScore: 2.9,
-      cancellationRatePercent: 0,
-      avgResponseHours: 0.7,
-      defaultVehicle: 'Honda Civic RS · Sonic Grey',
-      comfort: {
-        chattiness: 'blabla',
-        maxTwoInBack: true,
-        luggage: 'medium',
-        music: 'yes',
-        pets: 'maybe',
-        smoking: 'no',
-        womenOnly: false,
-      },
-    },
+    currentUser: auth.currentUser,
+    registeredUsers: auth.registeredUsers,
+    activeOtpChallenge: null,
     rides: buildSeededRides(tomorrow),
     bookings: [],
     rideAlerts: [],
@@ -619,6 +554,142 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       return bookingRatings.filter((r) => resolveRatingVisibility(r, bothRated, nowIso));
     },
 
+    requestPhoneOtp(phoneInput: string): { ok: boolean; code?: string; error?: string } {
+      const norm = normalizeSriLankanMobile(phoneInput);
+      if (!norm.valid || !norm.phone) {
+        return { ok: false, error: norm.error || 'Invalid Sri Lankan mobile number.' };
+      }
+      const challenge = createOtpChallenge(norm.phone);
+      state = {
+        ...state,
+        activeOtpChallenge: challenge,
+      };
+      notify();
+      return { ok: true, code: challenge.code };
+    },
+
+    verifyPhoneOtp(code: string): { ok: boolean; isNewUser: boolean; error?: string } {
+      if (!state.activeOtpChallenge) {
+        return { ok: false, isNewUser: false, error: 'No active OTP verification. Please enter your mobile number.' };
+      }
+      const res = verifyOtpCode(state.activeOtpChallenge, code);
+      if (!res.ok) {
+        state = {
+          ...state,
+          activeOtpChallenge: res.updatedChallenge,
+        };
+        notify();
+        return { ok: false, isNewUser: false, error: res.error };
+      }
+
+      const phone = state.activeOtpChallenge.phone;
+      const existingUser = state.registeredUsers[phone];
+
+      if (existingUser) {
+        const verifiedUser: UserProfile = {
+          ...existingUser,
+          verifiedPhone: true,
+        };
+        const updatedRegistered = {
+          ...state.registeredUsers,
+          [phone]: verifiedUser,
+        };
+        state = {
+          ...state,
+          currentUser: verifiedUser,
+          registeredUsers: updatedRegistered,
+          activeOtpChallenge: null,
+        };
+        persistAuth(state.currentUser, state.registeredUsers);
+        notify();
+        return { ok: true, isNewUser: false };
+      }
+
+      state = {
+        ...state,
+        activeOtpChallenge: res.updatedChallenge,
+      };
+      notify();
+      return { ok: true, isNewUser: true };
+    },
+
+    completeRegistration(name: string, nic?: string): { ok: boolean; error?: string } {
+      if (!state.activeOtpChallenge || !state.activeOtpChallenge.isVerified) {
+        return { ok: false, error: 'Phone number has not been verified.' };
+      }
+      const trimmedName = name.trim();
+      if (trimmedName.length < 2) {
+        return { ok: false, error: 'Please enter your full name.' };
+      }
+
+      let isNicValid = false;
+      let cleanNic = '';
+      if (nic && nic.trim()) {
+        cleanNic = nic.trim().toUpperCase();
+        const check = validateSriLankaNic(cleanNic);
+        if (!check.valid) {
+          return { ok: false, error: 'Please enter a valid Sri Lankan NIC (e.g. 199614502341 or 961452341V).' };
+        }
+        isNicValid = true;
+      }
+
+      const phone = state.activeOtpChallenge.phone;
+      const newUser: UserProfile = {
+        id: `usr-${Date.now()}`,
+        name: trimmedName,
+        email: '',
+        phone,
+        nicNumber: cleanNic,
+        licenceNumber: '',
+        verifiedPhone: true,
+        verifiedNic: isNicValid,
+        verifiedLicence: false,
+        hasProfilePhoto: false,
+        bio: 'Commuter on BlaBlaLanka.',
+        completedRidesLast12Months: 0,
+        overallRating: 5.0,
+        ratingsCount: 0,
+        drivingSkillScore: 3.0,
+        cancellationRatePercent: 0,
+        avgResponseHours: 1.0,
+        defaultVehicle: '',
+        comfort: {
+          chattiness: 'blabla',
+          maxTwoInBack: true,
+          luggage: 'medium',
+          music: 'yes',
+          pets: 'no',
+          smoking: 'no',
+          womenOnly: false,
+        },
+      };
+
+      const updatedRegistered = {
+        ...state.registeredUsers,
+        [phone]: newUser,
+      };
+
+      state = {
+        ...state,
+        currentUser: newUser,
+        registeredUsers: updatedRegistered,
+        activeOtpChallenge: null,
+      };
+      persistAuth(state.currentUser, state.registeredUsers);
+      notify();
+      return { ok: true };
+    },
+
+    logout(): void {
+      state = {
+        ...state,
+        currentUser: null,
+        activeOtpChallenge: null,
+      };
+      persistAuth(null, state.registeredUsers);
+      notify();
+    },
+
     updateUserVerification(input: {
       name: string;
       phone: string;
@@ -628,6 +699,9 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       bio: string;
       comfort: ComfortProfile;
     }): { ok: boolean; error?: string } {
+      if (!state.currentUser) {
+        return { ok: false, error: 'You must be signed in to update verification details.' };
+      }
       if (!validateSriLankaPhone(input.phone)) {
         return { ok: false, error: 'Enter a valid Sri Lankan mobile number (+947XXXXXXXX).' };
       }
@@ -639,22 +713,31 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         };
       }
 
+      const updatedUser: UserProfile = {
+        ...state.currentUser,
+        name: input.name.trim(),
+        phone: input.phone.trim(),
+        nicNumber: input.nicNumber.trim().toUpperCase(),
+        licenceNumber: input.licenceNumber.trim().toUpperCase(),
+        defaultVehicle: input.defaultVehicle.trim(),
+        bio: input.bio.trim(),
+        verifiedPhone: true,
+        verifiedNic: true,
+        verifiedLicence: input.licenceNumber.trim().length >= 5,
+        comfort: input.comfort,
+      };
+
+      const updatedRegistered = {
+        ...state.registeredUsers,
+        [updatedUser.phone]: updatedUser,
+      };
+
       state = {
         ...state,
-        currentUser: {
-          ...state.currentUser,
-          name: input.name.trim(),
-          phone: input.phone.trim(),
-          nicNumber: input.nicNumber.trim().toUpperCase(),
-          licenceNumber: input.licenceNumber.trim().toUpperCase(),
-          defaultVehicle: input.defaultVehicle.trim(),
-          bio: input.bio.trim(),
-          verifiedPhone: true,
-          verifiedNic: true,
-          verifiedLicence: input.licenceNumber.trim().length >= 5,
-          comfort: input.comfort,
-        },
+        currentUser: updatedUser,
+        registeredUsers: updatedRegistered,
       };
+      persistAuth(state.currentUser, state.registeredUsers);
       notify();
       return { ok: true };
     },
