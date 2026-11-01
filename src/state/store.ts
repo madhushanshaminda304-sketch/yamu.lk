@@ -162,6 +162,11 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
     },
 
     publishRide(input: PublishRideInput): Ride {
+      if (!state.currentUser) {
+        throw new Error('You must be signed in to publish a ride.');
+      }
+      const currentUser = state.currentUser;
+
       const routeOptions = findRouteOptions(input.originHubId, input.destinationHubId);
       const selectedRoute =
         routeOptions.find((r) => r.corridorId === input.corridorId) ?? routeOptions[0];
@@ -214,20 +219,20 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       });
 
       const superStatus = evaluateSuperDriver({
-        verifiedPhone: state.currentUser.verifiedPhone,
-        verifiedNic: state.currentUser.verifiedNic,
-        verifiedLicence: state.currentUser.verifiedLicence,
-        hasProfilePhoto: state.currentUser.hasProfilePhoto,
-        completedRidesLast12Months: state.currentUser.completedRidesLast12Months,
-        overallRating: state.currentUser.overallRating,
-        drivingSkillScore: state.currentUser.drivingSkillScore,
-        cancellationRatePercent: state.currentUser.cancellationRatePercent,
-        avgResponseHours: state.currentUser.avgResponseHours,
+        verifiedPhone: currentUser.verifiedPhone,
+        verifiedNic: currentUser.verifiedNic,
+        verifiedLicence: currentUser.verifiedLicence,
+        hasProfilePhoto: currentUser.hasProfilePhoto,
+        completedRidesLast12Months: currentUser.completedRidesLast12Months,
+        overallRating: currentUser.overallRating,
+        drivingSkillScore: currentUser.drivingSkillScore,
+        cancellationRatePercent: currentUser.cancellationRatePercent,
+        avgResponseHours: currentUser.avgResponseHours,
       });
 
       const newRide: Ride = {
         id: `ride-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        driverId: state.currentUser.id,
+        driverId: currentUser.id,
         corridorId: selectedRoute.corridorId,
         corridorCode: selectedRoute.corridorCode,
         corridorName: selectedRoute.corridorName,
@@ -248,25 +253,25 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         approvalMode: input.approvalMode,
         boostEnabled: input.boostEnabled,
         vehicle: {
-          makeModel: input.vehicleMakeModel || state.currentUser.defaultVehicle,
+          makeModel: input.vehicleMakeModel || currentUser.defaultVehicle,
           category: input.vehicleCategory,
           plateHint: 'WP CBX-92xx',
           acGuaranteed: input.acGuaranteed,
         },
         comfort: input.comfort,
         driver: {
-          id: state.currentUser.id,
-          name: state.currentUser.name,
-          rating: state.currentUser.overallRating,
-          ratingsCount: state.currentUser.ratingsCount,
-          drivingSkillScore: state.currentUser.drivingSkillScore,
-          completedRides: state.currentUser.completedRidesLast12Months,
-          verifiedPhone: state.currentUser.verifiedPhone,
-          verifiedNic: state.currentUser.verifiedNic,
-          verifiedLicence: state.currentUser.verifiedLicence,
+          id: currentUser.id,
+          name: currentUser.name,
+          rating: currentUser.overallRating,
+          ratingsCount: currentUser.ratingsCount,
+          drivingSkillScore: currentUser.drivingSkillScore,
+          completedRides: currentUser.completedRidesLast12Months,
+          verifiedPhone: currentUser.verifiedPhone,
+          verifiedNic: currentUser.verifiedNic,
+          verifiedLicence: currentUser.verifiedLicence,
           isSuperDriver: superStatus.isSuperDriver,
-          responseHours: state.currentUser.avgResponseHours,
-          bio: state.currentUser.bio,
+          responseHours: currentUser.avgResponseHours,
+          bio: currentUser.bio,
         },
         notes: input.notes,
         status: 'published',
@@ -307,6 +312,11 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       settlementMethod: SettlementMethod;
       message: string;
     }): BookingRecord {
+      if (!state.currentUser) {
+        throw new Error('You must be signed in to book a seat.');
+      }
+      const currentUser = state.currentUser;
+
       const ride = state.rides.find((r) => r.id === input.rideId);
       if (!ride) {
         throw new Error('Ride not found.');
@@ -325,9 +335,9 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       const booking: BookingRecord = {
         id: `bk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         rideId: ride.id,
-        passengerId: state.currentUser.id,
-        passengerName: state.currentUser.name,
-        passengerPhone: state.currentUser.phone,
+        passengerId: currentUser.id,
+        passengerName: currentUser.name,
+        passengerPhone: currentUser.phone,
         fromHubId: input.fromHubId,
         toHubId: input.toHubId,
         fromIndex: check.fromIndex,
@@ -347,8 +357,8 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
             {
               id: `msg-${Date.now()}`,
               bookingId: booking.id,
-              senderId: state.currentUser.id,
-              senderName: state.currentUser.name,
+              senderId: currentUser.id,
+              senderName: currentUser.name,
               text: booking.message,
               createdAt: new Date().toISOString(),
             },
@@ -463,6 +473,11 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
     },
 
     sendMessage(bookingId: string, text: string): ChatInspectionResult {
+      if (!state.currentUser) {
+        return { allowed: false, warnings: ['You must be signed in to send messages.'], sanitizedText: text };
+      }
+      const currentUser = state.currentUser;
+
       const inspection = inspectChatMessage(text);
       if (!inspection.allowed) {
         return inspection;
@@ -471,8 +486,8 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       const msg: ChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
         bookingId,
-        senderId: state.currentUser.id,
-        senderName: state.currentUser.name,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
         text: inspection.sanitizedText,
         createdAt: new Date().toISOString(),
       };
@@ -529,9 +544,10 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         return r;
       });
 
-      const updatedCurrentUser = state.currentUser.id === input.toUserId
-        ? { ...state.currentUser, rating: avgStars, ratingsCount: ratingCount }
-        : state.currentUser;
+      const updatedCurrentUser =
+        state.currentUser && state.currentUser.id === input.toUserId
+          ? { ...state.currentUser, overallRating: avgStars, ratingsCount: ratingCount }
+          : state.currentUser;
 
       state = {
         ...state,
