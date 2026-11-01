@@ -2,7 +2,7 @@
 
 **Date**: 2026-11-01  
 **Project**: BlaBlaCar Sri Lanka (`blablacar-lk`)  
-**Status**: Pending Approval  
+**Status**: Ready for Approval  
 
 ---
 
@@ -20,9 +20,12 @@ Verifying the mobile number establishes the foundation of the trust economy: it 
 - **Passwordless Mobile Login**: Enter Sri Lankan mobile number (`+9471...`, `+9477...`, etc.) and receive a 6-digit OTP to authenticate.
 - **Auto-Onboarding for New Commuters**: If the phone number is new, seamlessly prompt for full name and optional NIC number.
 - **Trust Badge Elevation**: Automatically mark `verifiedPhone: true` upon successful OTP entry, updating the user's trust profile and Super Driver eligibility.
-- **Contextual Auth Gating**: Allow unauthenticated guests to search rides, inspect routes, and calculate fares; prompt for sign-in only when attempting to publish a ride, book a seat, or message a driver, then resume the interrupted action.
+- **Contextual Auth Gating**: 
+  - Guests can search rides, inspect routes, and calculate fares without logging in.
+  - Clicking "Publish a Ride" prompts sign-in upfront and redirects directly into `/publish` upon completion.
+  - Clicking "Book Seat" prompts sign-in and resumes the booking confirmation seamlessly.
 - **Interactive Developer Experience**: Deliver realistic OTP verification in client-side / preview mode using Emil Kowalski's `sonner` toasts with a 60-second resend cooldown and a 1-click "Auto-fill OTP" action.
-- **Session Persistence**: Persist the authenticated user session in browser storage (`localStorage`) with a clear "Sign Out" option in the navigation header and profile.
+- **Session & User Registry Persistence**: Persist the authenticated user session and all registered users in browser storage (`localStorage`) so returning commuters logging out and back in retain their identity, bookings, and verified badges.
 
 ### Non-Goals
 - Integration with paid external telecom SMS aggregators (e.g., Dialog/Mobitel Ideamart or Twilio SMS API) in this iteration—the OTP engine runs via client-side simulation with extensible provider hooks.
@@ -56,14 +59,21 @@ Verifying the mobile number establishes the foundation of the trust economy: it 
     expiresAt: number; // Unix timestamp (5 minutes)
     resendAvailableAt: number; // Unix timestamp (60 seconds)
     attemptsRemaining: number; // Max 3
+    isVerified?: boolean;
   }
   ```
 - **Validation**: Strict validation of Sri Lankan mobile numbers via regex:
   `^(\+94|0)?7[0-9]{8}$` (normalizing to international E.164 format `+947XXXXXXXX`).
 - **Store Extensions**:
-  - `currentUser: UserProfile | null` (supports unauthenticated guest state).
+  - `currentUser: UserProfile | null` (supports unauthenticated guest state, defaults to `null` or saved session).
+  - `registeredUsers: Record<string, UserProfile>` (seeded with Ashan `+94772345678` and Kavindi `+94719876543`, persisted to `localStorage`).
   - `activeOtpChallenge: OtpChallenge | null`.
-  - Actions: `requestPhoneOtp(phone)`, `verifyPhoneOtp(code, newUserData?)`, `logout()`, `updateUserVerification(...)`.
+  - Actions:
+    - `requestPhoneOtp(phone: string): { ok: boolean; error?: string }`
+    - `verifyPhoneOtp(code: string): { ok: boolean; isNewUser: boolean; error?: string }`
+    - `completeRegistration(name: string, nic?: string): { ok: boolean; error?: string }`
+    - `logout(): void`
+    - `updateUserVerification(...)`
 
 ### B. User Interface & Modals (`src/components/AuthModal.tsx`, `src/App.tsx`)
 - **`AuthModal`**:
@@ -80,8 +90,11 @@ Verifying the mobile number establishes the foundation of the trust economy: it 
 
 ---
 
-## 5. What is Left to the Builder
+## 5. Builder Calls & Settle Decisions (Post-Check)
 
-- Exact styling tokens matching BlaBlaCar brand colors (`#00aff5` primary, `#054752` navy).
-- Unit tests covering OTP expiration, attempt exhaustion, phone normalization, and user session persistence.
-- Component breakdown ensuring `<800` lines per file.
+1. **User Identity Registry**: `registeredUsers: Record<string, UserProfile>` is added to `MarketplaceState` and synced with `localStorage`. Ashan Jayawardena (`+94772345678`) is pre-seeded as an existing registered Super Driver.
+2. **Two-Phase OTP Verification**: 
+   - `verifyPhoneOtp(code)` validates the OTP immediately. If the phone is already in `registeredUsers`, login completes instantly.
+   - If the phone is unregistered, `isNewUser: true` is returned, transitioning the modal to Step 3, where `completeRegistration(name, nic)` creates the profile and finalizes login.
+3. **Publish Ride Gating**: Gated at entry. Clicking "Publish a Ride" opens `AuthModal`; once verified, the user is navigated into the 6-step wizard with their profile pre-filled.
+4. **Data Scoping**: In `YourRidesView`, bookings are filtered by `passengerId === currentUser?.id` (or driver rides matching `driverId === currentUser?.id`). Unauthenticated users navigating to `/rides` see an empty state prompting them to sign in.
