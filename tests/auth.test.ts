@@ -48,4 +48,15 @@ test('verifyOtpCode succeeds on valid code, fails on wrong code, and tracks atte
   const rSuccess = verifyOtpCode(r2.updatedChallenge, challenge.code, now);
   assert.equal(rSuccess.ok, true);
   assert.equal(rSuccess.updatedChallenge.isVerified, true);
+
+  // 5. Exhausted attempts: 3rd wrong code must exhaust challenge
+  const r3 = verifyOtpCode(r2.updatedChallenge, '222222', now);
+  assert.equal(r3.ok, false);
+  assert.equal(r3.updatedChallenge.attemptsRemaining, 0);
+  assert.equal(r3.exhausted, true);
+
+  // Subsequent verification attempts on exhausted challenge must fail
+  const rPostExhaust = verifyOtpCode(r3.updatedChallenge, challenge.code, now);
+  assert.equal(rPostExhaust.ok, false);
+  assert.equal(rPostExhaust.exhausted, true);
 });

@@ -97,6 +97,7 @@ export function verifyOtpCode(
     const remaining = challenge.attemptsRemaining - 1;
     return {
       ok: false,
+      exhausted: remaining <= 0,
       error: remaining > 0
         ? `Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
         : 'Too many incorrect attempts. Please request a new code.',

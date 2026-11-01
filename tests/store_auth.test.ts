@@ -38,3 +38,19 @@ test('Store manages guest state, OTP request, verification, and new user onboard
   assert.equal(store.getState().currentUser?.verifiedPhone, true);
   assert.equal(store.getState().currentUser?.verifiedNic, true);
 });
+
+test('Store enforces 60-second resend cooldown on repeated OTP requests', () => {
+  const store = createMarketplaceStore();
+  const now = 1700000000000;
+  const res1 = store.requestPhoneOtp('0771234567', now);
+  assert.equal(res1.ok, true);
+
+  // Calling again 10 seconds later must be blocked by cooldown
+  const res2 = store.requestPhoneOtp('0771234567', now + 10000);
+  assert.equal(res2.ok, false);
+  assert.match(res2.error || '', /wait 50 seconds/i);
+
+  // Calling 61 seconds later must succeed
+  const res3 = store.requestPhoneOtp('0771234567', now + 61000);
+  assert.equal(res3.ok, true);
+});

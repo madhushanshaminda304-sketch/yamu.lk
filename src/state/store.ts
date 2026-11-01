@@ -67,7 +67,7 @@ function loadPersistedAuth(): {
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          currentUser: parsed.currentUser ?? SEEDED_USERS['+94772345678'],
+          currentUser: 'currentUser' in parsed ? parsed.currentUser : SEEDED_USERS['+94772345678'],
           registeredUsers: { ...SEEDED_USERS, ...(parsed.registeredUsers || {}) },
         };
       }
@@ -474,7 +474,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 
     sendMessage(bookingId: string, text: string): ChatInspectionResult {
       if (!state.currentUser) {
-        return { allowed: false, warnings: ['You must be signed in to send messages.'], sanitizedText: text };
+        return { allowed: false, warningMessage: 'You must be signed in to send messages.', sanitizedText: text };
       }
       const currentUser = state.currentUser;
 
@@ -570,12 +570,26 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       return bookingRatings.filter((r) => resolveRatingVisibility(r, bothRated, nowIso));
     },
 
-    requestPhoneOtp(phoneInput: string): { ok: boolean; code?: string; error?: string } {
+    requestPhoneOtp(phoneInput: string, now = Date.now()): { ok: boolean; code?: string; error?: string } {
       const norm = normalizeSriLankanMobile(phoneInput);
       if (!norm.valid || !norm.phone) {
         return { ok: false, error: norm.error || 'Invalid Sri Lankan mobile number.' };
       }
-      const challenge = createOtpChallenge(norm.phone);
+
+      if (
+        state.activeOtpChallenge &&
+        state.activeOtpChallenge.phone === norm.phone &&
+        state.activeOtpChallenge.attemptsRemaining > 0 &&
+        now < state.activeOtpChallenge.resendAvailableAt
+      ) {
+        const waitSeconds = Math.ceil((state.activeOtpChallenge.resendAvailableAt - now) / 1000);
+        return {
+          ok: false,
+          error: `Please wait ${waitSeconds} second${waitSeconds === 1 ? '' : 's'} before requesting a new code.`,
+        };
+      }
+
+      const challenge = createOtpChallenge(norm.phone, now);
       state = {
         ...state,
         activeOtpChallenge: challenge,
