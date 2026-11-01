@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { t } from './domain/i18n.ts';
 import { createMarketplaceStore } from './state/store.ts';
 import { AuthModal } from './components/AuthModal.tsx';
+import { YamuBrand } from './components/YamuLogo.tsx';
 
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
@@ -56,9 +57,8 @@ export default function App() {
 
       <header className="site-header">
         <div className="shell header-inner">
-          <Link to="/" className="brand" aria-label="BlaBlaLanka Home">
-            BlaBla<span className="brand-dot">Lanka</span>
-            <span className="brand-badge">Sri Lanka</span>
+          <Link to="/" style={{ textDecoration: 'none' }} aria-label="Yamu Home">
+            <YamuBrand />
           </Link>
 
           <nav className="nav-links">
@@ -145,11 +145,11 @@ export default function App() {
         <div className="shell">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px', marginBottom: '40px' }}>
             <div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#00aff5', marginBottom: '12px' }}>
-                BlaBlaLanka
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#00aff5', marginBottom: '12px' }}>
+                yamu<span style={{ color: '#ffffff' }}>.lk</span>
               </div>
               <p style={{ color: '#b2c8cc', fontSize: '14px', lineHeight: 1.6 }}>
-                Sri Lanka’s trusted intercity carpooling network. Share travel costs fairly on Southern Expressway, Central Corridor, and A9.
+                Sri Lanka’s trusted intercity carpooling network. Share travel costs fairly on Southern Expressway (E01), Central Corridor (E04), and A9.
               </p>
             </div>
             <div>
@@ -172,7 +172,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', fontSize: '13px', color: '#8fa5a9', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <span>© {new Date().getFullYear()} BlaBlaLanka Carpooling. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Yamu.lk Carpooling. All rights reserved.</span>
             <span>Made for Sri Lanka · LKR Cost-Sharing Marketplace</span>
           </div>
         </div>
