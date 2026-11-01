@@ -233,6 +233,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       if (input.returnTripEnabled) {
         returnRide = buildReturnRide(input, newRide, currentUser, clampedPriceLkr, recommendedLkr);
         newRide.returnRideId = returnRide.id;
+        returnRide.returnRideId = newRide.id;
       }
 
       // Check if any RideAlert matches any leg on this newly published ride

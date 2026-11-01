@@ -105,6 +105,7 @@ test('return trip publishing & luggage capacity', async (t) => {
     assert.equal(returnRide?.fullPriceLkr, 2500);
     assert.equal(returnRide?.corridorId, 'e01-southern-expressway');
     assert.equal(returnRide?.luggageCapacity, 'medium');
+    assert.equal(returnRide?.returnRideId, outbound?.id);
   });
 
   await t.test('rejects return trip scheduled before outbound arrival + 30m', () => {

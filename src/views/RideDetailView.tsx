@@ -195,7 +195,7 @@ export function RideDetailView({
               <div><strong>AC:</strong> {ride.vehicle.acGuaranteed ? 'Guaranteed AC' : 'Standard Ventilation'}</div>
               <div><strong>Backseat:</strong> {ride.comfort.maxTwoInBack ? 'Max 2 in the back (Spacious)' : 'Standard 3 in back'}</div>
               <div><strong>Chattiness:</strong> {ride.comfort.chattiness === 'bla' ? 'Quiet type' : ride.comfort.chattiness === 'blabla' ? 'Chatty based on mood' : 'Loves to chat!'}</div>
-              <div><strong>Luggage:</strong> {ride.comfort.luggage.toUpperCase()} bag allowed</div>
+              <div><strong>Luggage:</strong> {(ride.luggageCapacity ?? ride.comfort?.luggage ?? 'medium').toUpperCase()} bag allowed</div>
               <div><strong>Women Only:</strong> {ride.comfort.womenOnly ? 'Yes (Ladies Only)' : 'All travellers welcome'}</div>
               <div><strong>Music:</strong> {ride.comfort.music === 'yes' ? 'Playlist on' : 'Quiet cabin'}</div>
               <div><strong>Smoking:</strong> {ride.comfort.smoking === 'yes' ? 'Allowed' : 'Strictly No smoking'}</div>

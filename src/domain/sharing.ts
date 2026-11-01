@@ -2,6 +2,16 @@ import { getHubById } from './corridors.ts';
 import type { Ride } from './matching.ts';
 import type { BookingRecord, UserProfile } from '../state/types.ts';
 
+export function normalizeWhatsAppPhone(phone: string): string {
+  let clean = phone.replace(/\D/g, '');
+  if (clean.startsWith('0')) {
+    clean = `94${clean.slice(1)}`;
+  } else if (!clean.startsWith('94') && clean.length === 9) {
+    clean = `94${clean}`;
+  }
+  return clean;
+}
+
 export function deriveBoardingPin(bookingId: string): string {
   const digits = bookingId.replace(/\D/g, '');
   if (digits.length >= 4) {
@@ -21,7 +31,7 @@ export function buildWhatsAppCoordinationUrl(
   booking: BookingRecord,
   pickupLandmark: string
 ): string {
-  const cleanPhone = driverPhone.replace(/\D/g, '');
+  const cleanPhone = normalizeWhatsAppPhone(driverPhone);
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
   const fromName = fromHub?.name.en ?? booking.fromHubId;

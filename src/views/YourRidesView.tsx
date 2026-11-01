@@ -14,6 +14,7 @@ import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, formatColomboDate } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state/store.ts';
 import type { Ride } from '../domain/matching.ts';
+import { buildWhatsAppCoordinationUrl } from '../domain/sharing.ts';
 import { RidePassModal } from '../components/RidePassModal.tsx';
 
 export function YourRidesView({
@@ -216,7 +217,12 @@ export function YourRidesView({
                           </button>
 
                           <a
-                            href={`https://wa.me/${driverPhoneDigits}?text=${encodeURIComponent(`Hi ${ride.driver.name}, joining your ${fromName} to ${toName} Yamu ride!`)}`}
+                            href={buildWhatsAppCoordinationUrl(
+                              ride.driver.phone || '+94772345678',
+                              ride,
+                              bk,
+                              ride.stops[bk.fromIndex]?.pickupLandmark || fromName
+                            )}
                             target="_blank"
                             rel="noreferrer"
                             className="btn-secondary btn-sm"

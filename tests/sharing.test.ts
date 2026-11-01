@@ -5,6 +5,7 @@ import {
   buildGoogleMapsLandmarkUrl,
   deriveBoardingPin,
   buildSafetyShareText,
+  shareTripDetails,
 } from '../src/domain/sharing.ts';
 import type { Ride } from '../src/domain/matching.ts';
 import type { BookingRecord, UserProfile } from '../src/state/types.ts';
@@ -114,6 +115,14 @@ test('sharing & navigation domain', async (t) => {
     assert.equal(url.includes('Kamal%20Perera'), true);
   });
 
+  await t.test('normalizes local 07X and 7X phone numbers to 947X for wa.me link', () => {
+    const urlFrom0 = buildWhatsAppCoordinationUrl('077 123 4567', dummyRide, dummyBooking, 'Makumbura MMC');
+    assert.equal(urlFrom0.startsWith('https://wa.me/94771234567?text='), true);
+
+    const urlFrom7 = buildWhatsAppCoordinationUrl('771234567', dummyRide, dummyBooking, 'Makumbura MMC');
+    assert.equal(urlFrom7.startsWith('https://wa.me/94771234567?text='), true);
+  });
+
   await t.test('generates Google Maps coordinate URL when lat/lng are provided', () => {
     const url = buildGoogleMapsLandmarkUrl('Makumbura MMC', 6.8412, 79.9684);
     assert.equal(url, 'https://www.google.com/maps/search/?api=1&query=6.8412%2C79.9684');
@@ -140,5 +149,57 @@ test('sharing & navigation domain', async (t) => {
     assert.equal(text.includes('Ashan Jayawardena'), true);
     assert.equal(text.includes('Toyota Aqua - Silver'), true);
     assert.equal(text.includes('Boarding PIN: #2419'), true);
+  });
+
+  await t.test('shareTripDetails returns cancelled without error on AbortError', async () => {
+    const originalNavigator = globalThis.navigator;
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        share: async () => {
+          const err = new Error('Share sheet cancelled');
+          err.name = 'AbortError';
+          throw err;
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+
+    const res = await shareTripDetails('Test share');
+    assert.equal(res.success, false);
+    assert.equal(res.method, 'cancelled');
+
+    Object.defineProperty(globalThis, 'navigator', {
+      value: originalNavigator,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  await t.test('shareTripDetails falls back to clipboard when navigator.share is unavailable', async () => {
+    const originalNavigator = globalThis.navigator;
+    let copiedText = '';
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        clipboard: {
+          writeText: async (text: string) => {
+            copiedText = text;
+          },
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+
+    const res = await shareTripDetails('Safety message for family');
+    assert.equal(res.success, true);
+    assert.equal(res.method, 'clipboard');
+    assert.equal(copiedText, 'Safety message for family');
+
+    Object.defineProperty(globalThis, 'navigator', {
+      value: originalNavigator,
+      configurable: true,
+      writable: true,
+    });
   });
 });
