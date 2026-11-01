@@ -41,58 +41,26 @@ import {
   type UserProfile,
   type PublishRideInput,
   type MarketplaceState,
+  type LuggageCapacity,
+  type Booking,
   SEEDED_USERS,
 } from './types.ts';
+import { loadPersistedAuth, persistAuth } from './persistence.ts';
 
 export {
   buildSeededRides,
   SEEDED_USERS,
   type SettlementMethod,
   type BookingRecord,
+  type Booking,
   type RideAlertSubscription,
   type ChatMessage,
   type AppNotification,
   type UserProfile,
   type PublishRideInput,
   type MarketplaceState,
+  type LuggageCapacity,
 };
-
-function loadPersistedAuth(): {
-  currentUser: UserProfile | null;
-  registeredUsers: Record<string, UserProfile>;
-} {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const stored = window.localStorage.getItem('blablacar_lk_auth_v1');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          currentUser: 'currentUser' in parsed ? parsed.currentUser : SEEDED_USERS['+94772345678'],
-          registeredUsers: { ...SEEDED_USERS, ...(parsed.registeredUsers || {}) },
-        };
-      }
-    }
-  } catch {
-    // fallback
-  }
-  return {
-    currentUser: SEEDED_USERS['+94772345678'],
-    registeredUsers: { ...SEEDED_USERS },
-  };
-}
-
-function persistAuth(currentUser: UserProfile | null, registeredUsers: Record<string, UserProfile>) {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(
-        'blablacar_lk_auth_v1',
-        JSON.stringify({ currentUser, registeredUsers })
-      );
-    }
-  } catch {
-    // ignore
-  }
-}
 
 function addMinutesIso(dateStr: string, timeStr: string, minutesToAdd: number): string {
   const base = new Date(`${dateStr}T${timeStr}:00+05:30`);

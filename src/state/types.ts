@@ -1,9 +1,10 @@
-import type { Ride, ComfortProfile, VehicleCategory, ApprovalMode } from '../domain/matching.ts';
+import type { Ride, ComfortProfile, VehicleCategory, ApprovalMode, LuggageSize } from '../domain/matching.ts';
 import type { TollPolicy } from '../domain/pricing.ts';
 import type { DoubleBlindRating } from '../domain/trust.ts';
 import type { LocaleCode } from '../domain/i18n.ts';
 import type { OtpChallenge } from '../domain/auth.ts';
 
+export type LuggageCapacity = LuggageSize;
 export type SettlementMethod = 'cash_lkr' | 'lankaqr';
 
 export interface BookingRecord {
@@ -25,6 +26,8 @@ export interface BookingRecord {
   message: string;
   createdAt: string;
 }
+
+export type Booking = BookingRecord;
 
 export interface RideAlertSubscription {
   id: string;
@@ -79,6 +82,7 @@ export interface PublishRideInput {
   corridorId?: string;
   date: string;
   departureTime: string; // HH:mm
+  returnTripEnabled?: boolean;
   returnDate?: string;
   returnTime?: string;
   pickupLandmark: string;
@@ -93,6 +97,7 @@ export interface PublishRideInput {
   vehicleCategory: VehicleCategory;
   acGuaranteed: boolean;
   comfort: ComfortProfile;
+  luggageCapacity?: LuggageCapacity;
   notes: string;
 }
 

@@ -74,6 +74,7 @@ export interface Ride {
   stops: RideStop[];
   approvalMode: ApprovalMode;
   boostEnabled: boolean;
+  luggageCapacity?: LuggageSize;
   vehicle: VehicleInfo;
   comfort: ComfortProfile;
   driver: DriverSummary;
