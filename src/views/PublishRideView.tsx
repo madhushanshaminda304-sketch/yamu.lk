@@ -99,6 +99,9 @@ export function PublishRideView({
         corridorId: selectedCorridorId || activeRoute?.corridorId,
         date,
         departureTime,
+        returnTripEnabled: hasReturnRide,
+        returnDate: hasReturnRide ? returnDate : undefined,
+        returnTime: hasReturnRide ? returnTime : undefined,
         pickupLandmark,
         dropoffLandmark,
         selectedStopoverHubIds: selectedStopovers,
@@ -119,42 +122,16 @@ export function PublishRideView({
           smoking: 'no',
           womenOnly,
         },
+        luggageCapacity: luggage,
         notes,
       });
 
-      if (hasReturnRide) {
-        store.publishRide({
-          originHubId: destinationHubId,
-          destinationHubId: originHubId,
-          corridorId: selectedCorridorId || activeRoute?.corridorId,
-          date: returnDate,
-          departureTime: returnTime,
-          pickupLandmark: dropoffLandmark || 'Main Station Area',
-          dropoffLandmark: pickupLandmark || 'Main Station Area',
-          selectedStopoverHubIds: [...selectedStopovers].reverse(),
-          boostEnabled,
-          seats,
-          priceLkr,
-          tollPolicy: activeRoute?.hasTolls ? tollPolicy : 'no_tolls',
-          approvalMode,
-          vehicleMakeModel: vehicleModel,
-          vehicleCategory,
-          acGuaranteed,
-          comfort: {
-            chattiness: 'blabla',
-            maxTwoInBack,
-            luggage,
-            music: 'yes',
-            pets: 'no',
-            smoking: 'no',
-            womenOnly,
-          },
-          notes: `${notes} (Return journey)`,
-        });
-      }
-
       setPublishedRide(newRide);
-      toast.success(hasReturnRide ? 'Outbound and Return rides published successfully!' : 'Ride published successfully along corridor!');
+      toast.success(
+        hasReturnRide
+          ? 'Outbound and Return rides published successfully!'
+          : 'Ride published successfully along corridor!'
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to publish ride.');
     }
@@ -409,7 +386,13 @@ export function PublishRideView({
                 type="date"
                 min={getColomboDateOffset(0)}
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  const newDate = e.target.value;
+                  setDate(newDate);
+                  if (returnDate < newDate) {
+                    setReturnDate(newDate);
+                  }
+                }}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               />
             </div>
@@ -520,16 +503,40 @@ export function PublishRideView({
                 <input type="checkbox" checked={womenOnly} onChange={(e) => setWomenOnly(e.target.checked)} />
                 <span>Women Only Ride</span>
               </label>
-              <div>
-                <select
-                  value={luggage}
-                  onChange={(e) => setLuggage(e.target.value as LuggageSize)}
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '14px' }}
-                >
-                  <option value="small">Small Bag Only</option>
-                  <option value="medium">Medium Bag Included</option>
-                  <option value="large">Large Suitcase Allowed</option>
-                </select>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
+                Luggage & Boot Space Allowed
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                {[
+                  { key: 'small', label: 'Backpack Only', icon: '🎒', desc: 'No boot space' },
+                  { key: 'medium', label: 'Medium Bag', icon: '🧳', desc: 'Standard suitcase' },
+                  { key: 'large', label: 'Large Luggage', icon: '✈️', desc: 'Airport / surf' },
+                ].map((opt) => {
+                  const isSelected = luggage === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setLuggage(opt.key as LuggageSize)}
+                      style={{
+                        padding: '12px 8px',
+                        borderRadius: '8px',
+                        border: `2px solid ${isSelected ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
+                        background: isSelected ? '#f0f9ff' : '#ffffff',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '20px', display: 'block', marginBottom: '2px' }}>{opt.icon}</span>
+                      <strong style={{ fontSize: '12px', display: 'block', color: 'var(--bbc-navy)' }}>{opt.label}</strong>
+                      <span style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>{opt.desc}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

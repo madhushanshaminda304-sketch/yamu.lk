@@ -134,6 +134,15 @@ export function RideCardItem({ result }: { result: MatchedRideResult }) {
         <div className="comfort-icons">
           {ride.vehicle.acGuaranteed && <span title="AC Guaranteed"><Wind size={18} /></span>}
           {ride.comfort.maxTwoInBack && <span title="Max 2 in the back" style={{ fontSize: '12px', fontWeight: 800, background: 'var(--bbc-surface)', padding: '2px 6px', borderRadius: '4px' }}>2 in back</span>}
+          {(() => {
+            const lug = ride.luggageCapacity ?? ride.comfort?.luggage ?? 'medium';
+            const badgeText = lug === 'small' ? '🎒 Small bag' : lug === 'large' ? '✈️ Airport bag' : '🧳 Luggage ok';
+            return (
+              <span title={`Luggage: ${lug}`} style={{ fontSize: '11px', fontWeight: 700, background: '#f1f5f9', color: '#334155', padding: '2px 6px', borderRadius: '4px' }}>
+                {badgeText}
+              </span>
+            );
+          })()}
           {ride.comfort.womenOnly && <span title="Women Only" style={{ color: '#d81b60' }}><GenderFemale size={18} weight="bold" /></span>}
           {ride.comfort.music === 'yes' && <span title="Music Allowed"><MusicNotes size={18} /></span>}
           {ride.comfort.pets === 'yes' && <span title="Pets Allowed"><PawPrint size={18} /></span>}
