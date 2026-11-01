@@ -333,6 +333,8 @@ export const HUBS: readonly Hub[] = [
   },
 ] as const;
 
+export const ALL_HUBS = HUBS;
+
 export const CORRIDORS: readonly Corridor[] = [
   {
     id: 'e01-southern-expressway',
