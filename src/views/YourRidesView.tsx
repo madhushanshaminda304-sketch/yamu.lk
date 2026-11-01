@@ -16,9 +16,11 @@ import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 export function YourRidesView({
   state,
   store,
+  openAuthModal,
 }: {
   state: MarketplaceState;
   store: MarketplaceStore;
+  openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const [tab, setTab] = useState<'passenger' | 'driver'>('passenger');
 
@@ -35,8 +37,33 @@ export function YourRidesView({
   const [drivingSkill, setDrivingSkill] = useState<'poor' | 'average' | 'excellent'>('excellent');
   const [ratingComment, setRatingComment] = useState('');
 
-  const myBookings = state.bookings;
-  const myRides = state.rides.filter((r) => r.driverId === state.currentUser.id);
+  if (!state.currentUser) {
+    return (
+      <div className="shell-narrow" style={{ padding: '64px 0', textAlign: 'center' }}>
+        <div className="auth-icon-badge" style={{ marginBottom: '16px' }}>
+          <Car size={28} color="var(--bbc-blue)" weight="fill" />
+        </div>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+          Sign In to View Your Rides
+        </h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
+          Access your confirmed bookings, pending ride requests, and coordinate with co-travellers in real-time.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => openAuthModal?.()}
+          style={{ padding: '14px 32px', fontSize: '16px' }}
+        >
+          Sign In with Mobile OTP
+        </button>
+      </div>
+    );
+  }
+
+  const currentUser = state.currentUser;
+  const myBookings = state.bookings.filter((b) => b.passengerId === currentUser.id);
+  const myRides = state.rides.filter((r) => r.driverId === currentUser.id);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +93,7 @@ export function YourRidesView({
 
     store.submitDoubleBlindRating({
       bookingId: activeRatingBookingId,
-      fromUserId: state.currentUser.id,
+      fromUserId: currentUser.id,
       toUserId: ratingTargetUserId,
       stars: ratingStars,
       drivingSkill,
@@ -374,7 +401,7 @@ export function YourRidesView({
                 state.messages
                   .filter((m) => m.bookingId === activeChatBookingId)
                   .map((msg) => {
-                    const isMe = msg.senderId === state.currentUser.id;
+                    const isMe = msg.senderId === currentUser.id;
                     return (
                       <div
                         key={msg.id}

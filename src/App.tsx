@@ -1,15 +1,18 @@
-import React, { useSyncExternalStore } from 'react';
+import React, { useSyncExternalStore, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   MagnifyingGlass,
   PlusCircle,
   Car,
   UserCheck,
+  SignIn,
+  CheckCircle,
 } from '@phosphor-icons/react';
 import { Toaster } from 'sonner';
 
 import { t } from './domain/i18n.ts';
 import { createMarketplaceStore } from './state/store.ts';
+import { AuthModal } from './components/AuthModal.tsx';
 
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
@@ -24,11 +27,32 @@ const store = createMarketplaceStore();
 export default function App() {
   const state = useSyncExternalStore(store.subscribe, store.getState);
   const locale = state.locale;
+  const user = state.currentUser;
+
+  const [authModalState, setAuthModalState] = useState<{
+    isOpen: boolean;
+    onSuccess?: () => void;
+  }>({ isOpen: false });
+
+  const openAuthModal = (onSuccess?: () => void) => {
+    setAuthModalState({ isOpen: true, onSuccess });
+  };
+
+  const closeAuthModal = () => {
+    setAuthModalState({ isOpen: false });
+  };
 
   return (
     <div className="app-root">
       {/* Sonner Toaster: Mounted once at application root */}
       <Toaster richColors position="top-right" closeButton />
+
+      <AuthModal
+        isOpen={authModalState.isOpen}
+        onClose={closeAuthModal}
+        onSuccess={authModalState.onSuccess}
+        store={store}
+      />
 
       <header className="site-header">
         <div className="shell header-inner">
@@ -53,10 +77,31 @@ export default function App() {
                 <span className="badge-pill">{state.bookings.length}</span>
               )}
             </Link>
-            <Link to="/profile" className="nav-item">
-              <UserCheck size={18} weight="bold" />
-              <span>{t(locale, 'nav.profile')}</span>
-            </Link>
+            {user ? (
+              <Link to="/profile" className="nav-item">
+                <UserCheck size={18} weight="bold" />
+                <span>{user.name.split(' ')[0]}</span>
+                {user.verifiedPhone && (
+                  <CheckCircle size={14} color="#00aff5" weight="fill" />
+                )}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="nav-item"
+                onClick={() => openAuthModal()}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                }}
+              >
+                <SignIn size={18} weight="bold" />
+                <span>Sign In</span>
+              </button>
+            )}
 
             <div className="lang-switch" role="group" aria-label="Language Switcher">
               <button
@@ -89,10 +134,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomeView state={state} />} />
           <Route path="/search" element={<SearchView state={state} store={store} />} />
-          <Route path="/rides/:id" element={<RideDetailView state={state} store={store} />} />
-          <Route path="/publish" element={<PublishRideView state={state} store={store} />} />
-          <Route path="/rides" element={<YourRidesView state={state} store={store} />} />
-          <Route path="/profile" element={<ProfileView state={state} store={store} />} />
+          <Route path="/rides/:id" element={<RideDetailView state={state} store={store} openAuthModal={openAuthModal} />} />
+          <Route path="/publish" element={<PublishRideView state={state} store={store} openAuthModal={openAuthModal} />} />
+          <Route path="/rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
+          <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
         </Routes>
       </main>
 

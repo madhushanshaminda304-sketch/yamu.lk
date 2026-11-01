@@ -1,24 +1,59 @@
 import React, { useState } from 'react';
-import { Star } from '@phosphor-icons/react';
+import { Star, UserCheck, SignOut } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import type { ComfortProfile } from '../domain/matching.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 
 export function ProfileView({
   state,
   store,
+  openAuthModal,
 }: {
   state: MarketplaceState;
   store: MarketplaceStore;
+  openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const user = state.currentUser;
 
-  const [name, setName] = useState(user.name);
-  const [phone, setPhone] = useState(user.phone);
-  const [nicNumber, setNicNumber] = useState(user.nicNumber);
-  const [licenceNumber, setLicenceNumber] = useState(user.licenceNumber);
-  const [defaultVehicle, setDefaultVehicle] = useState(user.defaultVehicle);
-  const [bio, setBio] = useState(user.bio);
-  const [comfort] = useState(user.comfort);
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [nicNumber, setNicNumber] = useState(user?.nicNumber || '');
+  const [licenceNumber, setLicenceNumber] = useState(user?.licenceNumber || '');
+  const [defaultVehicle, setDefaultVehicle] = useState(user?.defaultVehicle || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [comfort] = useState<ComfortProfile>(user?.comfort || {
+    chattiness: 'blabla',
+    maxTwoInBack: true,
+    luggage: 'medium',
+    music: 'yes',
+    pets: 'no',
+    smoking: 'no',
+    womenOnly: false,
+  });
+
+  if (!user) {
+    return (
+      <div className="shell-narrow" style={{ padding: '64px 0', textAlign: 'center' }}>
+        <div className="auth-icon-badge" style={{ marginBottom: '16px' }}>
+          <UserCheck size={28} color="var(--bbc-blue)" weight="fill" />
+        </div>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+          Sign In to BlaBlaLanka
+        </h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
+          Sign in with your Sri Lankan mobile number to access your verified profile, Super Driver rating, and identity credentials.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => openAuthModal?.()}
+          style={{ padding: '14px 32px', fontSize: '16px' }}
+        >
+          Sign In with Mobile OTP
+        </button>
+      </div>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +194,34 @@ export function ProfileView({
           <button type="submit" className="btn-primary" style={{ padding: '16px' }}>
             Save Profile & Verification Details
           </button>
+
+          <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '20px', marginTop: '10px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                store.logout();
+                toast.info('You have signed out of your account.');
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                width: '100%',
+                padding: '12px',
+                background: '#fff',
+                border: '1px solid #ffcdd2',
+                color: '#c62828',
+                borderRadius: 'var(--radius-full)',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+              }}
+            >
+              <SignOut size={16} weight="bold" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

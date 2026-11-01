@@ -25,9 +25,11 @@ import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 export function PublishRideView({
   state,
   store,
+  openAuthModal,
 }: {
   state: MarketplaceState;
   store: MarketplaceStore;
+  openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const navigate = useNavigate();
   const tomorrow = getColomboDateOffset(1);
@@ -55,7 +57,7 @@ export function PublishRideView({
 
   // Step 4 Seats & Vehicle
   const [seats, setSeats] = useState(3);
-  const [vehicleModel, setVehicleModel] = useState(state.currentUser.defaultVehicle || 'Toyota Aqua Hybrid · White');
+  const [vehicleModel, setVehicleModel] = useState(state.currentUser?.defaultVehicle || 'Toyota Aqua Hybrid · White');
   const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>('car');
   const [acGuaranteed, setAcGuaranteed] = useState(true);
   const [maxTwoInBack, setMaxTwoInBack] = useState(true);
@@ -157,6 +159,30 @@ export function PublishRideView({
       toast.error(err instanceof Error ? err.message : 'Failed to publish ride.');
     }
   };
+
+  if (!state.currentUser) {
+    return (
+      <div className="shell-narrow" style={{ padding: '64px 0', textAlign: 'center' }}>
+        <div className="auth-icon-badge" style={{ marginBottom: '16px' }}>
+          <Sparkle size={28} color="var(--bbc-blue)" weight="fill" />
+        </div>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+          Sign In to Publish a Ride
+        </h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
+          To ensure passenger trust and road safety, all drivers must verify their Sri Lankan mobile number before offering seats.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => openAuthModal?.()}
+          style={{ padding: '14px 32px', fontSize: '16px' }}
+        >
+          Verify Mobile & Publish
+        </button>
+      </div>
+    );
+  }
 
   if (publishedRide) {
     return (

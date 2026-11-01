@@ -15,9 +15,11 @@ import { getDriverInitials } from '../components/RideCardItem.tsx';
 export function RideDetailView({
   state,
   store,
+  openAuthModal,
 }: {
   state: MarketplaceState;
   store: MarketplaceStore;
+  openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const { id: routeRideId } = useParams<{ id: string }>();
   const [params] = useSearchParams();
@@ -45,8 +47,7 @@ export function RideDetailView({
   const fromStop = legCheck.fromStop || ride.stops[0];
   const toStop = legCheck.toStop || ride.stops[ride.stops.length - 1];
 
-  const handleBook = (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeBooking = () => {
     try {
       const record = store.bookRideLeg({
         rideId: ride.id,
@@ -66,6 +67,17 @@ export function RideDetailView({
       const errorMsg = err instanceof Error ? err.message : 'Booking failed.';
       toast.error(errorMsg);
     }
+  };
+
+  const handleBook = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!state.currentUser) {
+      openAuthModal?.(() => {
+        executeBooking();
+      });
+      return;
+    }
+    executeBooking();
   };
 
   return (

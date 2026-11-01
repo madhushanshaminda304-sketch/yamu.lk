@@ -47,7 +47,7 @@ export function SearchView({
 
   // Ride Alert Modal
   const [showAlertModal, setShowAlertModal] = useState(false);
-  const [alertEmail, setAlertEmail] = useState(state.currentUser.email || '');
+  const [alertEmail, setAlertEmail] = useState(state.currentUser?.email || '');
 
   const fromHub = getHubById(fromHubId);
   const toHub = getHubById(toHubId);
