@@ -5,44 +5,33 @@ export function YamoIcon({ size = 32 }: { size?: number }) {
     <svg
       width={size}
       height={size}
-      viewBox="0 0 48 48"
+      viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}
+      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, borderRadius: `${Math.round(size * 0.25)}px` }}
       aria-label="Yamo Brand Icon"
     >
-      {/* Background soft mint circle glow */}
-      <circle cx="24" cy="24" r="23" fill="#ecfdf5" stroke="#a7f3d0" strokeWidth="1.5" />
+      {/* Deep Forest Green Squircle (#174D3A) */}
+      <rect width="64" height="64" rx="16" fill="#174D3A" />
 
-      {/* Driver road ribbon (left branch converging in Ceylon Emerald) */}
+      {/* Geometric Y: Two connecting roads converging into one shared journey */}
+      {/* Left Road Branch */}
       <path
-        d="M12 36 C14 26, 22 24, 24 16"
-        stroke="#047857"
-        strokeWidth="4.5"
+        d="M17 16 C21 28, 28 32, 32 36 L32 50"
+        stroke="#FFFFFF"
+        strokeWidth="7"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
 
-      {/* Passenger road ribbon (right branch converging in Vibrant Mint) */}
+      {/* Right Road Branch */}
       <path
-        d="M36 36 C34 26, 26 24, 24 16"
-        stroke="#10b981"
-        strokeWidth="4.5"
+        d="M47 16 C43 28, 36 32, 32 36 L32 50"
+        stroke="#FFFFFF"
+        strokeWidth="7"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
-
-      {/* Forward Expressway stem (Deep Pine) */}
-      <path
-        d="M24 16 L24 24"
-        stroke="#064e3b"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
-
-      {/* Expressway Center Dash */}
-      <line x1="24" y1="36" x2="24" y2="30" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
-
-      {/* Destination / Ceylon Sunburst Gold Sun Apex Dot */}
-      <circle cx="24" cy="11" r="4.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
     </svg>
   );
 }
