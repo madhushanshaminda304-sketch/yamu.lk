@@ -6,7 +6,7 @@ export type TernaryPreference = 'yes' | 'maybe' | 'no';
 export type LuggageSize = 'small' | 'medium' | 'large';
 export type VehicleCategory = 'car' | 'suv' | 'van';
 export type ApprovalMode = 'instant' | 'manual';
-export type SmartTag = 'cheapest' | 'earliest' | 'fastest' | 'boost';
+export type SmartTag = 'cheapest' | 'earliest' | 'fastest' | 'boost' | 'cheapest_and_earliest';
 
 export interface ComfortProfile {
   chattiness: ChattinessLevel;
@@ -28,6 +28,7 @@ export interface VehicleInfo {
 export interface DriverSummary {
   id: string;
   name: string;
+  phone?: string;
   rating: number;
   ratingsCount: number;
   drivingSkillScore: number; // 1.0 to 3.0
@@ -265,10 +266,11 @@ export function searchRides(rides: readonly Ride[], query: SearchQuery): Matched
 
   for (const ride of rides) {
     if (ride.status !== 'published') continue;
-    if (query.date && ride.departureDate !== query.date) continue;
-
     const leg = canBookLeg(ride, query.fromHubId, query.toHubId, query.seats || 1);
     if (!leg.allowed || !leg.fromStop || !leg.toStop) continue;
+
+    const legDate = leg.fromStop.departureAt.slice(0, 10);
+    if (query.date && ride.departureDate !== query.date && legDate !== query.date) continue;
 
     if (query.maxPriceLkr !== undefined && leg.legPriceLkr > query.maxPriceLkr) continue;
     if (query.instantOnly && ride.approvalMode !== 'instant') continue;
@@ -325,8 +327,12 @@ export function assignSmartTags(results: readonly MatchedRideResult[]): MatchedR
 
   return results.map((item) => {
     const tags: SmartTag[] = [];
-    if (item.legPriceLkr === minPrice) tags.push('cheapest');
-    if (+new Date(item.fromStop.departureAt) === minDepMs) tags.push('earliest');
+    const isCheapest = item.legPriceLkr === minPrice;
+    const isEarliest = +new Date(item.fromStop.departureAt) === minDepMs;
+
+    if (isCheapest) tags.push('cheapest');
+    if (isEarliest) tags.push('earliest');
+    if (isCheapest && isEarliest) tags.push('cheapest_and_earliest');
     if (item.legDurationMinutes === minDuration) tags.push('fastest');
     if (item.isBoostLeg) tags.push('boost');
     return {
