@@ -4,8 +4,10 @@ import {
   Star,
   CheckCircle,
   Sparkle,
+  Ticket,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { RidePassModal } from '../components/RidePassModal.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
 import { formatLkr, formatColomboDate, formatColomboTime } from '../domain/i18n.ts';
@@ -33,6 +35,7 @@ export function RideDetailView({
   const [settlementMethod, setSettlementMethod] = useState<SettlementMethod>('lankaqr');
   const [message, setMessage] = useState('');
   const [bookingConfirmed, setBookingConfirmed] = useState<BookingRecord | null>(null);
+  const [showRidePass, setShowRidePass] = useState(false);
 
   if (!ride) {
     return (
@@ -224,8 +227,12 @@ export function RideDetailView({
                     ? `Your ${bookingConfirmed.seats} seat(s) are reserved. Please meet at ${fromStop.pickupLandmark}. Settle ${formatLkr(bookingConfirmed.totalPriceLkr)} onboard.`
                     : 'The driver has received your booking request and will accept shortly.'}
                 </p>
-                <div style={{ marginTop: '18px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                  <button type="button" className="btn-primary btn-sm" onClick={() => navigate('/rides')}>
+                <div style={{ marginTop: '18px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button type="button" className="btn-primary btn-sm" onClick={() => setShowRidePass(true)} style={{ background: '#0284c7' }}>
+                    <Ticket size={16} weight="bold" />
+                    <span>View Digital Ride Pass</span>
+                  </button>
+                  <button type="button" className="btn-secondary btn-sm" onClick={() => navigate('/rides')}>
                     View in Your Rides
                   </button>
                 </div>
@@ -321,6 +328,16 @@ export function RideDetailView({
           </div>
         </div>
       </div>
+
+      {bookingConfirmed && (
+        <RidePassModal
+          isOpen={showRidePass}
+          onClose={() => setShowRidePass(false)}
+          ride={ride}
+          booking={bookingConfirmed}
+          driver={state.currentUser?.id === ride.driverId ? state.currentUser : undefined}
+        />
+      )}
     </div>
   );
 }

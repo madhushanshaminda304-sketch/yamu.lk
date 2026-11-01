@@ -7,11 +7,14 @@ import {
   X,
   Phone,
   WhatsappLogo,
+  Ticket,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, formatColomboDate } from '../domain/i18n.ts';
-import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
+import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state/store.ts';
+import type { Ride } from '../domain/matching.ts';
+import { RidePassModal } from '../components/RidePassModal.tsx';
 
 export function YourRidesView({
   state,
@@ -23,6 +26,7 @@ export function YourRidesView({
   openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const [tab, setTab] = useState<'passenger' | 'driver'>('passenger');
+  const [activePass, setActivePass] = useState<{ ride: Ride; booking: BookingRecord } | null>(null);
 
   // Chat Drawer
   const [activeChatBookingId, setActiveChatBookingId] = useState<string | null>(null);
@@ -201,8 +205,18 @@ export function YourRidesView({
 
                       {bk.status === 'accepted' && ride && (
                         <>
+                          <button
+                            type="button"
+                            className="btn-primary btn-sm"
+                            style={{ background: '#0284c7' }}
+                            onClick={() => setActivePass({ ride, booking: bk })}
+                          >
+                            <Ticket size={16} weight="bold" />
+                            <span>Digital Ride Pass</span>
+                          </button>
+
                           <a
-                            href={`https://wa.me/${driverPhoneDigits}?text=${encodeURIComponent(`Hi ${ride.driver.name}, joining your ${fromName} to ${toName} BlaBlaLanka ride!`)}`}
+                            href={`https://wa.me/${driverPhoneDigits}?text=${encodeURIComponent(`Hi ${ride.driver.name}, joining your ${fromName} to ${toName} Yamu ride!`)}`}
                             target="_blank"
                             rel="noreferrer"
                             className="btn-secondary btn-sm"
@@ -517,6 +531,15 @@ export function YourRidesView({
             </form>
           </div>
         </div>
+      )}
+
+      {activePass && (
+        <RidePassModal
+          isOpen={Boolean(activePass)}
+          onClose={() => setActivePass(null)}
+          ride={activePass.ride}
+          booking={activePass.booking}
+        />
       )}
     </div>
   );
