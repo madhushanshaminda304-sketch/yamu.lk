@@ -26,7 +26,7 @@ test('positionsToGeoJsonLine converts [lat, lng] to GeoJSON [lng, lat] LineStrin
 });
 
 test('computeMapLibreBounds produces [[minLng, minLat], [maxLng, maxLat]] for MapLibre fitBounds', () => {
-  const waypoints: RouteMapWaypoint[] = [
+  const waypoints = [
     { name: 'Colombo', lat: 6.9271, lng: 79.8612, kmFromOrigin: 0, landmark: 'Fort' },
     { name: 'Galle', lat: 6.0535, lng: 80.2210, kmFromOrigin: 116, landmark: 'Galle Fort' },
   ];

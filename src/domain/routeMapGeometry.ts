@@ -42,7 +42,7 @@ export function positionsToGeoJsonLine(
 }
 
 export function computeMapLibreBounds(
-  waypoints: readonly RouteMapWaypoint[]
+  waypoints: readonly { lat: number; lng: number }[]
 ): [[number, number], [number, number]] | null {
   if (waypoints.length === 0) return null;
 
