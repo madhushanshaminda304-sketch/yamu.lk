@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Ride, RideStop } from '../domain/matching.ts';
 import { getHubById } from '../domain/corridors.ts';
+import { extractRouteMapWaypoints } from '../domain/routeMapGeometry.ts';
+import { LeafletRouteMap } from './LeafletRouteMap.tsx';
 
 interface RouteCorridorMapProps {
   ride: Ride;
@@ -15,7 +17,14 @@ export function RouteCorridorMap({
   selectedToHubId,
   langKey = 'en',
 }: RouteCorridorMapProps) {
+  const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
   const stops = ride.stops;
+
+  const waypoints = useMemo(
+    () => (stops ? extractRouteMapWaypoints(stops, selectedFromHubId, selectedToHubId, langKey) : []),
+    [stops, selectedFromHubId, selectedToHubId, langKey]
+  );
+
   if (!stops || stops.length === 0) return null;
 
   return (
@@ -28,8 +37,17 @@ export function RouteCorridorMap({
         marginBottom: '20px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+          marginBottom: '14px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span
             style={{
               fontSize: '11px',
@@ -46,14 +64,71 @@ export function RouteCorridorMap({
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#064e3b' }}>
             {ride.corridorName}
           </span>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#047857' }}>
+            • {stops[stops.length - 1].kmFromOrigin} km total
+          </span>
         </div>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#047857' }}>
-          {stops[stops.length - 1].kmFromOrigin} km total
-        </span>
+
+        {/* Mode Toggle: Interactive Map vs Stop Timeline */}
+        <div
+          style={{
+            display: 'inline-flex',
+            background: '#e2e8f0',
+            padding: '2px',
+            borderRadius: '8px',
+          }}
+          role="tablist"
+          aria-label="Route visualization mode"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'map'}
+            onClick={() => setViewMode('map')}
+            style={{
+              border: 'none',
+              background: viewMode === 'map' ? '#ffffff' : 'transparent',
+              color: viewMode === 'map' ? '#064e3b' : '#475569',
+              fontWeight: 700,
+              fontSize: '11px',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              boxShadow: viewMode === 'map' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            🗺️ Interactive Map
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'timeline'}
+            onClick={() => setViewMode('timeline')}
+            style={{
+              border: 'none',
+              background: viewMode === 'timeline' ? '#ffffff' : 'transparent',
+              color: viewMode === 'timeline' ? '#064e3b' : '#475569',
+              fontWeight: 700,
+              fontSize: '11px',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              boxShadow: viewMode === 'timeline' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            📏 Stop Timeline
+          </button>
+        </div>
       </div>
 
-      {/* Visual Corridor Timeline (Scrollable on small mobile screens for multi-stop routes) */}
-      <div style={{ position: 'relative', overflowX: 'auto', padding: '16px 8px 12px', WebkitOverflowScrolling: 'touch' }}>
+      {viewMode === 'map' && waypoints.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <LeafletRouteMap waypoints={waypoints} height={270} />
+        </div>
+      )}
+
+      {/* Visual Corridor Timeline (Always shown below map in compact form or full in timeline view) */}
+      <div style={{ position: 'relative', overflowX: 'auto', padding: '16px 8px 8px', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ position: 'relative', minWidth: stops.length > 3 ? `${stops.length * 110}px` : '100%' }}>
           {/* Progress Bar Track */}
           <div
@@ -114,7 +189,13 @@ export function RouteCorridorMap({
                       width: isHighlight ? '18px' : isOrigin || isDest ? '14px' : '10px',
                       height: isHighlight ? '18px' : isOrigin || isDest ? '14px' : '10px',
                       borderRadius: '9999px',
-                      background: isHighlight ? '#047857' : isOrigin || isDest ? '#064e3b' : '#10b981',
+                      background: isFrom
+                        ? '#047857'
+                        : isTo
+                        ? '#d97706'
+                        : isOrigin || isDest
+                        ? '#064e3b'
+                        : '#10b981',
                       border: '3px solid #ffffff',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                       marginBottom: '8px',
