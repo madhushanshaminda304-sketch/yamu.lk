@@ -11,8 +11,8 @@ export function YamoIcon({ size = 32 }: { size?: number }) {
       style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, borderRadius: `${Math.round(size * 0.25)}px` }}
       aria-label="Yamo Brand Icon"
     >
-      {/* Deep Forest Green Squircle (#174D3A) */}
-      <rect width="64" height="64" rx="16" fill="#174D3A" />
+      {/* Ceylon Emerald Squircle (#047857) */}
+      <rect width="64" height="64" rx="16" fill="#047857" />
 
       {/* Geometric Y: Two connecting roads converging into one shared journey */}
       {/* Left Road Branch */}
@@ -32,6 +32,9 @@ export function YamoIcon({ size = 32 }: { size?: number }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+
+      {/* Sunburst Gold Highway Convergence Dot */}
+      <circle cx="32" cy="36" r="3.5" fill="#f59e0b" />
     </svg>
   );
 }

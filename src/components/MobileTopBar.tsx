@@ -185,7 +185,7 @@ export function MobileTopBar({
                     fontSize: '11px',
                     fontWeight: active ? 800 : 600,
                     borderRadius: '9999px',
-                    background: active ? '#00875A' : 'transparent',
+                    background: active ? '#047857' : 'transparent',
                     color: active ? '#ffffff' : '#64748b',
                     border: 'none',
                     cursor: 'pointer',

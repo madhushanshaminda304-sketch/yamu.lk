@@ -180,7 +180,7 @@ export function MobileBottomNav({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: active ? '#00875A' : '#64748b',
+                color: active ? '#047857' : '#64748b',
                 position: 'relative',
                 transition: 'color 0.15s ease, transform 0.1s ease',
               }}
@@ -189,7 +189,7 @@ export function MobileBottomNav({
                 <IconComponent
                   size={24}
                   weight={active ? 'fill' : 'regular'}
-                  color={active ? '#00875A' : '#64748b'}
+                  color={active ? '#047857' : '#64748b'}
                 />
                 {badgeCount > 0 && (
                   <span

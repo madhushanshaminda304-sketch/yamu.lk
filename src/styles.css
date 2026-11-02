@@ -974,7 +974,7 @@ button {
 }
 
 .mobile-nav-item.active {
-  color: #00875A;
+  color: var(--yamo-emerald, #047857);
 }
 
 .mobile-nav-badge {
@@ -1021,7 +1021,7 @@ button {
 }
 
 .mobile-lang-pill .lang-pill-btn.active {
-  background: #00875A;
+  background: var(--yamo-emerald, #047857);
   color: #ffffff;
   font-weight: 800;
 }

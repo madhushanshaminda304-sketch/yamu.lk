@@ -58,7 +58,7 @@ export default function App() {
 
   useEffect(() => {
     // 1. Initialize native status bar styling with brand emerald and light text
-    setAppStatusBar('#00875A', true);
+    setAppStatusBar('#047857', true);
 
     // 2. Register Android hardware back button handler
     const unregisterBack = registerBackButtonHandler(
