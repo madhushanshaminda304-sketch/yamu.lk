@@ -79,6 +79,9 @@ export function SearchView({
   const [womenOnly, setWomenOnly] = useState(false);
   const [acOnly, setAcOnly] = useState(false);
   const [petsAllowedOnly, setPetsAllowedOnly] = useState(false);
+  const [childSeatOnly, setChildSeatOnly] = useState(false);
+  const [wheelchairOnly, setWheelchairOnly] = useState(false);
+  const [airportOnly, setAirportOnly] = useState(false);
 
   // Ride Alert Modal
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -151,7 +154,10 @@ export function SearchView({
     (maxTwoInBackOnly ? 1 : 0) +
     (womenOnly ? 1 : 0) +
     (acOnly ? 1 : 0) +
-    (petsAllowedOnly ? 1 : 0);
+    (petsAllowedOnly ? 1 : 0) +
+    (childSeatOnly ? 1 : 0) +
+    (wheelchairOnly ? 1 : 0) +
+    (airportOnly ? 1 : 0);
 
   const handleResetFilters = () => {
     triggerHaptic('selection');
@@ -167,6 +173,9 @@ export function SearchView({
     setWomenOnly(false);
     setAcOnly(false);
     setPetsAllowedOnly(false);
+    setChildSeatOnly(false);
+    setWheelchairOnly(false);
+    setAirportOnly(false);
   };
 
   const fromHub = getHubById(fromHubId);
@@ -179,6 +188,9 @@ export function SearchView({
     seats,
     vehicleCategory,
     quietRideOnly,
+    childSeatOnly,
+    wheelchairOnly,
+    airportOnly,
     sortBy,
     timeWindow,
     maxPriceLkr: maxPrice,
@@ -458,6 +470,42 @@ export function SearchView({
           <span>🔇</span>
           <span>Quiet Commute</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setChildSeatOnly(!childSeatOnly);
+          }}
+          className={`quick-filter-btn ${childSeatOnly ? 'active' : ''}`}
+        >
+          <span>💺</span>
+          <span>Child Seat</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setWheelchairOnly(!wheelchairOnly);
+          }}
+          className={`quick-filter-btn ${wheelchairOnly ? 'active' : ''}`}
+        >
+          <span>♿</span>
+          <span>Wheelchair</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setAirportOnly(!airportOnly);
+          }}
+          className={`quick-filter-btn ${airportOnly ? 'active' : ''}`}
+        >
+          <span>✈️</span>
+          <span>Airport</span>
+        </button>
       </div>
 
       <div className="search-layout">
@@ -488,6 +536,12 @@ export function SearchView({
             setVehicleCategory={setVehicleCategory}
             quietRideOnly={quietRideOnly}
             setQuietRideOnly={setQuietRideOnly}
+            childSeatOnly={childSeatOnly}
+            setChildSeatOnly={setChildSeatOnly}
+            wheelchairOnly={wheelchairOnly}
+            setWheelchairOnly={setWheelchairOnly}
+            airportOnly={airportOnly}
+            setAirportOnly={setAirportOnly}
             locale={locale}
             namePrefix="desktop"
           />
@@ -610,6 +664,12 @@ export function SearchView({
                 setVehicleCategory={setVehicleCategory}
                 quietRideOnly={quietRideOnly}
                 setQuietRideOnly={setQuietRideOnly}
+                childSeatOnly={childSeatOnly}
+                setChildSeatOnly={setChildSeatOnly}
+                wheelchairOnly={wheelchairOnly}
+                setWheelchairOnly={setWheelchairOnly}
+                airportOnly={airportOnly}
+                setAirportOnly={setAirportOnly}
                 locale={locale}
                 namePrefix="drawer"
               />

@@ -15,6 +15,7 @@ import {
 import type { MatchedRideResult } from '../domain/matching.ts';
 import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, formatColomboTime, t, type LocaleCode } from '../domain/i18n.ts';
+import { CarPlateBadge } from './CarPlateBadge.tsx';
 
 export function getDriverInitials(name: string): string {
   return name
@@ -114,6 +115,21 @@ export function RideCardItem({
               <span>Expressway</span>
             </span>
           )}
+          {ride.specialRequirements?.childSeatAvailable && (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #fde68a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>💺 Child Seat</span>
+            </span>
+          )}
+          {ride.specialRequirements?.wheelchairAccessible && (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#1d4ed8', background: '#dbeafe', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #bfdbfe', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>♿ Accessible</span>
+            </span>
+          )}
+          {ride.specialRequirements?.airportFlightTransfer && (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>✈️ Airport Transit</span>
+            </span>
+          )}
         </div>
         <div className="ride-card-price">
           {formatLkr(legPriceLkr)}
@@ -210,6 +226,11 @@ export function RideCardItem({
           {ride.comfort.music === 'yes' && <span title="Music Allowed"><MusicNotes size={18} /></span>}
           {ride.comfort.pets === 'yes' && <span title="Pets Allowed"><PawPrint size={18} /></span>}
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--bbc-navy)' }}>{ride.vehicle.makeModel}</span>
+          <CarPlateBadge
+            plate={ride.vehicle.plateHint || ride.vehicle.plateNumber || 'WP CAB-••••'}
+            isMasked
+            size="sm"
+          />
         </div>
       </div>
     </article>

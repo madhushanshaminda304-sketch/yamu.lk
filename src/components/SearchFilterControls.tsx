@@ -36,6 +36,12 @@ export interface SearchFilterControlsProps {
   setVehicleCategory?: (val: VehicleCategory | 'all') => void;
   quietRideOnly?: boolean;
   setQuietRideOnly?: (val: boolean) => void;
+  childSeatOnly?: boolean;
+  setChildSeatOnly?: (val: boolean) => void;
+  wheelchairOnly?: boolean;
+  setWheelchairOnly?: (val: boolean) => void;
+  airportOnly?: boolean;
+  setAirportOnly?: (val: boolean) => void;
   locale: LocaleCode;
   namePrefix?: string;
 }
@@ -65,6 +71,12 @@ export function SearchFilterControls({
   setVehicleCategory,
   quietRideOnly,
   setQuietRideOnly,
+  childSeatOnly,
+  setChildSeatOnly,
+  wheelchairOnly,
+  setWheelchairOnly,
+  airportOnly,
+  setAirportOnly,
   locale,
   namePrefix = 'filter',
 }: SearchFilterControlsProps) {
@@ -249,6 +261,39 @@ export function SearchFilterControls({
               />
               <span style={{ fontSize: '15px' }}>🔇</span>
               Quiet Commute
+            </label>
+          )}
+          {setChildSeatOnly && (
+            <label>
+              <input
+                type="checkbox"
+                checked={childSeatOnly || false}
+                onChange={(e) => setChildSeatOnly(e.target.checked)}
+              />
+              <span style={{ fontSize: '15px' }}>💺</span>
+              Child Safety Seat
+            </label>
+          )}
+          {setWheelchairOnly && (
+            <label>
+              <input
+                type="checkbox"
+                checked={wheelchairOnly || false}
+                onChange={(e) => setWheelchairOnly(e.target.checked)}
+              />
+              <span style={{ fontSize: '15px' }}>♿</span>
+              Wheelchair / Assistance
+            </label>
+          )}
+          {setAirportOnly && (
+            <label>
+              <input
+                type="checkbox"
+                checked={airportOnly || false}
+                onChange={(e) => setAirportOnly(e.target.checked)}
+              />
+              <span style={{ fontSize: '15px' }}>✈️</span>
+              Airport / BIA Transit
             </label>
           )}
         </div>
