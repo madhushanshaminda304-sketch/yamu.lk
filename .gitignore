@@ -4,6 +4,8 @@ dist
 .superpowers
 .env
 .env.local
+.idea/
+*.iml
 
 
 # wrangler files
