@@ -61,6 +61,10 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'booking.confirm': 'Confirm Booking',
     'booking.cancel': 'Cancel',
     'booking.instant_notice': 'Your seat is confirmed immediately!',
+    'location.use_my_location': 'Use my location',
+    'location.locating': 'Locating nearest hub...',
+    'location.located': 'Nearest hub located: ',
+    'location.denied': 'Location permission denied or unavailable',
   },
   'si-LK': {
     'brand.name': 'යමෝ',
@@ -122,6 +126,10 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'booking.confirm': 'වෙන්කිරීම තහවුරු කරන්න',
     'booking.cancel': 'අවලංගු කරන්න',
     'booking.instant_notice': 'ඔබගේ ආසනය ක්ෂණිකවම වෙන්වේ!',
+    'location.use_my_location': 'මගේ ස්ථානය ගන්න',
+    'location.locating': 'ළඟම මධ්‍යස්ථානය සොයමින්...',
+    'location.located': 'ළඟම මධ්‍යස්ථානය: ',
+    'location.denied': 'ස්ථාන අවසරය ලබාගත නොහැක',
   },
   'ta-LK': {
     'brand.name': 'யாமோ',
@@ -183,6 +191,10 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'booking.confirm': 'முன்பதிவை உறுதிசெய்க',
     'booking.cancel': 'ரத்து செய்க',
     'booking.instant_notice': 'உங்கள் இருக்கை உடனடியாக உறுதிசெய்யப்படும்!',
+    'location.use_my_location': 'எனது இருப்பிடம்',
+    'location.locating': 'அருகிலுள்ள நிலையத்தைத் தேடுகிறது...',
+    'location.located': 'அருகிலுள்ள நிலையம்: ',
+    'location.denied': 'இருப்பிட அனுமதி மறுக்கப்பட்டது',
   },
 };
 

@@ -7,9 +7,13 @@ import {
   Coins,
   Sparkle,
   ArrowRight,
+  Crosshair,
 } from '@phosphor-icons/react';
-import { HUBS } from '../domain/corridors.ts';
+import { toast } from 'sonner';
+import { HUBS, ALL_HUBS } from '../domain/corridors.ts';
 import { t, getColomboDateOffset } from '../domain/i18n.ts';
+import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
+import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceState } from '../state/store.ts';
 
 export function HomeView({ state }: { state: MarketplaceState }) {
@@ -21,6 +25,25 @@ export function HomeView({ state }: { state: MarketplaceState }) {
   const [toHubId, setToHubId] = useState('galle');
   const [date, setDate] = useState(tomorrow);
   const [seats, setSeats] = useState(1);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleUseLocation = async () => {
+    try {
+      setIsLocating(true);
+      await triggerHaptic('selection');
+      const coords = await getCurrentLocation();
+      const nearest = findNearestHub(coords, ALL_HUBS);
+      setFromHubId(nearest.hub.id);
+      await triggerHaptic('success');
+      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+      const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
+      toast.success(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+    } catch {
+      toast.error(t(locale, 'location.denied'));
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const handleSwap = () => {
     setFromHubId(toHubId);
@@ -44,7 +67,32 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           <div className="search-card">
             <form onSubmit={handleSearch} className="search-form-grid">
               <div className="search-field">
-                <label htmlFor="home-from-select">{t(locale, 'search.from')}</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                  <label htmlFor="home-from-select">{t(locale, 'search.from')}</label>
+                  <button
+                    type="button"
+                    onClick={handleUseLocation}
+                    disabled={isLocating}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--bbc-blue)',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                    }}
+                    title={t(locale, 'location.use_my_location')}
+                    aria-label={t(locale, 'location.use_my_location')}
+                  >
+                    <Crosshair size={13} weight="bold" />
+                    <span>{isLocating ? t(locale, 'location.locating') : t(locale, 'location.use_my_location')}</span>
+                  </button>
+                </div>
                 <select id="home-from-select" value={fromHubId} onChange={(e) => setFromHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>

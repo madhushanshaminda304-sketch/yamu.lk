@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
+  ArrowsLeftRight,
+  Crosshair,
   Bell,
   Sparkle,
   Star,
@@ -12,9 +14,11 @@ import {
   X,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { getHubById } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
 import { searchRides, type MatchedRideResult } from '../domain/matching.ts';
 import { t, formatLkr, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
+import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
+import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 import { RideCardItem } from '../components/RideCardItem.tsx';
 
@@ -25,13 +29,39 @@ export function SearchView({
   state: MarketplaceState;
   store: MarketplaceStore;
 }) {
-  const [params] = useSearchParams();
+  const [params, setSearchParams] = useSearchParams();
   const locale = state.locale;
 
   const fromHubId = params.get('from') || 'colombo';
   const toHubId = params.get('to') || 'galle';
   const date = params.get('date') || getColomboDateOffset(1);
   const seats = Number(params.get('seats') || '1');
+  const [isLocating, setIsLocating] = useState(false);
+
+  const updateRoute = (newFrom: string, newTo: string) => {
+    const nextParams = new URLSearchParams(params);
+    nextParams.set('from', newFrom);
+    nextParams.set('to', newTo);
+    setSearchParams(nextParams);
+  };
+
+  const handleUseLocation = async () => {
+    try {
+      setIsLocating(true);
+      await triggerHaptic('selection');
+      const coords = await getCurrentLocation();
+      const nearest = findNearestHub(coords, ALL_HUBS);
+      updateRoute(nearest.hub.id, toHubId);
+      await triggerHaptic('success');
+      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+      const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
+      toast.success(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+    } catch {
+      toast.error(t(locale, 'location.denied'));
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   // Filter States
   const [sortBy, setSortBy] = useState<'departure' | 'price' | 'duration'>('departure');
@@ -87,12 +117,12 @@ export function SearchView({
 
   return (
     <div className="shell">
-      <div style={{ padding: '24px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bbc-border)' }}>
+      <div style={{ padding: '24px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bbc-border)', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>{fromHub?.name.en || fromHubId}</span>
+            <span>{fromHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || fromHub?.name.en || fromHubId}</span>
             <ArrowRight size={22} />
-            <span>{toHub?.name.en || toHubId}</span>
+            <span>{toHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || toHub?.name.en || toHubId}</span>
           </h1>
           <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>
             {formatColomboDate(`${date}T12:00:00+05:30`)} · {seats} {seats === 1 ? 'Passenger' : 'Passengers'} · {results.length} rides available
@@ -108,6 +138,90 @@ export function SearchView({
           <Bell size={18} />
           <span>{t(locale, 'alert.cta')}</span>
         </button>
+      </div>
+
+      {/* Origin & Destination Bar with 1-Tap Geolocation */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid var(--bbc-border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '12px 16px',
+        margin: '16px 0 20px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: '12px',
+        boxShadow: 'var(--shadow-sm)',
+      }}>
+        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label htmlFor="search-from-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
+              {t(locale, 'search.from')}
+            </label>
+            <button
+              type="button"
+              onClick={handleUseLocation}
+              disabled={isLocating}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--bbc-blue)',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                padding: '2px 4px',
+              }}
+              title={t(locale, 'location.use_my_location')}
+              aria-label={t(locale, 'location.use_my_location')}
+            >
+              <Crosshair size={13} weight="bold" />
+              <span>{isLocating ? t(locale, 'location.locating') : t(locale, 'location.use_my_location')}</span>
+            </button>
+          </div>
+          <select
+            id="search-from-select"
+            value={fromHubId}
+            onChange={(e) => updateRoute(e.target.value, toHubId)}
+            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff' }}
+          >
+            {HUBS.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => updateRoute(toHubId, fromHubId)}
+          className="swap-btn"
+          aria-label="Swap Route"
+          style={{ width: '34px', height: '34px', alignSelf: 'flex-end', marginBottom: '4px' }}
+        >
+          <ArrowsLeftRight size={16} weight="bold" />
+        </button>
+
+        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <label htmlFor="search-to-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
+            {t(locale, 'search.to')}
+          </label>
+          <select
+            id="search-to-select"
+            value={toHubId}
+            onChange={(e) => updateRoute(fromHubId, e.target.value)}
+            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff' }}
+          >
+            {HUBS.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="search-layout">

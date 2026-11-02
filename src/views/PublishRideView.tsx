@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sparkle,
   CheckCircle,
+  Crosshair,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, getHubById, findRouteOptions } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById, findRouteOptions } from '../domain/corridors.ts';
 import {
   calculateRecommendedLkr,
   getContributionBounds,
@@ -20,6 +21,8 @@ import type {
   LuggageSize,
 } from '../domain/matching.ts';
 import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
+import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
+import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 
 export function PublishRideView({
@@ -40,6 +43,25 @@ export function PublishRideView({
   const [destinationHubId, setDestinationHubId] = useState('galle');
   const [pickupLandmark, setPickupLandmark] = useState('');
   const [dropoffLandmark, setDropoffLandmark] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleUseLocation = async () => {
+    try {
+      setIsLocating(true);
+      await triggerHaptic('selection');
+      const coords = await getCurrentLocation();
+      const nearest = findNearestHub(coords, ALL_HUBS);
+      setOriginHubId(nearest.hub.id);
+      await triggerHaptic('success');
+      const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+      const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
+      toast.success(`${t(state.locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+    } catch {
+      toast.error(t(state.locale, 'location.denied'));
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   // Step 2 Route & Toll Policy
   const routeOptions = findRouteOptions(originHubId, destinationHubId);
@@ -206,9 +228,34 @@ export function PublishRideView({
               Where are you leaving from and going to?
             </h2>
             <div>
-              <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
-                {t(state.locale, 'search.from')}
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>
+                  {t(state.locale, 'search.from')}
+                </label>
+                <button
+                  type="button"
+                  onClick={handleUseLocation}
+                  disabled={isLocating}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--bbc-blue)',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                  }}
+                  title={t(state.locale, 'location.use_my_location')}
+                  aria-label={t(state.locale, 'location.use_my_location')}
+                >
+                  <Crosshair size={14} weight="bold" />
+                  <span>{isLocating ? t(state.locale, 'location.locating') : t(state.locale, 'location.use_my_location')}</span>
+                </button>
+              </div>
               <select
                 id="publish-origin-select"
                 value={originHubId}

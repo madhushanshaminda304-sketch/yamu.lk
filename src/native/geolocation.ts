@@ -1,5 +1,6 @@
 import type { Hub } from '../domain/corridors.ts';
 import { ALL_HUBS } from '../domain/corridors.ts';
+import type { LocaleCode } from '../domain/i18n.ts';
 
 export interface Coordinates {
   latitude: number;
@@ -9,6 +10,14 @@ export interface Coordinates {
 export interface NearestHubResult {
   hub: Hub;
   distanceKm: number;
+}
+
+export interface ResolvedHubResult {
+  hub: Hub;
+  hubId: string;
+  hubName: string;
+  distanceKm: number;
+  isExpresswayInterchange: boolean;
 }
 
 /**
@@ -112,4 +121,25 @@ export async function getCurrentLocation(): Promise<Coordinates> {
   }
 
   throw new Error('Geolocation is not supported in this environment');
+}
+
+/**
+ * Resolves user GPS coordinates to the nearest Sri Lankan transport hub,
+ * providing the hub ID, localized hub name, and distance in km.
+ */
+export function resolveUserLocationToHub(
+  coords: Coordinates,
+  locale: LocaleCode = 'en-LK',
+  hubs: readonly Hub[] = ALL_HUBS
+): ResolvedHubResult {
+  const nearest = findNearestHub(coords, hubs);
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
+  return {
+    hub: nearest.hub,
+    hubId: nearest.hub.id,
+    hubName,
+    distanceKm: nearest.distanceKm,
+    isExpresswayInterchange: nearest.hub.isExpresswayInterchange ?? false,
+  };
 }
