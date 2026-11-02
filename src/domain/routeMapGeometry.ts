@@ -19,6 +19,58 @@ export interface RouteMapWaypoint {
 
 export type LatLngTuple = [number, number];
 
+export const OPENFREEMAP_LIBERTY_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+
+export function positionsToGeoJsonLine(
+  positions: LatLngTuple[]
+): {
+  type: 'Feature';
+  properties: Record<string, unknown>;
+  geometry: {
+    type: 'LineString';
+    coordinates: [number, number][];
+  };
+} {
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: positions.map(([lat, lng]) => [lng, lat]),
+    },
+  };
+}
+
+export function computeMapLibreBounds(
+  waypoints: readonly RouteMapWaypoint[]
+): [[number, number], [number, number]] | null {
+  if (waypoints.length === 0) return null;
+
+  let minLat = waypoints[0].lat;
+  let maxLat = waypoints[0].lat;
+  let minLng = waypoints[0].lng;
+  let maxLng = waypoints[0].lng;
+
+  for (const wp of waypoints) {
+    if (wp.lat < minLat) minLat = wp.lat;
+    if (wp.lat > maxLat) maxLat = wp.lat;
+    if (wp.lng < minLng) minLng = wp.lng;
+    if (wp.lng > maxLng) maxLng = wp.lng;
+  }
+
+  if (minLat === maxLat && minLng === maxLng) {
+    return [
+      [minLng - 0.02, minLat - 0.02],
+      [maxLng + 0.02, maxLat + 0.02],
+    ];
+  }
+
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
+}
+
 const routeGeometryCache = new Map<string, LatLngTuple[]>();
 
 export function extractRouteMapWaypoints(
