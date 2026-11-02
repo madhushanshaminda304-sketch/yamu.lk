@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
-import { Star, UserCheck, SignOut } from '@phosphor-icons/react';
+import {
+  Star,
+  UserCheck,
+  SignOut,
+  House,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Trash,
+  Plus,
+  ShieldCheck,
+  WhatsappLogo,
+  PhoneCall,
+} from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { ALL_HUBS, getHubById } from '../domain/corridors.ts';
+import { validateSriLankaPhone } from '../domain/trust.ts';
 import type { ComfortProfile } from '../domain/matching.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 
@@ -31,6 +46,17 @@ export function ProfileView({
     womenOnly: false,
   });
 
+  // Saved commute places state
+  const [placeLabel, setPlaceLabel] = useState<'home' | 'work' | 'university' | 'other'>('home');
+  const [placeTitle, setPlaceTitle] = useState('Home');
+  const [placeHubId, setPlaceHubId] = useState('colombo');
+  const [placeLandmark, setPlaceLandmark] = useState('');
+
+  // Emergency trusted contacts state
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactRel, setContactRel] = useState('Family');
+
   if (!user) {
     return (
       <div className="shell-narrow" style={{ padding: '64px 0', textAlign: 'center' }}>
@@ -54,6 +80,51 @@ export function ProfileView({
       </div>
     );
   }
+
+  const handleAddPlace = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!placeHubId) {
+      toast.error('Select a valid hub.');
+      return;
+    }
+    const defaultName = placeLabel === 'home' ? 'Home' : placeLabel === 'work' ? 'Work' : placeLabel === 'university' ? 'Campus' : 'Place';
+    const title = placeTitle.trim() || defaultName;
+    store.saveFavoritePlace({
+      id: `sp-${Date.now()}`,
+      label: placeLabel,
+      title,
+      hubId: placeHubId,
+      landmark: placeLandmark.trim(),
+    });
+    setPlaceLandmark('');
+    toast.success(`Saved "${title}" to your commute shortcuts!`);
+  };
+
+  const handleAddContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if ((user.trustedContacts?.length ?? 0) >= 2) {
+      toast.error('You can save up to 2 emergency trusted contacts.');
+      return;
+    }
+    if (!contactName.trim()) {
+      toast.error('Enter contact name.');
+      return;
+    }
+    if (!validateSriLankaPhone(contactPhone)) {
+      toast.error('Enter a valid Sri Lankan mobile number (+947XXXXXXXX).');
+      return;
+    }
+    store.addTrustedContact({
+      id: `tc-${Date.now()}`,
+      name: contactName.trim(),
+      phone: contactPhone.trim(),
+      relationship: contactRel.trim() || 'Family',
+    });
+    setContactName('');
+    setContactPhone('');
+    setContactRel('Family');
+    toast.success(`Added ${contactName.trim()} as trusted SOS contact!`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +294,269 @@ export function ProfileView({
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Saved Commute Places Card */}
+      <div className="publish-wizard-card" style={{ marginTop: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <MapPin size={22} color="var(--bbc-blue)" weight="duotone" />
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
+            Saved Commute Shortcuts
+          </h3>
+        </div>
+        <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', marginBottom: '16px', lineHeight: 1.4 }}>
+          Save your regular travel destinations (Home, Work, Campus) for 1-tap booking from the home screen.
+        </p>
+
+        {user.savedPlaces && user.savedPlaces.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {user.savedPlaces.map((place) => {
+              const hub = getHubById(place.hubId);
+              const hubName = hub?.name.en ?? place.hubId;
+              return (
+                <div
+                  key={place.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--bbc-border)',
+                    background: '#f8fafc',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: '#ecfdf5',
+                      color: '#047857',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      {place.label === 'home' ? <House size={18} weight="bold" /> :
+                       place.label === 'work' ? <Briefcase size={18} weight="bold" /> :
+                       place.label === 'university' ? <GraduationCap size={18} weight="bold" /> :
+                       <MapPin size={18} weight="bold" />}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--bbc-navy)' }}>
+                        {place.title}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)' }}>
+                        {hubName}{place.landmark ? ` · ${place.landmark}` : ''}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => store.removeFavoritePlace(place.id)}
+                    aria-label={`Remove ${place.title}`}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#94a3b8',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      borderRadius: '6px',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                  >
+                    <Trash size={16} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', marginBottom: '16px' }}>
+            No saved commute shortcuts yet. Add your regular home or work hub below.
+          </p>
+        )}
+
+        <form onSubmit={handleAddPlace} style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px' }}>Add a New Commute Place</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Category</label>
+              <select
+                value={placeLabel}
+                onChange={(e) => {
+                  const lbl = e.target.value as any;
+                  setPlaceLabel(lbl);
+                  if (lbl === 'home') setPlaceTitle('Home');
+                  else if (lbl === 'work') setPlaceTitle('Work');
+                  else if (lbl === 'university') setPlaceTitle('Campus');
+                }}
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+              >
+                <option value="home">🏠 Home</option>
+                <option value="work">🏢 Work</option>
+                <option value="university">🎓 Campus</option>
+                <option value="other">📍 Other</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Custom Title</label>
+              <input
+                type="text"
+                value={placeTitle}
+                onChange={(e) => setPlaceTitle(e.target.value)}
+                placeholder="e.g. Peradeniya"
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Destination Hub</label>
+              <select
+                value={placeHubId}
+                onChange={(e) => setPlaceHubId(e.target.value)}
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+              >
+                {ALL_HUBS.map((hub) => (
+                  <option key={hub.id} value={hub.id}>
+                    {hub.name.en} ({hub.district})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              value={placeLandmark}
+              onChange={(e) => setPlaceLandmark(e.target.value)}
+              placeholder="Landmark (e.g. Clock Tower, Gate 2, Station)"
+              style={{ flex: 1, padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+            />
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ padding: '10px 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Plus size={14} weight="bold" />
+              <span>Save Place</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Emergency Trusted Contacts Card */}
+      <div className="publish-wizard-card" style={{ marginTop: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <ShieldCheck size={22} color="#047857" weight="duotone" />
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
+            Emergency Trusted Contacts (SOS)
+          </h3>
+        </div>
+        <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', marginBottom: '16px', lineHeight: 1.4 }}>
+          Save up to 2 trusted contacts. During active journeys, 1-tap WhatsApp SOS will immediately dispatch your verified vehicle details, driver name, and boarding PIN.
+        </p>
+
+        {user.trustedContacts && user.trustedContacts.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {user.trustedContacts.map((contact) => (
+              <div
+                key={contact.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--bbc-border)',
+                  background: '#f8fafc',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--bbc-navy)' }}>
+                    {contact.name}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)' }}>
+                    {contact.relationship} · {contact.phone}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => store.removeTrustedContact(contact.id)}
+                  aria-label={`Remove ${contact.name}`}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '6px',
+                    borderRadius: '6px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                >
+                  <Trash size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', marginBottom: '16px' }}>
+            No trusted emergency contacts added yet.
+          </p>
+        )}
+
+        {(user.trustedContacts?.length ?? 0) < 2 ? (
+          <form onSubmit={handleAddContact} style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px' }}>Add Trusted Contact</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Amma"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Mobile (+94...)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="+947XXXXXXXX"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>Relationship</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mother, Sister"
+                  value={contactRel}
+                  onChange={(e) => setContactRel(e.target.value)}
+                  style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ width: '100%', padding: '11px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <Plus size={14} weight="bold" />
+              <span>Add Emergency Contact</span>
+            </button>
+          </form>
+        ) : (
+          <div style={{ fontSize: '12px', color: '#047857', background: '#ecfdf5', padding: '10px 14px', borderRadius: '8px', fontWeight: 600 }}>
+            Maximum 2 trusted emergency contacts registered. Remove one to add another.
+          </div>
+        )}
       </div>
     </div>
   );
