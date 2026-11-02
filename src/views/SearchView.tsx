@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -205,6 +205,16 @@ export function SearchView({
     acOnly,
     petsAllowedOnly,
   });
+
+  const firstResultStops = results[0]?.ride.stops;
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const searchMapWaypoints = useMemo(
+    () =>
+      firstResultStops
+        ? extractRouteMapWaypoints(firstResultStops, fromHubId, toHubId, langKey)
+        : buildHubPairWaypoints(fromHubId, toHubId, langKey),
+    [firstResultStops, fromHubId, toHubId, langKey]
+  );
 
   const handleCreateAlert = (e: React.FormEvent) => {
     e.preventDefault();
@@ -565,11 +575,7 @@ export function SearchView({
           {showSearchMap && fromHub && toHub && (
             <div style={{ marginBottom: '16px' }}>
               <LeafletRouteMap
-                waypoints={
-                  results[0]
-                    ? extractRouteMapWaypoints(results[0].ride.stops, fromHubId, toHubId, locale.slice(0, 2) as 'en' | 'si' | 'ta')
-                    : buildHubPairWaypoints(fromHubId, toHubId, locale.slice(0, 2) as 'en' | 'si' | 'ta')
-                }
+                waypoints={searchMapWaypoints}
                 height={235}
                 enableLiveTracking={false}
               />
