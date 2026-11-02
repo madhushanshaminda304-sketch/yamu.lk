@@ -8,9 +8,13 @@ import {
   Sparkle,
   ArrowRight,
   Crosshair,
+  House,
+  Briefcase,
+  GraduationCap,
+  MapPin,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
 import { t, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -26,6 +30,14 @@ export function HomeView({ state }: { state: MarketplaceState }) {
   const [date, setDate] = useState(tomorrow);
   const [seats, setSeats] = useState(1);
   const [isLocating, setIsLocating] = useState(false);
+
+  const savedPlaces = state.currentUser?.savedPlaces && state.currentUser.savedPlaces.length > 0
+    ? state.currentUser.savedPlaces
+    : [
+        { id: 'def-1', label: 'home' as const, title: 'Colombo', hubId: 'colombo' },
+        { id: 'def-2', label: 'work' as const, title: 'Makumbura MMC', hubId: 'makumbura' },
+        { id: 'def-3', label: 'university' as const, title: 'Kandy Hub', hubId: 'kandy' },
+      ];
 
   const handleUseLocation = async () => {
     try {
@@ -146,6 +158,65 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <span>{t(locale, 'search.cta')}</span>
               </button>
             </form>
+
+            {/* 1-Tap Commute Shortcut Chips */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                borderTop: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                Commute:
+              </span>
+              {savedPlaces.map((place) => {
+                const hub = getHubById(place.hubId);
+                const hubName = hub?.name.en ?? place.hubId;
+                const isSelected = toHubId === place.hubId;
+                return (
+                  <button
+                    key={place.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      if (fromHubId === place.hubId) {
+                        setFromHubId(place.hubId === 'colombo' ? 'makumbura' : 'colombo');
+                      }
+                      setToHubId(place.hubId);
+                      toast.success(`Destination set to ${place.title} (${hubName})`);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '5px 11px',
+                      borderRadius: '9999px',
+                      fontSize: '12px',
+                      fontWeight: isSelected ? 700 : 600,
+                      background: isSelected ? '#047857' : '#ffffff',
+                      color: isSelected ? '#ffffff' : '#1e293b',
+                      border: isSelected ? '1px solid #047857' : '1px solid #cbd5e1',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {place.label === 'home' ? <House size={13} weight={isSelected ? 'fill' : 'bold'} /> :
+                     place.label === 'work' ? <Briefcase size={13} weight={isSelected ? 'fill' : 'bold'} /> :
+                     place.label === 'university' ? <GraduationCap size={13} weight={isSelected ? 'fill' : 'bold'} /> :
+                     <MapPin size={13} weight={isSelected ? 'fill' : 'bold'} />}
+                    <span>{place.title}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="scam-banner">

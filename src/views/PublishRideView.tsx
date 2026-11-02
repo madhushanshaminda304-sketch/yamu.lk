@@ -71,6 +71,9 @@ export function PublishRideView({
   const [maxTwoInBack, setMaxTwoInBack] = useState(true);
   const [womenOnly, setWomenOnly] = useState(false);
   const [luggage, setLuggage] = useState<LuggageSize>('medium');
+  const [childSeatAvailable, setChildSeatAvailable] = useState(false);
+  const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
+  const [airportFlightTransfer, setAirportFlightTransfer] = useState(false);
 
   // Step 5 Pricing
   const activeRoute = routeOptions.find((r) => r.corridorId === selectedCorridorId) || routeOptions[0];
@@ -121,6 +124,11 @@ export function PublishRideView({
         vehicleMakeModel: vehicleModel,
         vehicleCategory,
         acGuaranteed,
+        specialRequirements: {
+          childSeatAvailable,
+          wheelchairAccessible,
+          airportFlightTransfer,
+        },
         comfort: {
           chattiness: quietRide ? 'bla' : 'blabla',
           quietRide,
@@ -527,20 +535,7 @@ export function PublishRideView({
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Number of Passengers you can take</span>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setSeats(n)}
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '9999px',
-                      fontWeight: 800,
-                      border: `2px solid ${seats === n ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
-                      background: seats === n ? 'var(--bbc-blue)' : '#ffffff',
-                      color: seats === n ? '#ffffff' : 'var(--bbc-navy)',
-                    }}
-                  >
+                  <button key={n} type="button" onClick={() => setSeats(n)} style={{ width: '44px', height: '44px', borderRadius: '9999px', fontWeight: 800, border: `2px solid ${seats === n ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, background: seats === n ? 'var(--bbc-blue)' : '#ffffff', color: seats === n ? '#ffffff' : 'var(--bbc-navy)' }}>
                     {n}
                   </button>
                 ))}
@@ -555,19 +550,7 @@ export function PublishRideView({
                   { id: 'suv', label: 'Comfort SUV', icon: '🚙' },
                   { id: 'van', label: 'Spacious Van', icon: '🚐' },
                 ].map((tier) => (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => setVehicleCategory(tier.id as VehicleCategory)}
-                    style={{
-                      padding: '8px 4px',
-                      borderRadius: '8px',
-                      border: `2px solid ${vehicleCategory === tier.id ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
-                      background: vehicleCategory === tier.id ? '#f0f9ff' : '#ffffff',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                    }}
-                  >
+                  <button key={tier.id} type="button" onClick={() => setVehicleCategory(tier.id as VehicleCategory)} style={{ padding: '8px 4px', borderRadius: '8px', border: `2px solid ${vehicleCategory === tier.id ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, background: vehicleCategory === tier.id ? '#f0f9ff' : '#ffffff', cursor: 'pointer', textAlign: 'center' }}>
                     <span style={{ fontSize: '16px', display: 'block' }}>{tier.icon}</span>
                     <strong style={{ fontSize: '11px', display: 'block', color: 'var(--bbc-navy)' }}>{tier.label}</strong>
                   </button>
@@ -587,7 +570,7 @@ export function PublishRideView({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={acGuaranteed} onChange={(e) => setAcGuaranteed(e.target.checked)} />
                 <span>Air Conditioning (AC)</span>
@@ -603,6 +586,18 @@ export function PublishRideView({
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={quietRide} onChange={(e) => setQuietRide(e.target.checked)} />
                 <span>🔇 Quiet Commute</span>
+              </label>
+              <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
+                <input type="checkbox" checked={childSeatAvailable} onChange={(e) => setChildSeatAvailable(e.target.checked)} />
+                <span>💺 Child Safety Seat</span>
+              </label>
+              <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
+                <input type="checkbox" checked={wheelchairAccessible} onChange={(e) => setWheelchairAccessible(e.target.checked)} />
+                <span>♿ Wheelchair / Assist</span>
+              </label>
+              <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
+                <input type="checkbox" checked={airportFlightTransfer} onChange={(e) => setAirportFlightTransfer(e.target.checked)} />
+                <span>✈️ Airport Terminal Drop</span>
               </label>
             </div>
 
