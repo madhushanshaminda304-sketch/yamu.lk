@@ -41,10 +41,14 @@ export function buildWhatsAppCoordinationUrl(
     ? ride.departureAt.split('T')[1].slice(0, 5)
     : ride.departureAt;
 
+  const passengerInfo = booking.isBookingForOther && booking.bookerName
+    ? `Passenger: ${booking.passengerName} (booked by ${booking.bookerName})`
+    : `Passenger: ${booking.passengerName}`;
+
   const message =
     `Hi ${ride.driver.name}, I booked ${booking.seats} seat(s) on Yamo for your trip from ${fromName} to ${toName} ` +
     `departing at ${timeFormatted}. My pickup point is ${pickupLandmark}. ` +
-    `Passenger: ${booking.passengerName}. Looking forward to the ride!`;
+    `${passengerInfo}. Looking forward to the ride!`;
 
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
@@ -73,9 +77,15 @@ export function buildSafetyShareText(
   const vehicle = driver.defaultVehicle || ride.vehicle.makeModel || 'Personal Vehicle';
   const ratingText = driver.overallRating > 0 ? `${driver.overallRating.toFixed(1)}★` : 'New Driver';
 
+  const travelerLine = booking.isBookingForOther && booking.bookerName
+    ? `Passenger: ${booking.passengerName} (booked on behalf by ${booking.bookerName})`
+    : `Passenger: ${booking.passengerName}`;
+
   return (
     `🛡️ Yamo Trip Share:\n` +
-    `I am traveling from ${fromName} to ${toName} with driver ${driver.name} (${ratingText}, ${vehicle}).\n` +
+    `Trip: ${fromName} to ${toName}\n` +
+    `${travelerLine}\n` +
+    `Driver: ${driver.name} (${ratingText}, ${vehicle})\n` +
     `Scheduled departure: ${ride.departureAt}\n` +
     `Driver contact: ${driver.phone}\n` +
     `Boarding PIN: #${pin}\n` +
@@ -111,4 +121,46 @@ export async function shareTripDetails(
   }
 
   return { success: false, method: 'clipboard' };
+}
+
+export interface EmergencySosInput {
+  passengerName: string;
+  driverName: string;
+  driverPhone: string;
+  vehiclePlate: string;
+  vehicleModel: string;
+  fromName: string;
+  toName: string;
+  boardingPin: string;
+}
+
+export function buildEmergencySosText(input: EmergencySosInput): string {
+  return (
+    `🚨 EMERGENCY SOS — Yamo Sri Lanka Carpool:\n` +
+    `I (${input.passengerName}) am on a trip from ${input.fromName} to ${input.toName}.\n` +
+    `Driver: ${input.driverName} (${input.driverPhone})\n` +
+    `Vehicle: ${input.vehicleModel} · Plate: ${input.vehiclePlate}\n` +
+    `Boarding PIN: #${input.boardingPin}\n` +
+    `If I do not check in, please call Sri Lanka Police (119) or Expressway Police (1969).`
+  );
+}
+
+export interface ForgottenItemRecoveryInput {
+  driverPhone: string;
+  driverName: string;
+  fromName: string;
+  toName: string;
+  tripDate: string;
+  boardingPin: string;
+  vehicleModel: string;
+  vehiclePlate: string;
+}
+
+export function buildForgottenItemRecoveryUrl(input: ForgottenItemRecoveryInput): string {
+  const cleanPhone = normalizeWhatsAppPhone(input.driverPhone);
+  const msg =
+    `Hi ${input.driverName}, I was a passenger on your Yamo ride from ${input.fromName} to ${input.toName} on ${input.tripDate} (Boarding PIN #${input.boardingPin}). ` +
+    `I think I left an item in your car (${input.vehicleModel} · ${input.vehiclePlate}). ` +
+    `Could you please let me know when you have a moment? Thank you!`;
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
 }

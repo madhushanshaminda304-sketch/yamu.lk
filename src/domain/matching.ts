@@ -16,12 +16,20 @@ export interface ComfortProfile {
   pets: TernaryPreference;
   smoking: TernaryPreference;
   womenOnly: boolean;
+  quietRide?: boolean;
+}
+
+export interface SpecialRequirements {
+  childSeatAvailable?: boolean;
+  wheelchairAccessible?: boolean;
+  airportFlightTransfer?: boolean;
 }
 
 export interface VehicleInfo {
   makeModel: string;
   category: VehicleCategory;
   plateHint: string;
+  plateNumber?: string;
   acGuaranteed: boolean;
 }
 
@@ -76,10 +84,13 @@ export interface Ride {
   boostEnabled: boolean;
   luggageCapacity?: LuggageSize;
   vehicle: VehicleInfo;
+  vehicleCategory?: VehicleCategory;
   comfort: ComfortProfile;
   driver: DriverSummary;
   notes: string;
   returnRideId?: string;
+  journeyStatus?: 'scheduled' | 'departed' | 'completed';
+  specialRequirements?: SpecialRequirements;
   status: 'published' | 'cancelled';
 }
 
@@ -99,8 +110,8 @@ export interface LegBookingCheck {
 export interface SearchQuery {
   fromHubId: string;
   toHubId: string;
-  date: string;
-  seats: number;
+  date?: string;
+  seats?: number;
   sortBy?: 'departure' | 'price' | 'duration';
   timeWindow?: 'all' | 'before_6' | 'morning_6_12' | 'afternoon_12_18' | 'evening_after_18';
   maxPriceLkr?: number;
@@ -111,6 +122,11 @@ export interface SearchQuery {
   womenOnly?: boolean;
   acOnly?: boolean;
   petsAllowedOnly?: boolean;
+  vehicleCategory?: VehicleCategory | 'all';
+  quietRideOnly?: boolean;
+  childSeatOnly?: boolean;
+  wheelchairOnly?: boolean;
+  airportOnly?: boolean;
 }
 
 export interface MatchedRideResult {
@@ -282,6 +298,15 @@ export function searchRides(rides: readonly Ride[], query: SearchQuery): Matched
     if (query.womenOnly && !ride.comfort.womenOnly) continue;
     if (query.acOnly && !ride.vehicle.acGuaranteed) continue;
     if (query.petsAllowedOnly && ride.comfort.pets === 'no') continue;
+    if (query.vehicleCategory && query.vehicleCategory !== 'all' && ride.vehicle.category !== query.vehicleCategory) continue;
+    if (query.quietRideOnly && !ride.comfort.quietRide) continue;
+    if (query.childSeatOnly && !ride.specialRequirements?.childSeatAvailable) continue;
+    if (query.wheelchairOnly && !ride.specialRequirements?.wheelchairAccessible) continue;
+    if (query.airportOnly) {
+      const hasAirportOption = Boolean(ride.specialRequirements?.airportFlightTransfer);
+      const passesAirportHub = ride.stops.some((s) => s.hubId === 'katunayake');
+      if (!hasAirportOption && !passesAirportHub) continue;
+    }
 
     if (query.timeWindow && query.timeWindow !== 'all') {
       const hour = getColomboHour(leg.fromStop.departureAt);
