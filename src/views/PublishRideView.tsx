@@ -9,6 +9,8 @@ import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
+import { LeafletRouteMap } from '../components/LeafletRouteMap.tsx';
+import { buildRouteOptionWaypoints } from '../domain/routeMapGeometry.ts';
 
 export function PublishRideView({
   state,
@@ -378,6 +380,13 @@ export function PublishRideView({
             </div>
 
             {/* Toll Policy Selector when expressway is selected */}
+            {activeRoute && activeRoute.stops.length >= 2 && (
+              <LeafletRouteMap
+                waypoints={buildRouteOptionWaypoints(activeRoute.stops, state.locale.slice(0, 2) as 'en' | 'si' | 'ta')}
+                height={220}
+                enableLiveTracking={false}
+              />
+            )}
             {activeRoute?.hasTolls && (
               <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
                 <span style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', display: 'block' }}>Expressway Toll Policy</span>

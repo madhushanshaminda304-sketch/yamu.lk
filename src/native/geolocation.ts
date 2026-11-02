@@ -93,7 +93,6 @@ export async function getCurrentLocation(): Promise<Coordinates> {
         };
       }
     } catch (nativeErr) {
-      // Fall through to browser geolocation if native plugin fails
       console.warn('Native geolocation failed, attempting browser fallback:', nativeErr);
     }
   }
@@ -121,6 +120,41 @@ export async function getCurrentLocation(): Promise<Coordinates> {
   }
 
   throw new Error('Geolocation is not supported in this environment');
+}
+
+/**
+ * Continuously watches the user's live GPS location and invokes `onPosition`
+ * as the driver or passenger moves. Returns a stop function.
+ */
+export function watchLiveLocation(
+  onPosition: (coords: Coordinates) => void,
+  onError?: (err: Error) => void
+): () => void {
+  if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        onPosition({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        onError?.(new Error(err.message || 'Live GPS tracking unavailable'));
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 10000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }
+
+  onError?.(new Error('Live geolocation is not supported on this device'));
+  return () => {};
 }
 
 /**

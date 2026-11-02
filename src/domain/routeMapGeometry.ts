@@ -1,4 +1,4 @@
-import { getHubById } from './corridors.ts';
+import { getHubById, type RouteOptionStop } from './corridors.ts';
 import type { RideStop } from './matching.ts';
 
 export interface RouteMapWaypoint {
@@ -49,6 +49,82 @@ export function extractRouteMapWaypoints(
       isSelectedFrom: Boolean(selectedFromHubId && stop.hubId === selectedFromHubId),
       isSelectedTo: Boolean(selectedToHubId && stop.hubId === selectedToHubId),
       isBoostStop: Boolean(stop.isBoostStop),
+      isExpresswayInterchange: Boolean(hub.isExpresswayInterchange),
+    });
+  }
+
+  return waypoints;
+}
+
+export function buildHubPairWaypoints(
+  fromHubId: string,
+  toHubId: string,
+  langKey: 'en' | 'si' | 'ta' = 'en'
+): RouteMapWaypoint[] {
+  const fromHub = getHubById(fromHubId);
+  const toHub = getHubById(toHubId);
+  if (!fromHub || !toHub) return [];
+
+  return [
+    {
+      hubId: fromHub.id,
+      name: fromHub.name[langKey] || fromHub.name.en,
+      landmark: fromHub.landmarks[0] || fromHub.name.en,
+      departureAt: '',
+      kmFromOrigin: 0,
+      lat: fromHub.lat,
+      lng: fromHub.lng,
+      isOrigin: true,
+      isDestination: false,
+      isSelectedFrom: true,
+      isSelectedTo: false,
+      isBoostStop: false,
+      isExpresswayInterchange: Boolean(fromHub.isExpresswayInterchange),
+    },
+    {
+      hubId: toHub.id,
+      name: toHub.name[langKey] || toHub.name.en,
+      landmark: toHub.landmarks[0] || toHub.name.en,
+      departureAt: '',
+      kmFromOrigin: 100,
+      lat: toHub.lat,
+      lng: toHub.lng,
+      isOrigin: false,
+      isDestination: true,
+      isSelectedFrom: false,
+      isSelectedTo: true,
+      isBoostStop: false,
+      isExpresswayInterchange: Boolean(toHub.isExpresswayInterchange),
+    },
+  ];
+}
+
+export function buildRouteOptionWaypoints(
+  stops: readonly RouteOptionStop[],
+  langKey: 'en' | 'si' | 'ta' = 'en'
+): RouteMapWaypoint[] {
+  const waypoints: RouteMapWaypoint[] = [];
+
+  for (let i = 0; i < stops.length; i++) {
+    const stop = stops[i];
+    const hub = getHubById(stop.hubId);
+    if (!hub || typeof hub.lat !== 'number' || typeof hub.lng !== 'number') {
+      continue;
+    }
+
+    waypoints.push({
+      hubId: stop.hubId,
+      name: hub.name[langKey] || hub.name.en || stop.hubId,
+      landmark: stop.defaultLandmark || hub.landmarks[0] || hub.name.en,
+      departureAt: '',
+      kmFromOrigin: stop.kmFromOrigin,
+      lat: hub.lat,
+      lng: hub.lng,
+      isOrigin: i === 0,
+      isDestination: i === stops.length - 1,
+      isSelectedFrom: i === 0,
+      isSelectedTo: i === stops.length - 1,
+      isBoostStop: i > 0 && i < stops.length - 1,
       isExpresswayInterchange: Boolean(hub.isExpresswayInterchange),
     });
   }

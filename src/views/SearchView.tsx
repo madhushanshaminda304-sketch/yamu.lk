@@ -24,6 +24,8 @@ import { pushOverlayDismissHandler } from '../native/backButton.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 import { RideCardItem } from '../components/RideCardItem.tsx';
 import { SearchFilterControls } from '../components/SearchFilterControls.tsx';
+import { LeafletRouteMap } from '../components/LeafletRouteMap.tsx';
+import { extractRouteMapWaypoints, buildHubPairWaypoints } from '../domain/routeMapGeometry.ts';
 
 export function SearchView({
   state,
@@ -89,6 +91,7 @@ export function SearchView({
 
   // Mobile Bottom Sheet Filter Drawer
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  const [showSearchMap, setShowSearchMap] = useState(true);
 
   // Hardware Back Button & Scroll Lock for Drawer
   useEffect(() => {
@@ -233,16 +236,26 @@ export function SearchView({
           </p>
         </div>
 
-        <button
-          type="button"
-          className="btn-secondary btn-sm"
-          onClick={() => setShowAlertModal(true)}
-          aria-label="Create a Ride Alert"
-          style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <Bell size={16} />
-          <span>{t(locale, 'alert.cta')}</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            onClick={() => setShowSearchMap((prev) => !prev)}
+            style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', fontWeight: 700, color: '#047857', borderColor: '#a7f3d0', background: showSearchMap ? '#ecfdf5' : '#ffffff' }}
+          >
+            <span>{showSearchMap ? '🗺️ Hide Route Map' : '🗺️ Show Route Map'}</span>
+          </button>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            onClick={() => setShowAlertModal(true)}
+            aria-label="Create a Ride Alert"
+            style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Bell size={16} />
+            <span>{t(locale, 'alert.cta')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Origin & Destination Bar with 1-Tap Geolocation */}
@@ -549,6 +562,19 @@ export function SearchView({
 
         {/* Results List */}
         <main className="results-container">
+          {showSearchMap && fromHub && toHub && (
+            <div style={{ marginBottom: '16px' }}>
+              <LeafletRouteMap
+                waypoints={
+                  results[0]
+                    ? extractRouteMapWaypoints(results[0].ride.stops, fromHubId, toHubId, locale.slice(0, 2) as 'en' | 'si' | 'ta')
+                    : buildHubPairWaypoints(fromHubId, toHubId, locale.slice(0, 2) as 'en' | 'si' | 'ta')
+                }
+                height={235}
+                enableLiveTracking={false}
+              />
+            </div>
+          )}
           {results.length === 0 ? (
             <div className="empty-results">
               <h2>No rides found for this date & filters</h2>

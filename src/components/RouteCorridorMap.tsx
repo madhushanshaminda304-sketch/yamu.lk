@@ -9,6 +9,10 @@ interface RouteCorridorMapProps {
   selectedFromHubId?: string;
   selectedToHubId?: string;
   langKey?: 'en' | 'si' | 'ta';
+  currentUserId?: string;
+  currentUserName?: string;
+  userRole?: 'driver' | 'passenger';
+  enableLiveTracking?: boolean;
 }
 
 export function RouteCorridorMap({
@@ -16,6 +20,10 @@ export function RouteCorridorMap({
   selectedFromHubId,
   selectedToHubId,
   langKey = 'en',
+  currentUserId,
+  currentUserName,
+  userRole = 'passenger',
+  enableLiveTracking = true,
 }: RouteCorridorMapProps) {
   const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
   const stops = ride.stops;
@@ -69,7 +77,7 @@ export function RouteCorridorMap({
           </span>
         </div>
 
-        {/* Mode Toggle: Interactive Map vs Stop Timeline */}
+        {/* Mode Toggle: Live Taxi Map vs Stop Timeline */}
         <div
           style={{
             display: 'inline-flex',
@@ -97,7 +105,7 @@ export function RouteCorridorMap({
               boxShadow: viewMode === 'map' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
             }}
           >
-            🗺️ Interactive Map
+            🗺️ Live Taxi Map
           </button>
           <button
             type="button"
@@ -123,7 +131,16 @@ export function RouteCorridorMap({
 
       {viewMode === 'map' && waypoints.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
-          <LeafletRouteMap waypoints={waypoints} height={270} />
+          <LeafletRouteMap
+            waypoints={waypoints}
+            height={295}
+            rideId={ride.id}
+            currentUserId={currentUserId}
+            currentUserName={currentUserName}
+            userRole={userRole}
+            enableLiveTracking={enableLiveTracking}
+            journeyStatus={ride.journeyStatus}
+          />
         </div>
       )}
 
@@ -192,7 +209,7 @@ export function RouteCorridorMap({
                       background: isFrom
                         ? '#047857'
                         : isTo
-                        ? '#d97706'
+                        ? '#0f172a'
                         : isOrigin || isDest
                         ? '#064e3b'
                         : '#10b981',
