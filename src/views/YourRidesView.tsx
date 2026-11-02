@@ -190,6 +190,16 @@ export function YourRidesView({
                       <div style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
                         {bk.seats} seats · Total {formatLkr(bk.totalPriceLkr)} · Settle via {bk.settlementMethod === 'lankaqr' ? 'LankaQR' : 'Cash (LKR)'}
                       </div>
+                      {bk.isBookingForOther && (
+                        <div style={{ fontSize: '12px', background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>
+                          👤 Booked for: <strong>{bk.passengerName}</strong> ({bk.passengerPhone || 'No phone'})
+                        </div>
+                      )}
+                      {ride?.journeyStatus === 'departed' && (
+                        <div style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
+                          🟢 Driver is en route! Keep your 4-digit Boarding PIN ready.
+                        </div>
+                      )}
                     </div>
                     <span style={{
                       padding: '4px 12px',
@@ -317,7 +327,7 @@ export function YourRidesView({
 
               return (
                 <div key={ride.id} style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
                         {formatColomboDate(ride.departureAt)} · {ride.corridorName}
@@ -329,9 +339,63 @@ export function YourRidesView({
                         {ride.totalSeats} seats offered · {formatLkr(ride.fullPriceLkr)} full price · {ride.approvalMode === 'instant' ? 'Instant Booking' : 'Manual Request'}
                       </div>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 700, background: '#e1f5fe', color: '#0288d1', padding: '4px 10px', borderRadius: '9999px' }}>
-                      {ride.status.toUpperCase()}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        {ride.journeyStatus === 'departed' && (
+                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>
+                            🟢 EN ROUTE
+                          </span>
+                        )}
+                        {ride.journeyStatus === 'completed' && (
+                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '9999px' }}>
+                            🏁 COMPLETED
+                          </span>
+                        )}
+                        <span style={{ fontSize: '12px', fontWeight: 700, background: '#e1f5fe', color: '#0288d1', padding: '4px 10px', borderRadius: '9999px' }}>
+                          {ride.status.toUpperCase()}
+                        </span>
+                      </div>
+
+                      {ride.journeyStatus !== 'completed' && (
+                        <div>
+                          {ride.journeyStatus !== 'departed' ? (
+                            <button
+                              type="button"
+                              className="btn-primary btn-sm"
+                              style={{ padding: '6px 12px', fontSize: '12px', background: '#047857' }}
+                              onClick={() => {
+                                triggerHaptic('success');
+                                const res = store.updateRideJourneyStatus(ride.id, 'departed');
+                                if (res.success) {
+                                  toast.success('Journey Started! Passengers notified that you are en route.');
+                                } else {
+                                  toast.error(res.error || 'Failed to start journey.');
+                                }
+                              }}
+                            >
+                              🚀 Start Journey
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-secondary btn-sm"
+                              style={{ padding: '6px 12px', fontSize: '12px' }}
+                              onClick={() => {
+                                triggerHaptic('selection');
+                                const res = store.updateRideJourneyStatus(ride.id, 'completed');
+                                if (res.success) {
+                                  toast.success('Trip completed! Thank you for driving safely.');
+                                } else {
+                                  toast.error(res.error || 'Failed to complete trip.');
+                                }
+                              }}
+                            >
+                              🏁 Complete Trip
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Passenger Requests List */}
@@ -346,7 +410,18 @@ export function YourRidesView({
                         {rideRequests.map((req) => (
                           <div key={req.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bbc-surface)', borderRadius: '8px', fontSize: '14px', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
-                              <strong>{req.passengerName}</strong> — {req.seats} seats ({getHubById(req.fromHubId)?.name.en} → {getHubById(req.toHubId)?.name.en}) · {formatLkr(req.totalPriceLkr)}
+                              <strong>{req.passengerName}</strong>
+                              {req.isBookingForOther && req.bookerName && (
+                                <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: '4px', marginLeft: '6px' }}>
+                                  Booked by {req.bookerName}
+                                </span>
+                              )}
+                              {' '}— {req.seats} seats ({getHubById(req.fromHubId)?.name.en} → {getHubById(req.toHubId)?.name.en}) · {formatLkr(req.totalPriceLkr)}
+                              {req.passengerPhone && (
+                                <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
+                                  📞 {req.passengerPhone}
+                                </div>
+                              )}
                               {req.message && <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>"{req.message}"</div>}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

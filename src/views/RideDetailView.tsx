@@ -8,8 +8,10 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { RidePassModal } from '../components/RidePassModal.tsx';
+import { RouteCorridorMap } from '../components/RouteCorridorMap.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
+import { normalizeSriLankanMobile } from '../domain/auth.ts';
 import { formatLkr, formatColomboDate, formatColomboTime, t } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState, SettlementMethod, BookingRecord } from '../state/store.ts';
 import { getDriverInitials } from '../components/RideCardItem.tsx';
@@ -34,6 +36,9 @@ export function RideDetailView({
   const [seats, setSeats] = useState(1);
   const [settlementMethod, setSettlementMethod] = useState<SettlementMethod>('lankaqr');
   const [message, setMessage] = useState('');
+  const [isBookingForOther, setIsBookingForOther] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
   const [bookingConfirmed, setBookingConfirmed] = useState<BookingRecord | null>(null);
   const [showRidePass, setShowRidePass] = useState(false);
 
@@ -58,6 +63,21 @@ export function RideDetailView({
 
   const executeBooking = () => {
     try {
+      let cleanGuestPhone: string | undefined = undefined;
+      if (isBookingForOther) {
+        if (!guestName.trim()) {
+          toast.error('Please enter the passenger’s name.');
+          return;
+        }
+        if (guestPhone.trim()) {
+          const norm = normalizeSriLankanMobile(guestPhone);
+          if (!norm.valid || !norm.phone) {
+            toast.error(norm.error || 'Please enter a valid Sri Lankan mobile number (+947XXXXXXXX).');
+            return;
+          }
+          cleanGuestPhone = norm.phone;
+        }
+      }
       const record = store.bookRideLeg({
         rideId: ride.id,
         fromHubId,
@@ -65,6 +85,9 @@ export function RideDetailView({
         seats,
         settlementMethod,
         message,
+        isBookingForOther,
+        guestPassengerName: isBookingForOther ? guestName.trim() : undefined,
+        guestPassengerPhone: cleanGuestPhone,
       });
       setBookingConfirmed(record);
       if (record.status === 'accepted') {
@@ -98,6 +121,13 @@ export function RideDetailView({
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px' }}>
         {/* Left: Journey Itinerary & Driver */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          <RouteCorridorMap
+            ride={ride}
+            selectedFromHubId={fromHubId}
+            selectedToHubId={toHubId}
+            langKey={langKey}
+          />
+
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '28px', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div>
@@ -108,11 +138,18 @@ export function RideDetailView({
                   {fromName} → {toName}
                 </h1>
               </div>
-              {ride.hasTolls && (
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '4px 12px', borderRadius: '9999px' }}>
-                  {ride.corridorCode} Tolls Included
-                </span>
-              )}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {ride.journeyStatus === 'departed' && (
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#047857', background: '#d1fae5', padding: '4px 12px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    🟢 Driver En Route
+                  </span>
+                )}
+                {ride.hasTolls && (
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '4px 12px', borderRadius: '9999px' }}>
+                    {ride.corridorCode} Tolls Included
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Stopover Itinerary Steps */}
@@ -199,7 +236,9 @@ export function RideDetailView({
               Vehicle & Comfort Rules
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', fontSize: '14px' }}>
+              <div><strong>Category:</strong> {(ride.vehicleCategory || ride.vehicle.category) === 'suv' ? 'Comfort SUV' : (ride.vehicleCategory || ride.vehicle.category) === 'van' ? 'Spacious Van' : 'Standard Car'}</div>
               <div><strong>Car:</strong> {ride.vehicle.makeModel}</div>
+              <div><strong>Quiet Commute:</strong> {ride.comfort?.quietRide ? '🔇 Quiet / Work Friendly' : 'Normal / Friendly'}</div>
               <div><strong>AC:</strong> {ride.vehicle.acGuaranteed ? 'Guaranteed AC' : 'Standard Ventilation'}</div>
               <div><strong>Backseat:</strong> {ride.comfort.maxTwoInBack ? 'Max 2 in the back (Spacious)' : 'Standard 3 in back'}</div>
               <div><strong>Chattiness:</strong> {ride.comfort.chattiness === 'bla' ? 'Quiet type' : ride.comfort.chattiness === 'blabla' ? 'Chatty based on mood' : 'Loves to chat!'}</div>
@@ -303,6 +342,46 @@ export function RideDetailView({
                     placeholder="e.g. I’ll be at the main entrance with one small bag."
                     style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '14px', fontFamily: 'inherit' }}
                   />
+                </div>
+
+                <div style={{ padding: '14px', background: '#f8fafc', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: 'var(--bbc-navy)' }}>
+                    <input
+                      type="checkbox"
+                      checked={isBookingForOther}
+                      onChange={(e) => setIsBookingForOther(e.target.checked)}
+                    />
+                    <span>Book for someone else (family / friend)</span>
+                  </label>
+                  {isBookingForOther && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px', color: 'var(--bbc-navy)' }}>
+                          Passenger Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          required={isBookingForOther}
+                          value={guestName}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          placeholder="e.g. Kamala Perera"
+                          style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--bbc-border)', borderRadius: '6px', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px', color: 'var(--bbc-navy)' }}>
+                          Passenger Phone (+94)
+                        </label>
+                        <input
+                          type="tel"
+                          value={guestPhone}
+                          onChange={(e) => setGuestPhone(e.target.value)}
+                          placeholder="+947XXXXXXXX"
+                          style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--bbc-border)', borderRadius: '6px', fontSize: '13px' }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>

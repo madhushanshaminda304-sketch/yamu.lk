@@ -149,7 +149,7 @@ export function canBookLeg(
   toHubId: string,
   seatsRequested: number
 ): LegBookingCheck {
-  if (ride.status !== 'published') {
+  if (ride.status !== 'published' || ride.journeyStatus === 'completed') {
     return {
       allowed: false,
       fromIndex: -1,
@@ -158,7 +158,7 @@ export function canBookLeg(
       legPriceLkr: 0,
       legDistanceKm: 0,
       isBoostLeg: false,
-      reason: 'Ride is no longer active.',
+      reason: ride.journeyStatus === 'completed' ? 'This journey has already completed.' : 'Ride is no longer active.',
     };
   }
 
@@ -283,7 +283,7 @@ export function searchRides(rides: readonly Ride[], query: SearchQuery): Matched
   const matched: MatchedRideResult[] = [];
 
   for (const ride of rides) {
-    if (ride.status !== 'published') continue;
+    if (ride.status !== 'published' || ride.journeyStatus === 'completed') continue;
     const leg = canBookLeg(ride, query.fromHubId, query.toHubId, query.seats || 1);
     if (!leg.allowed || !leg.fromStop || !leg.toStop) continue;
 
@@ -298,7 +298,10 @@ export function searchRides(rides: readonly Ride[], query: SearchQuery): Matched
     if (query.womenOnly && !ride.comfort.womenOnly) continue;
     if (query.acOnly && !ride.vehicle.acGuaranteed) continue;
     if (query.petsAllowedOnly && ride.comfort.pets === 'no') continue;
-    if (query.vehicleCategory && query.vehicleCategory !== 'all' && ride.vehicle.category !== query.vehicleCategory) continue;
+    if (query.vehicleCategory && query.vehicleCategory !== 'all') {
+      const cat = ride.vehicleCategory || ride.vehicle?.category;
+      if (cat !== query.vehicleCategory) continue;
+    }
     if (query.quietRideOnly && !ride.comfort.quietRide) continue;
     if (query.childSeatOnly && !ride.specialRequirements?.childSeatAvailable) continue;
     if (query.wheelchairOnly && !ride.specialRequirements?.wheelchairAccessible) continue;

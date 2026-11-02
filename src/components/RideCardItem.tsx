@@ -93,6 +93,21 @@ export function RideCardItem({
               )}
             </span>
           ))}
+          {ride.journeyStatus === 'departed' && (
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>🟢 En Route</span>
+            </span>
+          )}
+          {(ride.vehicleCategory || ride.vehicle.category) !== 'car' && (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #bae6fd', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>{(ride.vehicleCategory || ride.vehicle.category) === 'suv' ? '🚙 Comfort SUV' : '🚐 Spacious Van'}</span>
+            </span>
+          )}
+          {ride.comfort?.quietRide && (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', background: '#f1f5f9', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #e2e8f0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>🔇 Quiet Ride</span>
+            </span>
+          )}
           {ride.hasTolls && (
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Lightning size={12} weight="fill" />

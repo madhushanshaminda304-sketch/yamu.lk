@@ -9,6 +9,7 @@ import {
   Users,
 } from '@phosphor-icons/react';
 import { t, formatLkr, type LocaleCode } from '../domain/i18n.ts';
+import type { VehicleCategory } from '../domain/matching.ts';
 
 export interface SearchFilterControlsProps {
   sortBy: 'departure' | 'price' | 'duration';
@@ -31,6 +32,10 @@ export interface SearchFilterControlsProps {
   setAcOnly: (val: boolean) => void;
   petsAllowedOnly: boolean;
   setPetsAllowedOnly: (val: boolean) => void;
+  vehicleCategory?: VehicleCategory | 'all';
+  setVehicleCategory?: (val: VehicleCategory | 'all') => void;
+  quietRideOnly?: boolean;
+  setQuietRideOnly?: (val: boolean) => void;
   locale: LocaleCode;
   namePrefix?: string;
 }
@@ -56,6 +61,10 @@ export function SearchFilterControls({
   setAcOnly,
   petsAllowedOnly,
   setPetsAllowedOnly,
+  vehicleCategory,
+  setVehicleCategory,
+  quietRideOnly,
+  setQuietRideOnly,
   locale,
   namePrefix = 'filter',
 }: SearchFilterControlsProps) {
@@ -231,6 +240,17 @@ export function SearchFilterControls({
             <PawPrint size={16} />
             {t(locale, 'filter.pets')}
           </label>
+          {setQuietRideOnly && (
+            <label>
+              <input
+                type="checkbox"
+                checked={quietRideOnly || false}
+                onChange={(e) => setQuietRideOnly(e.target.checked)}
+              />
+              <span style={{ fontSize: '15px' }}>🔇</span>
+              Quiet Commute
+            </label>
+          )}
         </div>
       </div>
     </>

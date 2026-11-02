@@ -1,25 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Sparkle,
-  CheckCircle,
-  Crosshair,
-} from '@phosphor-icons/react';
+import { Sparkle, CheckCircle, Crosshair } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { HUBS, ALL_HUBS, getHubById, findRouteOptions } from '../domain/corridors.ts';
-import {
-  calculateRecommendedLkr,
-  getContributionBounds,
-  getPriceBand,
-  stepContributionLkr,
-  type TollPolicy,
-} from '../domain/pricing.ts';
-import type {
-  Ride,
-  ApprovalMode,
-  VehicleCategory,
-  LuggageSize,
-} from '../domain/matching.ts';
+import { calculateRecommendedLkr, getContributionBounds, getPriceBand, stepContributionLkr, type TollPolicy } from '../domain/pricing.ts';
+import type { Ride, ApprovalMode, VehicleCategory, LuggageSize } from '../domain/matching.ts';
 import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -81,6 +66,7 @@ export function PublishRideView({
   const [seats, setSeats] = useState(3);
   const [vehicleModel, setVehicleModel] = useState(state.currentUser?.defaultVehicle || 'Toyota Aqua Hybrid · White');
   const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>('car');
+  const [quietRide, setQuietRide] = useState(false);
   const [acGuaranteed, setAcGuaranteed] = useState(true);
   const [maxTwoInBack, setMaxTwoInBack] = useState(true);
   const [womenOnly, setWomenOnly] = useState(false);
@@ -136,7 +122,8 @@ export function PublishRideView({
         vehicleCategory,
         acGuaranteed,
         comfort: {
-          chattiness: 'blabla',
+          chattiness: quietRide ? 'bla' : 'blabla',
+          quietRide,
           maxTwoInBack,
           luggage,
           music: 'yes',
@@ -236,12 +223,7 @@ export function PublishRideView({
           Publish a Ride (Step {step} of 6)
         </h1>
         <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '9999px' }}>
-          {step === 1 && '1. Where & Landmarks'}
-          {step === 2 && '2. Route & Toll Policy'}
-          {step === 3 && '3. Date & Return Ride'}
-          {step === 4 && '4. Seats & Vehicle'}
-          {step === 5 && '5. LKR Contribution'}
-          {step === 6 && '6. Approval & Review'}
+          {['', '1. Where & Landmarks', '2. Route & Toll Policy', '3. Date & Return Ride', '4. Seats & Vehicle', '5. LKR Contribution', '6. Approval & Review'][step]}
         </span>
       </div>
 
@@ -566,6 +548,34 @@ export function PublishRideView({
             </div>
 
             <div>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Vehicle Class</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                {[
+                  { id: 'car', label: 'Car / Sedan', icon: '🚗' },
+                  { id: 'suv', label: 'Comfort SUV', icon: '🚙' },
+                  { id: 'van', label: 'Spacious Van', icon: '🚐' },
+                ].map((tier) => (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => setVehicleCategory(tier.id as VehicleCategory)}
+                    style={{
+                      padding: '8px 4px',
+                      borderRadius: '8px',
+                      border: `2px solid ${vehicleCategory === tier.id ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
+                      background: vehicleCategory === tier.id ? '#f0f9ff' : '#ffffff',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <span style={{ fontSize: '16px', display: 'block' }}>{tier.icon}</span>
+                    <strong style={{ fontSize: '11px', display: 'block', color: 'var(--bbc-navy)' }}>{tier.label}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label htmlFor="publish-vehicle-model" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Vehicle Make & Model</label>
               <input
                 id="publish-vehicle-model"
@@ -589,6 +599,10 @@ export function PublishRideView({
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={womenOnly} onChange={(e) => setWomenOnly(e.target.checked)} />
                 <span>Women Only Ride</span>
+              </label>
+              <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
+                <input type="checkbox" checked={quietRide} onChange={(e) => setQuietRide(e.target.checked)} />
+                <span>🔇 Quiet Commute</span>
               </label>
             </div>
 
@@ -698,51 +712,21 @@ export function PublishRideView({
                 Can passengers book instantly?
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <label
-                  style={{
-                    padding: '16px',
-                    border: `2px solid ${approvalMode === 'instant' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    background: approvalMode === 'instant' ? '#f0f9ff' : 'transparent',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="approval"
-                    checked={approvalMode === 'instant'}
-                    onChange={() => setApprovalMode('instant')}
-                  />
-                  <div style={{ marginTop: '8px' }}>
+                <label style={{ padding: '14px', border: `2px solid ${approvalMode === 'instant' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: approvalMode === 'instant' ? '#f0f9ff' : 'transparent' }}>
+                  <input type="radio" name="approval" checked={approvalMode === 'instant'} onChange={() => setApprovalMode('instant')} />
+                  <div style={{ marginTop: '6px' }}>
                     <strong style={{ color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Sparkle size={16} weight="fill" color="var(--bbc-blue)" /> Instant Booking
                     </strong>
-                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
-                      Passengers book instantly. Recommended for getting more travellers.
-                    </p>
+                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>Passengers book instantly.</p>
                   </div>
                 </label>
 
-                <label
-                  style={{
-                    padding: '16px',
-                    border: `2px solid ${approvalMode === 'manual' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    background: approvalMode === 'manual' ? '#f0f9ff' : 'transparent',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="approval"
-                    checked={approvalMode === 'manual'}
-                    onChange={() => setApprovalMode('manual')}
-                  />
-                  <div style={{ marginTop: '8px' }}>
+                <label style={{ padding: '14px', border: `2px solid ${approvalMode === 'manual' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: approvalMode === 'manual' ? '#f0f9ff' : 'transparent' }}>
+                  <input type="radio" name="approval" checked={approvalMode === 'manual'} onChange={() => setApprovalMode('manual')} />
+                  <div style={{ marginTop: '6px' }}>
                     <strong style={{ color: 'var(--bbc-navy)' }}>Manual Request</strong>
-                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
-                      You review and accept each passenger’s request before their seat is reserved.
-                    </p>
+                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>Review each request before accepting.</p>
                   </div>
                 </label>
               </div>

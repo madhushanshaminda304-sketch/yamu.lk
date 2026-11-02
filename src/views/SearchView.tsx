@@ -16,7 +16,7 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
-import { searchRides, type MatchedRideResult } from '../domain/matching.ts';
+import { searchRides, type MatchedRideResult, type VehicleCategory } from '../domain/matching.ts';
 import { t, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -67,6 +67,8 @@ export function SearchView({
   };
 
   // Filter States
+  const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory | 'all'>('all');
+  const [quietRideOnly, setQuietRideOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'departure' | 'price' | 'duration'>('departure');
   const [timeWindow, setTimeWindow] = useState<'all' | 'before_6' | 'morning_6_12' | 'afternoon_12_18' | 'evening_after_18'>('all');
   const [maxPrice, setMaxPrice] = useState(10000);
@@ -138,6 +140,8 @@ export function SearchView({
   }, [showAlertModal]);
 
   const activeFilterCount =
+    (vehicleCategory !== 'all' ? 1 : 0) +
+    (quietRideOnly ? 1 : 0) +
     (sortBy !== 'departure' ? 1 : 0) +
     (timeWindow !== 'all' ? 1 : 0) +
     (maxPrice < 10000 ? 1 : 0) +
@@ -151,6 +155,8 @@ export function SearchView({
 
   const handleResetFilters = () => {
     triggerHaptic('selection');
+    setVehicleCategory('all');
+    setQuietRideOnly(false);
     setSortBy('departure');
     setTimeWindow('all');
     setMaxPrice(10000);
@@ -171,6 +177,8 @@ export function SearchView({
     toHubId,
     date,
     seats,
+    vehicleCategory,
+    quietRideOnly,
     sortBy,
     timeWindow,
     maxPriceLkr: maxPrice,
@@ -311,6 +319,46 @@ export function SearchView({
         </div>
       </div>
 
+      {/* Vehicle Tier Selector (Yandex-Style Tariffs) */}
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0 14px', scrollbarWidth: 'none' }}>
+        {[
+          { id: 'all', label: 'All Vehicles', icon: '🚘' },
+          { id: 'car', label: 'Standard Saver', icon: '🚗' },
+          { id: 'suv', label: 'Comfort SUV', icon: '🚙' },
+          { id: 'van', label: 'Spacious Van', icon: '🚐' },
+        ].map((tier) => {
+          const isActive = vehicleCategory === tier.id;
+          return (
+            <button
+              key={tier.id}
+              type="button"
+              onClick={() => {
+                triggerHaptic('selection');
+                setVehicleCategory(tier.id as VehicleCategory | 'all');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                fontSize: '13px',
+                fontWeight: 700,
+                border: isActive ? '1px solid #047857' : '1px solid var(--bbc-border)',
+                background: isActive ? '#ecfdf5' : '#ffffff',
+                color: isActive ? '#047857' : 'var(--bbc-navy)',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: isActive ? '0 1px 3px rgba(4, 120, 87, 0.15)' : 'none',
+              }}
+            >
+              <span>{tier.icon}</span>
+              <span>{tier.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Mobile Quick Filter Strip */}
       <div className="mobile-quick-filter-strip md:hidden" role="toolbar" aria-label="Quick Filters">
         <button
@@ -398,6 +446,18 @@ export function SearchView({
           <Users size={16} weight={maxTwoInBackOnly ? 'bold' : 'regular'} />
           <span>{t(locale, 'filter.max_two_back')}</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setQuietRideOnly(!quietRideOnly);
+          }}
+          className={`quick-filter-btn ${quietRideOnly ? 'active' : ''}`}
+        >
+          <span>🔇</span>
+          <span>Quiet Commute</span>
+        </button>
       </div>
 
       <div className="search-layout">
@@ -424,6 +484,10 @@ export function SearchView({
             setAcOnly={setAcOnly}
             petsAllowedOnly={petsAllowedOnly}
             setPetsAllowedOnly={setPetsAllowedOnly}
+            vehicleCategory={vehicleCategory}
+            setVehicleCategory={setVehicleCategory}
+            quietRideOnly={quietRideOnly}
+            setQuietRideOnly={setQuietRideOnly}
             locale={locale}
             namePrefix="desktop"
           />
@@ -542,6 +606,10 @@ export function SearchView({
                 setAcOnly={setAcOnly}
                 petsAllowedOnly={petsAllowedOnly}
                 setPetsAllowedOnly={setPetsAllowedOnly}
+                vehicleCategory={vehicleCategory}
+                setVehicleCategory={setVehicleCategory}
+                quietRideOnly={quietRideOnly}
+                setQuietRideOnly={setQuietRideOnly}
                 locale={locale}
                 namePrefix="drawer"
               />

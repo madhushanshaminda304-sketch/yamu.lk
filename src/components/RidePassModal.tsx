@@ -144,6 +144,37 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
 
         {/* Modal Scrollable Body */}
         <div className="p-5 overflow-y-auto space-y-4">
+          {/* Driver Journey Status Banner */}
+          {ride.journeyStatus === 'departed' && (
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span className="text-xs font-extrabold text-emerald-900">
+                  DRIVER IS EN ROUTE
+                </span>
+              </div>
+              <span className="text-xs font-semibold text-emerald-700">Trip Active</span>
+            </div>
+          )}
+
+          {/* Guest Booking Info */}
+          {booking.isBookingForOther && (
+            <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 text-xs">
+              <span className="font-bold text-amber-900 block mb-0.5">👤 Guest Passenger Booking</span>
+              <div className="text-amber-800">
+                <strong>{booking.passengerName}</strong> ({booking.passengerPhone || 'No phone'})
+                {booking.bookerName && (
+                  <span className="block text-amber-700 text-[11px] mt-0.5">
+                    Reserved by account holder: {booking.bookerName}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Boarding PIN Banner */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
             <span className="text-xs uppercase tracking-wider text-amber-800 font-semibold block">

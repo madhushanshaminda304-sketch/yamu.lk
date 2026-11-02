@@ -1,4 +1,4 @@
-import type { Ride, ComfortProfile, VehicleCategory, ApprovalMode, LuggageSize } from '../domain/matching.ts';
+import type { Ride, ComfortProfile, VehicleCategory, ApprovalMode, LuggageSize, SpecialRequirements } from '../domain/matching.ts';
 import type { TollPolicy } from '../domain/pricing.ts';
 import type { DoubleBlindRating } from '../domain/trust.ts';
 import type { LocaleCode } from '../domain/i18n.ts';
@@ -7,12 +7,30 @@ import type { OtpChallenge } from '../domain/auth.ts';
 export type LuggageCapacity = LuggageSize;
 export type SettlementMethod = 'cash_lkr' | 'lankaqr';
 
+export interface TrustedContact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
+export interface SavedPlace {
+  id: string;
+  label: 'home' | 'work' | 'university' | 'other';
+  title: string;
+  hubId: string;
+  landmark: string;
+}
+
 export interface BookingRecord {
   id: string;
   rideId: string;
   passengerId: string;
   passengerName: string;
   passengerPhone: string;
+  isBookingForOther?: boolean;
+  bookerName?: string;
+  bookerPhone?: string;
   fromHubId: string;
   toHubId: string;
   fromIndex: number;
@@ -74,6 +92,8 @@ export interface UserProfile {
   avgResponseHours: number;
   defaultVehicle: string;
   comfort: ComfortProfile;
+  trustedContacts?: TrustedContact[];
+  savedPlaces?: SavedPlace[];
 }
 
 export interface PublishRideInput {
@@ -94,9 +114,11 @@ export interface PublishRideInput {
   tollPolicy: TollPolicy;
   approvalMode: ApprovalMode;
   vehicleMakeModel: string;
+  vehiclePlateNumber?: string;
   vehicleCategory: VehicleCategory;
   acGuaranteed: boolean;
   comfort: ComfortProfile;
+  specialRequirements?: SpecialRequirements;
   luggageCapacity?: LuggageCapacity;
   notes: string;
 }
@@ -144,6 +166,13 @@ export const SEEDED_USERS: Record<string, UserProfile> = {
       smoking: 'no',
       womenOnly: false,
     },
+    trustedContacts: [
+      { id: 'tc-ashan-1', name: 'Nisansala Jayawardena', phone: '+94773456789', relationship: 'Sister' },
+    ],
+    savedPlaces: [
+      { id: 'sp-ashan-1', label: 'home', title: 'Home', hubId: 'colombo', landmark: 'Colombo Fort Station' },
+      { id: 'sp-ashan-2', label: 'work', title: 'Work', hubId: 'kandy', landmark: 'Kandy Clock Tower' },
+    ],
   },
   '+94719876543': {
     id: 'usr-kavindi',
@@ -173,5 +202,12 @@ export const SEEDED_USERS: Record<string, UserProfile> = {
       smoking: 'no',
       womenOnly: true,
     },
+    trustedContacts: [
+      { id: 'tc-kavindi-1', name: 'Amma (Sunethra)', phone: '+94718765432', relationship: 'Mother' },
+    ],
+    savedPlaces: [
+      { id: 'sp-kavindi-1', label: 'university', title: 'Peradeniya Campus', hubId: 'peradeniya', landmark: 'Galaha Junction' },
+      { id: 'sp-kavindi-2', label: 'home', title: 'Home', hubId: 'colombo', landmark: 'Bambalapitiya' },
+    ],
   },
 };

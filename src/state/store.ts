@@ -44,25 +44,28 @@ import {
   type MarketplaceState,
   type LuggageCapacity,
   type Booking,
+  type TrustedContact,
+  type SavedPlace,
   SEEDED_USERS,
 } from './types.ts';
 import { loadPersistedAuth, persistAuth } from './persistence.ts';
 import { addMinutesIso, buildReturnRide } from './rideBuilder.ts';
 import { persistRemoteRide, persistRemoteBooking } from './supabaseSync.ts';
+import {
+  createDefaultUserProfile,
+  buildUpdatedUserProfile,
+  addContactToUser,
+  removeContactFromUser,
+  savePlaceToUser,
+  removePlaceFromUser,
+} from './userHelpers.ts';
+import { formatSriLankanPlate } from '../domain/carPlate.ts';
 
-export {
-  buildSeededRides,
-  SEEDED_USERS,
-  type SettlementMethod,
-  type BookingRecord,
-  type Booking,
-  type RideAlertSubscription,
-  type ChatMessage,
-  type AppNotification,
-  type UserProfile,
-  type PublishRideInput,
-  type MarketplaceState,
-  type LuggageCapacity,
+export { buildSeededRides, SEEDED_USERS };
+export type {
+  SettlementMethod, BookingRecord, Booking, RideAlertSubscription,
+  ChatMessage, AppNotification, UserProfile, PublishRideInput,
+  MarketplaceState, LuggageCapacity,
 };
 
 export function createInitialState(): MarketplaceState {
@@ -78,14 +81,12 @@ export function createInitialState(): MarketplaceState {
     rideAlerts: [],
     messages: [],
     ratings: [],
-    notifications: [
-      {
-        id: 'notif-welcome',
-        title: 'Welcome to Yamo (Sri Lanka)',
-        body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.',
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    notifications: [{
+      id: 'notif-welcome',
+      title: 'Welcome to Yamo (Sri Lanka)',
+      body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.',
+      createdAt: new Date().toISOString(),
+    }],
     lastReadAtByBooking: {},
   };
 }
@@ -221,9 +222,11 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         vehicle: {
           makeModel: input.vehicleMakeModel || currentUser.defaultVehicle,
           category: input.vehicleCategory,
-          plateHint: 'WP CBX-92xx',
+          plateHint: input.vehiclePlateNumber ? formatSriLankanPlate(input.vehiclePlateNumber).masked : 'WP CBX-••••',
+          plateNumber: input.vehiclePlateNumber || 'WP CBX-9210',
           acGuaranteed: input.acGuaranteed,
         },
+        specialRequirements: input.specialRequirements,
         comfort: input.comfort,
         driver: {
           id: currentUser.id,
@@ -288,6 +291,9 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       seats: number;
       settlementMethod: SettlementMethod;
       message: string;
+      isBookingForOther?: boolean;
+      guestPassengerName?: string;
+      guestPassengerPhone?: string;
     }): BookingRecord {
       if (!state.currentUser) {
         throw new Error('You must be signed in to book a seat.');
@@ -309,12 +315,16 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         ? applyLegBooking(ride, check.fromIndex, check.toIndex, input.seats)
         : ride;
 
+      const isForOther = Boolean(input.isBookingForOther && input.guestPassengerName?.trim());
+      const guestName = input.guestPassengerName?.trim();
+      const guestPhone = input.guestPassengerPhone?.trim();
+
       const booking: BookingRecord = {
         id: `bk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         rideId: ride.id,
         passengerId: currentUser.id,
-        passengerName: currentUser.name,
-        passengerPhone: currentUser.phone,
+        passengerName: isForOther && guestName ? guestName : currentUser.name,
+        passengerPhone: isForOther && guestPhone ? guestPhone : currentUser.phone,
         fromHubId: input.fromHubId,
         toHubId: input.toHubId,
         fromIndex: check.fromIndex,
@@ -327,6 +337,9 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         status: isInstant ? 'accepted' : 'pending',
         message: input.message.trim(),
         createdAt: new Date().toISOString(),
+        isBookingForOther: isForOther || undefined,
+        bookerName: isForOther ? currentUser.name : undefined,
+        bookerPhone: isForOther ? currentUser.phone : undefined,
       };
 
       const initialMessages: ChatMessage[] = booking.message
@@ -426,6 +439,37 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       };
       notify();
       return updatedBooking;
+    },
+
+    updateRideJourneyStatus(
+      rideId: string,
+      status: 'scheduled' | 'departed' | 'completed'
+    ): { success: boolean; error?: string } {
+      const ride = state.rides.find((r) => r.id === rideId);
+      if (!ride) return { success: false, error: 'Ride not found.' };
+
+      const updatedRide: Ride = { ...ride, journeyStatus: status };
+      const statusTitle =
+        status === 'departed' ? 'Driver En Route' : status === 'completed' ? 'Trip Completed' : 'Trip Scheduled';
+
+      const newNotif: AppNotification = {
+        id: `notif-js-${Date.now()}`,
+        title: `${statusTitle}: ${ride.corridorName}`,
+        body:
+          status === 'departed'
+            ? `Driver ${ride.driver.name} is now en route. Boarding passes have been activated.`
+            : `Ride on ${ride.corridorName} is now marked ${status}.`,
+        createdAt: new Date().toISOString(),
+      };
+
+      state = {
+        ...state,
+        rides: state.rides.map((r) => (r.id === rideId ? updatedRide : r)),
+        notifications: [newNotif, ...state.notifications],
+      };
+      notify();
+      persistRemoteRide(updatedRide).catch(() => {});
+      return { success: true };
     },
 
     createRideAlert(input: {
@@ -655,35 +699,13 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       }
 
       const phone = state.activeOtpChallenge.phone;
-      const newUser: UserProfile = {
+      const newUser = createDefaultUserProfile({
         id: `usr-${Date.now()}`,
         name: trimmedName,
-        email: '',
         phone,
         nicNumber: cleanNic,
-        licenceNumber: '',
-        verifiedPhone: true,
-        verifiedNic: isNicValid,
-        verifiedLicence: false,
-        hasProfilePhoto: false,
-        bio: 'Commuter on Yamo.',
-        completedRidesLast12Months: 0,
-        overallRating: 5.0,
-        ratingsCount: 0,
-        drivingSkillScore: 3.0,
-        cancellationRatePercent: 0,
-        avgResponseHours: 1.0,
-        defaultVehicle: '',
-        comfort: {
-          chattiness: 'blabla',
-          maxTwoInBack: true,
-          luggage: 'medium',
-          music: 'yes',
-          pets: 'no',
-          smoking: 'no',
-          womenOnly: false,
-        },
-      };
+        isNicValid,
+      });
 
       const updatedRegistered = {
         ...state.registeredUsers,
@@ -734,19 +756,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         };
       }
 
-      const updatedUser: UserProfile = {
-        ...state.currentUser,
-        name: input.name.trim(),
-        phone: input.phone.trim(),
-        nicNumber: input.nicNumber.trim().toUpperCase(),
-        licenceNumber: input.licenceNumber.trim().toUpperCase(),
-        defaultVehicle: input.defaultVehicle.trim(),
-        bio: input.bio.trim(),
-        verifiedPhone: true,
-        verifiedNic: true,
-        verifiedLicence: input.licenceNumber.trim().length >= 5,
-        comfort: input.comfort,
-      };
+      const updatedUser = buildUpdatedUserProfile(state.currentUser, input);
 
       const updatedRegistered = {
         ...state.registeredUsers,
