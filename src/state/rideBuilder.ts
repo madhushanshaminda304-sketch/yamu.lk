@@ -1,5 +1,7 @@
 import { findRouteOptions } from '../domain/corridors.ts';
-import { calculateLegContribution } from '../domain/pricing.ts';
+import { calculateRecommendedLkr, getContributionBounds, calculateLegContribution } from '../domain/pricing.ts';
+import { evaluateSuperDriver } from '../domain/trust.ts';
+import { formatSriLankanPlate } from '../domain/carPlate.ts';
 import type { Ride, RideStop } from '../domain/matching.ts';
 import type { PublishRideInput, UserProfile } from './types.ts';
 
@@ -108,4 +110,130 @@ export function buildReturnRide(
     notes: input.notes ? `${input.notes} (Return journey)` : 'Return journey',
     status: 'published',
   };
+}
+
+export interface OutboundRideResult {
+  newRide: Ride;
+  clampedPriceLkr: number;
+  recommendedLkr: number;
+}
+
+export function buildOutboundRide(
+  input: PublishRideInput,
+  currentUser: UserProfile
+): OutboundRideResult {
+  const routeOptions = findRouteOptions(input.originHubId, input.destinationHubId);
+  const selectedRoute =
+    routeOptions.find((r) => r.corridorId === input.corridorId) ?? routeOptions[0];
+
+  if (!selectedRoute) {
+    throw new Error('Could not compute a valid Sri Lankan corridor between these hubs.');
+  }
+
+  const recommendedLkr = calculateRecommendedLkr(
+    selectedRoute.distanceKm,
+    input.tollPolicy,
+    selectedRoute.estimatedTollLkr
+  );
+  const bounds = getContributionBounds(recommendedLkr);
+  const clampedPriceLkr = Math.min(bounds.maxLkr, Math.max(bounds.minLkr, input.priceLkr));
+
+  const filteredRouteStops = selectedRoute.stops.filter((s, idx, arr) => {
+    if (idx === 0 || idx === arr.length - 1) return true;
+    return input.selectedStopoverHubIds.includes(s.hubId) || input.boostEnabled;
+  });
+
+  const stops: RideStop[] = filteredRouteStops.map((s, idx, arr) => {
+    const isFirst = idx === 0;
+    const isLast = idx === arr.length - 1;
+    const arrivalIso = addMinutesIso(input.date, input.departureTime, s.minutesFromOrigin);
+    const departureIso =
+      isFirst || isLast
+        ? arrivalIso
+        : addMinutesIso(input.date, input.departureTime, s.minutesFromOrigin + 4);
+    const priceFromOriginLkr = isFirst
+      ? 0
+      : isLast
+        ? clampedPriceLkr
+        : calculateLegContribution(clampedPriceLkr, selectedRoute.distanceKm, s.kmFromOrigin);
+
+    return {
+      hubId: s.hubId,
+      stopIndex: idx,
+      arrivalAt: arrivalIso,
+      departureAt: departureIso,
+      kmFromOrigin: s.kmFromOrigin,
+      priceFromOriginLkr,
+      pickupLandmark: isFirst
+        ? input.pickupLandmark || s.defaultLandmark
+        : isLast
+          ? input.dropoffLandmark || s.defaultLandmark
+          : s.defaultLandmark,
+      isBoostStop: !isFirst && !isLast && !input.selectedStopoverHubIds.includes(s.hubId),
+    };
+  });
+
+  const superStatus = evaluateSuperDriver({
+    verifiedPhone: currentUser.verifiedPhone,
+    verifiedNic: currentUser.verifiedNic,
+    verifiedLicence: currentUser.verifiedLicence,
+    hasProfilePhoto: currentUser.hasProfilePhoto,
+    completedRidesLast12Months: currentUser.completedRidesLast12Months,
+    overallRating: currentUser.overallRating,
+    drivingSkillScore: currentUser.drivingSkillScore,
+    cancellationRatePercent: currentUser.cancellationRatePercent,
+    avgResponseHours: currentUser.avgResponseHours,
+  });
+
+  const newRide: Ride = {
+    id: `ride-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    driverId: currentUser.id,
+    corridorId: selectedRoute.corridorId,
+    corridorCode: selectedRoute.corridorCode,
+    corridorName: selectedRoute.corridorName,
+    hasTolls: selectedRoute.hasTolls,
+    tollPolicy: input.tollPolicy,
+    estimatedTollLkr: selectedRoute.estimatedTollLkr,
+    originHubId: input.originHubId,
+    destinationHubId: input.destinationHubId,
+    departureDate: input.date,
+    departureAt: stops[0].departureAt,
+    arrivalAt: stops[stops.length - 1].arrivalAt,
+    totalDistanceKm: selectedRoute.distanceKm,
+    fullPriceLkr: clampedPriceLkr,
+    recommendedPriceLkr: recommendedLkr,
+    totalSeats: input.seats,
+    segmentSeatsAvailable: Array.from({ length: stops.length - 1 }, () => input.seats),
+    stops,
+    approvalMode: input.approvalMode,
+    boostEnabled: input.boostEnabled,
+    luggageCapacity: input.luggageCapacity ?? input.comfort.luggage ?? 'medium',
+    vehicle: {
+      makeModel: input.vehicleMakeModel || currentUser.defaultVehicle,
+      category: input.vehicleCategory,
+      plateHint: input.vehiclePlateNumber ? formatSriLankanPlate(input.vehiclePlateNumber).masked : 'WP CBX-••••',
+      plateNumber: input.vehiclePlateNumber || 'WP CBX-9210',
+      acGuaranteed: input.acGuaranteed,
+    },
+    specialRequirements: input.specialRequirements,
+    comfort: input.comfort,
+    driver: {
+      id: currentUser.id,
+      name: currentUser.name,
+      rating: currentUser.overallRating,
+      ratingsCount: currentUser.ratingsCount,
+      drivingSkillScore: currentUser.drivingSkillScore,
+      completedRides: currentUser.completedRidesLast12Months,
+      verifiedPhone: currentUser.verifiedPhone,
+      verifiedNic: currentUser.verifiedNic,
+      verifiedLicence: currentUser.verifiedLicence,
+      isSuperDriver: superStatus.isSuperDriver,
+      responseHours: currentUser.avgResponseHours,
+      bio: currentUser.bio,
+    },
+    notes: input.notes,
+    status: 'published',
+  };
+
+  return { newRide, clampedPriceLkr, recommendedLkr };
 }

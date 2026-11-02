@@ -99,3 +99,19 @@ export function removePlaceFromUser(user: UserProfile, placeId: string): UserPro
     savedPlaces: (user.savedPlaces || []).filter((p) => p.id !== placeId),
   };
 }
+
+export function applyUserUpdate(
+  registeredUsers: Record<string, UserProfile>,
+  updatedUser: UserProfile
+): {
+  currentUser: UserProfile;
+  registeredUsers: Record<string, UserProfile>;
+} {
+  return {
+    currentUser: updatedUser,
+    registeredUsers: {
+      ...registeredUsers,
+      [updatedUser.phone]: updatedUser,
+    },
+  };
+}

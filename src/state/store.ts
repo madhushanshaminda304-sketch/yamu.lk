@@ -1,11 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { findRouteOptions, getHubById } from '../domain/corridors.ts';
-import {
-  type TollPolicy,
-  calculateRecommendedLkr,
-  getContributionBounds,
-  calculateLegContribution,
-} from '../domain/pricing.ts';
+import { getHubById } from '../domain/corridors.ts';
+import { type TollPolicy } from '../domain/pricing.ts';
 import {
   type Ride,
   type RideStop,
@@ -21,7 +16,6 @@ import {
   type DrivingSkillLabel,
   validateSriLankaPhone,
   validateSriLankaNic,
-  evaluateSuperDriver,
   resolveRatingVisibility,
 } from '../domain/trust.ts';
 import { inspectChatMessage, type ChatInspectionResult } from '../domain/scamGuard.ts';
@@ -49,7 +43,7 @@ import {
   SEEDED_USERS,
 } from './types.ts';
 import { loadPersistedAuth, persistAuth } from './persistence.ts';
-import { addMinutesIso, buildReturnRide } from './rideBuilder.ts';
+import { addMinutesIso, buildReturnRide, buildOutboundRide } from './rideBuilder.ts';
 import { persistRemoteRide, persistRemoteBooking } from './supabaseSync.ts';
 import {
   createDefaultUserProfile,
@@ -58,8 +52,8 @@ import {
   removeContactFromUser,
   savePlaceToUser,
   removePlaceFromUser,
+  applyUserUpdate,
 } from './userHelpers.ts';
-import { formatSriLankanPlate } from '../domain/carPlate.ts';
 
 export { buildSeededRides, SEEDED_USERS };
 export type {
@@ -132,119 +126,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
         throw new Error('You must be signed in to publish a ride.');
       }
       const currentUser = state.currentUser;
-
-      const routeOptions = findRouteOptions(input.originHubId, input.destinationHubId);
-      const selectedRoute =
-        routeOptions.find((r) => r.corridorId === input.corridorId) ?? routeOptions[0];
-
-      if (!selectedRoute) {
-        throw new Error('Could not compute a valid Sri Lankan corridor between these hubs.');
-      }
-
-      const recommendedLkr = calculateRecommendedLkr(
-        selectedRoute.distanceKm,
-        input.tollPolicy,
-        selectedRoute.estimatedTollLkr
-      );
-      const bounds = getContributionBounds(recommendedLkr);
-      const clampedPriceLkr = Math.min(bounds.maxLkr, Math.max(bounds.minLkr, input.priceLkr));
-
-      const filteredRouteStops = selectedRoute.stops.filter((s, idx, arr) => {
-        if (idx === 0 || idx === arr.length - 1) return true;
-        return input.selectedStopoverHubIds.includes(s.hubId) || input.boostEnabled;
-      });
-
-      const stops: RideStop[] = filteredRouteStops.map((s, idx, arr) => {
-        const isFirst = idx === 0;
-        const isLast = idx === arr.length - 1;
-        const arrivalIso = addMinutesIso(input.date, input.departureTime, s.minutesFromOrigin);
-        const departureIso =
-          isFirst || isLast
-            ? arrivalIso
-            : addMinutesIso(input.date, input.departureTime, s.minutesFromOrigin + 4);
-        const priceFromOriginLkr = isFirst
-          ? 0
-          : isLast
-            ? clampedPriceLkr
-            : calculateLegContribution(clampedPriceLkr, selectedRoute.distanceKm, s.kmFromOrigin);
-
-        return {
-          hubId: s.hubId,
-          stopIndex: idx,
-          arrivalAt: arrivalIso,
-          departureAt: departureIso,
-          kmFromOrigin: s.kmFromOrigin,
-          priceFromOriginLkr,
-          pickupLandmark: isFirst
-            ? input.pickupLandmark || s.defaultLandmark
-            : isLast
-              ? input.dropoffLandmark || s.defaultLandmark
-              : s.defaultLandmark,
-          isBoostStop: !isFirst && !isLast && !input.selectedStopoverHubIds.includes(s.hubId),
-        };
-      });
-
-      const superStatus = evaluateSuperDriver({
-        verifiedPhone: currentUser.verifiedPhone,
-        verifiedNic: currentUser.verifiedNic,
-        verifiedLicence: currentUser.verifiedLicence,
-        hasProfilePhoto: currentUser.hasProfilePhoto,
-        completedRidesLast12Months: currentUser.completedRidesLast12Months,
-        overallRating: currentUser.overallRating,
-        drivingSkillScore: currentUser.drivingSkillScore,
-        cancellationRatePercent: currentUser.cancellationRatePercent,
-        avgResponseHours: currentUser.avgResponseHours,
-      });
-
-      const newRide: Ride = {
-        id: `ride-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        driverId: currentUser.id,
-        corridorId: selectedRoute.corridorId,
-        corridorCode: selectedRoute.corridorCode,
-        corridorName: selectedRoute.corridorName,
-        hasTolls: selectedRoute.hasTolls,
-        tollPolicy: input.tollPolicy,
-        estimatedTollLkr: selectedRoute.estimatedTollLkr,
-        originHubId: input.originHubId,
-        destinationHubId: input.destinationHubId,
-        departureDate: input.date,
-        departureAt: stops[0].departureAt,
-        arrivalAt: stops[stops.length - 1].arrivalAt,
-        totalDistanceKm: selectedRoute.distanceKm,
-        fullPriceLkr: clampedPriceLkr,
-        recommendedPriceLkr: recommendedLkr,
-        totalSeats: input.seats,
-        segmentSeatsAvailable: Array.from({ length: stops.length - 1 }, () => input.seats),
-        stops,
-        approvalMode: input.approvalMode,
-        boostEnabled: input.boostEnabled,
-        luggageCapacity: input.luggageCapacity ?? input.comfort.luggage ?? 'medium',
-        vehicle: {
-          makeModel: input.vehicleMakeModel || currentUser.defaultVehicle,
-          category: input.vehicleCategory,
-          plateHint: input.vehiclePlateNumber ? formatSriLankanPlate(input.vehiclePlateNumber).masked : 'WP CBX-••••',
-          plateNumber: input.vehiclePlateNumber || 'WP CBX-9210',
-          acGuaranteed: input.acGuaranteed,
-        },
-        specialRequirements: input.specialRequirements,
-        comfort: input.comfort,
-        driver: {
-          id: currentUser.id,
-          name: currentUser.name,
-          rating: currentUser.overallRating,
-          ratingsCount: currentUser.ratingsCount,
-          drivingSkillScore: currentUser.drivingSkillScore,
-          completedRides: currentUser.completedRidesLast12Months,
-          verifiedPhone: currentUser.verifiedPhone,
-          verifiedNic: currentUser.verifiedNic,
-          verifiedLicence: currentUser.verifiedLicence,
-          isSuperDriver: superStatus.isSuperDriver,
-          responseHours: currentUser.avgResponseHours,
-          bio: currentUser.bio,
-        },
-        notes: input.notes,
-        status: 'published',
-      };
+      const { newRide, clampedPriceLkr, recommendedLkr } = buildOutboundRide(input, currentUser);
 
       let returnRide: Ride | undefined;
       if (input.returnTripEnabled) {
@@ -757,20 +639,42 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       }
 
       const updatedUser = buildUpdatedUserProfile(state.currentUser, input);
-
-      const updatedRegistered = {
-        ...state.registeredUsers,
-        [updatedUser.phone]: updatedUser,
-      };
-
-      state = {
-        ...state,
-        currentUser: updatedUser,
-        registeredUsers: updatedRegistered,
-      };
+      state = { ...state, ...applyUserUpdate(state.registeredUsers, updatedUser) };
       persistAuth(state.currentUser, state.registeredUsers);
       notify();
       return { ok: true };
+    },
+
+    addTrustedContact(contact: TrustedContact): void {
+      if (!state.currentUser) return;
+      const updatedUser = addContactToUser(state.currentUser, contact);
+      state = { ...state, ...applyUserUpdate(state.registeredUsers, updatedUser) };
+      persistAuth(state.currentUser, state.registeredUsers);
+      notify();
+    },
+
+    removeTrustedContact(contactId: string): void {
+      if (!state.currentUser) return;
+      const updatedUser = removeContactFromUser(state.currentUser, contactId);
+      state = { ...state, ...applyUserUpdate(state.registeredUsers, updatedUser) };
+      persistAuth(state.currentUser, state.registeredUsers);
+      notify();
+    },
+
+    saveFavoritePlace(place: SavedPlace): void {
+      if (!state.currentUser) return;
+      const updatedUser = savePlaceToUser(state.currentUser, place);
+      state = { ...state, ...applyUserUpdate(state.registeredUsers, updatedUser) };
+      persistAuth(state.currentUser, state.registeredUsers);
+      notify();
+    },
+
+    removeFavoritePlace(placeId: string): void {
+      if (!state.currentUser) return;
+      const updatedUser = removePlaceFromUser(state.currentUser, placeId);
+      state = { ...state, ...applyUserUpdate(state.registeredUsers, updatedUser) };
+      persistAuth(state.currentUser, state.registeredUsers);
+      notify();
     },
   };
 
