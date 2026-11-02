@@ -38,7 +38,7 @@ export function ProfileView({
           <UserCheck size={28} color="var(--bbc-blue)" weight="fill" />
         </div>
         <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-          Sign In to BlaBlaLanka
+          Sign In to Yamo
         </h2>
         <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
           Sign in with your Sri Lankan mobile number to access your verified profile, Super Driver rating, and identity credentials.

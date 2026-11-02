@@ -476,7 +476,7 @@ export function YourRidesView({
             </div>
 
             <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', marginBottom: '16px' }}>
-              BlaBlaLanka uses <strong>Double-Blind Ratings</strong>: your rating remains hidden until the other party submits theirs or 14 days pass.
+              Yamo uses <strong>Double-Blind Ratings</strong>: your rating remains hidden until the other party submits theirs or 14 days pass.
             </p>
 
             <form onSubmit={handleRatingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

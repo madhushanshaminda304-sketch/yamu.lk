@@ -617,7 +617,7 @@ export function PublishRideView({
             </h2>
 
             <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '14px' }}>
-              BlaBlaLanka is a cost-sharing platform, not a commercial taxi. We recommend a fair rate based on distance (~LKR 20/km) and highway tolls to prevent unlawful commercial profiting.
+              Yamo is a cost-sharing platform, not a commercial taxi. We recommend a fair rate based on distance (~LKR 20/km) and highway tolls to prevent unlawful commercial profiting.
             </p>
 
             <div style={{ background: 'var(--bbc-surface-subtle)', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '24px', textAlign: 'center' }}>
