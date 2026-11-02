@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   WhatsappLogo,
@@ -11,7 +11,11 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { YamoIcon } from './YamoLogo.tsx';
+import { CarPlateBadge } from './CarPlateBadge.tsx';
+import { SafetyCenterModal } from './SafetyCenterModal.tsx';
+import { LeafletRouteMap } from './LeafletRouteMap.tsx';
 import { getHubById } from '../domain/corridors.ts';
+import { extractRouteMapWaypoints } from '../domain/routeMapGeometry.ts';
 import { formatLkr, t, type LocaleCode } from '../domain/i18n.ts';
 import {
   buildWhatsAppCoordinationUrl,
@@ -29,6 +33,7 @@ export interface RidePassModalProps {
   ride: Ride;
   booking: BookingRecord;
   driver?: UserProfile;
+  currentUser?: UserProfile | null;
   locale?: LocaleCode;
 }
 
@@ -38,8 +43,11 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   ride,
   booking,
   driver,
+  currentUser,
   locale,
 }) => {
+  const [showSafetyCenter, setShowSafetyCenter] = useState(false);
+  const [showLiveMap, setShowLiveMap] = useState(true);
   if (!isOpen) return null;
 
   const currentLocale = locale ?? 'en-LK';
@@ -202,8 +210,8 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
             </div>
           </div>
 
-          {/* Meeting Landmark */}
-          <div className="p-3.5 bg-sky-50 border border-sky-100 rounded-xl">
+          {/* Meeting Landmark & Live Pickup Map */}
+          <div className="p-3.5 bg-sky-50 border border-sky-100 rounded-xl space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <span className="text-xs font-semibold text-sky-800 uppercase tracking-wide block flex items-center gap-1">
@@ -212,16 +220,38 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
                 </span>
                 <p className="font-bold text-gray-900 mt-0.5 text-sm">{landmark}</p>
               </div>
-              <a
-                href={mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition"
-              >
-                <MapPin size={14} weight="bold" />
-                <span>Maps Pin</span>
-              </a>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowLiveMap((prev) => !prev)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition"
+                >
+                  <span>{showLiveMap ? '🗺️ Hide Map' : '🗺️ Live Radar'}</span>
+                </button>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition"
+                >
+                  <MapPin size={14} weight="bold" />
+                  <span>Maps Pin</span>
+                </a>
+              </div>
             </div>
+
+            {showLiveMap && ride.stops && ride.stops.length > 0 && (
+              <LeafletRouteMap
+                waypoints={extractRouteMapWaypoints(ride.stops, booking.fromHubId, booking.toHubId, langKey)}
+                height={225}
+                rideId={ride.id}
+                currentUserId={currentUser?.id || booking.passengerId}
+                currentUserName={booking.passengerName}
+                userRole={currentUser?.id === ride.driverId ? 'driver' : 'passenger'}
+                enableLiveTracking={true}
+                journeyStatus={ride.journeyStatus}
+              />
+            )}
           </div>
 
           {/* Driver Information Card */}
@@ -251,6 +281,11 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
               </div>
 
               <div className="flex flex-col gap-1.5 items-end">
+                <CarPlateBadge
+                  plate={ride.vehicle.plateNumber || 'WP CAB-1234'}
+                  isMasked={false}
+                  size="sm"
+                />
                 <a
                   href={`tel:${driverPhone}`}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-white text-xs font-medium transition shadow-sm"
@@ -274,11 +309,21 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
 
         {/* Modal Action Footer */}
         <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowSafetyCenter(true)}
+            className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-800 font-semibold text-xs transition shrink-0"
+            title="Open Safety Center & Sri Lanka Hotlines"
+          >
+            <ShieldCheck size={18} weight="fill" className="text-rose-600" />
+            <span>Safety Center</span>
+          </button>
+
           <a
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow transition"
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow transition text-center"
           >
             <WhatsappLogo size={18} weight="fill" />
             <span>{t(currentLocale, 'ridepass.whatsapp')}</span>
@@ -286,13 +331,22 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
 
           <button
             onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold text-sm shadow transition"
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold text-xs shadow transition text-center"
           >
             <ShareNetwork size={18} weight="bold" />
             <span>{t(currentLocale, 'ridepass.safety_share')}</span>
           </button>
         </div>
       </div>
+
+      <SafetyCenterModal
+        isOpen={showSafetyCenter}
+        onClose={() => setShowSafetyCenter(false)}
+        ride={ride}
+        booking={booking}
+        currentUser={currentUser}
+        driver={effectiveDriver}
+      />
     </div>
   );
 };

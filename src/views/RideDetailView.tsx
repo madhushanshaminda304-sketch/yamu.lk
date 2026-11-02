@@ -9,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import { RidePassModal } from '../components/RidePassModal.tsx';
 import { RouteCorridorMap } from '../components/RouteCorridorMap.tsx';
+import { CarPlateBadge } from '../components/CarPlateBadge.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
 import { normalizeSriLankanMobile } from '../domain/auth.ts';
@@ -126,6 +127,10 @@ export function RideDetailView({
             selectedFromHubId={fromHubId}
             selectedToHubId={toHubId}
             langKey={langKey}
+            currentUserId={state.currentUser?.id || 'guest-rider'}
+            currentUserName={state.currentUser?.name || 'Passenger'}
+            userRole={state.currentUser?.id === ride.driverId ? 'driver' : 'passenger'}
+            enableLiveTracking={true}
           />
 
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '28px', boxShadow: 'var(--shadow-sm)' }}>
@@ -232,9 +237,16 @@ export function RideDetailView({
 
           {/* Vehicle & Comfort Profile */}
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '16px', color: 'var(--bbc-navy)' }}>
-              Vehicle & Comfort Rules
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 800, margin: 0, color: 'var(--bbc-navy)' }}>
+                Vehicle & Comfort Rules
+              </h3>
+              <CarPlateBadge
+                plate={ride.vehicle.plateHint || ride.vehicle.plateNumber || 'WP CAB-••••'}
+                isMasked={!bookingConfirmed}
+                size="md"
+              />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', fontSize: '14px' }}>
               <div><strong>Category:</strong> {(ride.vehicleCategory || ride.vehicle.category) === 'suv' ? 'Comfort SUV' : (ride.vehicleCategory || ride.vehicle.category) === 'van' ? 'Spacious Van' : 'Standard Car'}</div>
               <div><strong>Car:</strong> {ride.vehicle.makeModel}</div>
@@ -247,6 +259,29 @@ export function RideDetailView({
               <div><strong>Music:</strong> {ride.comfort.music === 'yes' ? 'Playlist on' : 'Quiet cabin'}</div>
               <div><strong>Smoking:</strong> {ride.comfort.smoking === 'yes' ? 'Allowed' : 'Strictly No smoking'}</div>
             </div>
+
+            {/* Special Trip Features */}
+            {(ride.specialRequirements?.childSeatAvailable ||
+              ride.specialRequirements?.wheelchairAccessible ||
+              ride.specialRequirements?.airportFlightTransfer) && (
+              <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--bbc-border)', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {ride.specialRequirements.childSeatAvailable && (
+                  <span style={{ fontSize: '12px', background: '#fef3c7', color: '#b45309', padding: '4px 10px', borderRadius: '9999px', fontWeight: 600 }}>
+                    💺 Child Safety Seat Available
+                  </span>
+                )}
+                {ride.specialRequirements.wheelchairAccessible && (
+                  <span style={{ fontSize: '12px', background: '#dbeafe', color: '#1d4ed8', padding: '4px 10px', borderRadius: '9999px', fontWeight: 600 }}>
+                    ♿ Wheelchair / Assist Friendly
+                  </span>
+                )}
+                {ride.specialRequirements.airportFlightTransfer && (
+                  <span style={{ fontSize: '12px', background: '#ecfdf5', color: '#047857', padding: '4px 10px', borderRadius: '9999px', fontWeight: 600 }}>
+                    ✈️ Airport Flight Drop Friendly
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

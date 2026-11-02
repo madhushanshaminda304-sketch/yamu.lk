@@ -8,6 +8,7 @@ import {
   Phone,
   WhatsappLogo,
   Ticket,
+  Package,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { getHubById } from '../domain/corridors.ts';
@@ -16,6 +17,7 @@ import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state
 import type { Ride } from '../domain/matching.ts';
 import { buildWhatsAppCoordinationUrl } from '../domain/sharing.ts';
 import { RidePassModal } from '../components/RidePassModal.tsx';
+import { ForgottenItemsModal } from '../components/ForgottenItemsModal.tsx';
 import { triggerHaptic } from '../native/haptics.ts';
 
 export function YourRidesView({
@@ -29,6 +31,7 @@ export function YourRidesView({
 }) {
   const [tab, setTab] = useState<'passenger' | 'driver'>('passenger');
   const [activePass, setActivePass] = useState<{ ride: Ride; booking: BookingRecord } | null>(null);
+  const [lostItemRide, setLostItemRide] = useState<{ ride: Ride; booking: BookingRecord } | null>(null);
 
   // Chat Drawer
   const [activeChatBookingId, setActiveChatBookingId] = useState<string | null>(null);
@@ -268,14 +271,27 @@ export function YourRidesView({
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {bk.status === 'accepted' && ride && (
-                        <button
-                          type="button"
-                          className="btn-secondary btn-sm"
-                          onClick={() => openRatingModal(bk.id, ride.driverId, ride.driver.name)}
-                        >
-                          <Star size={16} color="#f57f17" weight="fill" />
-                          <span>Rate Driver</span>
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="btn-secondary btn-sm"
+                            onClick={() => openRatingModal(bk.id, ride.driverId, ride.driver.name)}
+                          >
+                            <Star size={16} color="#f57f17" weight="fill" />
+                            <span>Rate Driver</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn-secondary btn-sm"
+                            onClick={() => setLostItemRide({ ride, booking: bk })}
+                            style={{ color: '#b45309', border: '1px solid #fde68a', background: '#fffbeb' }}
+                            title="Lost an item in the car? Contact driver to recover"
+                          >
+                            <Package size={16} />
+                            <span>Left item in car?</span>
+                          </button>
+                        </>
                       )}
 
                       {bk.status !== 'cancelled' && (
@@ -535,7 +551,51 @@ export function YourRidesView({
               </div>
             )}
 
-            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            {/* 1-Tap Quick Coordination Chips (Yandex Go Chat Chips) */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '6px',
+                overflowX: 'auto',
+                padding: '6px 0',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {[
+                "I'm at the pickup point",
+                "Running 5 mins late",
+                "Arrived in White Aqua",
+                "Boarded, thanks!",
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('selection');
+                    if (activeChatBookingId) {
+                      store.sendMessage(activeChatBookingId, chip);
+                      toast.success(`Sent: "${chip}"`);
+                    }
+                  }}
+                  style={{
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '9999px',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.1s ease',
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
               <input
                 type="text"
                 placeholder="Type a message (e.g. See you at Fort main entrance)"
@@ -631,7 +691,17 @@ export function YourRidesView({
           onClose={() => setActivePass(null)}
           ride={activePass.ride}
           booking={activePass.booking}
+          currentUser={state.currentUser}
           locale={state.locale}
+        />
+      )}
+
+      {lostItemRide && (
+        <ForgottenItemsModal
+          isOpen={Boolean(lostItemRide)}
+          onClose={() => setLostItemRide(null)}
+          ride={lostItemRide.ride}
+          booking={lostItemRide.booking}
         />
       )}
     </div>
