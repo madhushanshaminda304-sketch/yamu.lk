@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Yamo</string>
+    <string name="title_activity_main">Yamo</string>
+    <string name="package_name">com.yamo.lk</string>
+    <string name="custom_url_scheme">com.yamo.lk</string>
+</resources>

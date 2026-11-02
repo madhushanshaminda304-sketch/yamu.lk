@@ -284,18 +284,18 @@ git commit -m "feat(mobile): integrate 1-tap GPS nearest hub detection on search
 - Consumes: `dist/` web assets, Capacitor CLI
 - Produces: Complete Android Studio Gradle project in `android/` with package `com.yamo.lk`
 
-- [ ] **Step 1: Install Capacitor dependencies in `blablacar-lk`**
+- [x] **Step 1: Install Capacitor dependencies in `blablacar-lk`**
 
 ```bash
 npm install @capacitor/core@^7.0.0 @capacitor/app@^7.0.0 @capacitor/status-bar@^7.0.0 @capacitor/haptics@^7.0.0 @capacitor/geolocation@^7.0.0 @capacitor/keyboard@^7.0.0
 npm install --save-dev @capacitor/cli@^7.0.0 @capacitor/android@^7.0.0
 ```
 
-- [ ] **Step 2: Create `capacitor.config.ts`**
+- [x] **Step 2: Create `capacitor.config.ts`**
 
 Configure `appId: 'com.yamo.lk'`, `appName: 'Yamo'`, `webDir: 'dist'`.
 
-- [ ] **Step 3: Generate the native Android project**
+- [x] **Step 3: Generate the native Android project**
 
 Run:
 ```bash
@@ -304,19 +304,19 @@ npx cap add android
 ```
 Expected: `android/` folder initialized with Gradle project and `com.yamo.lk` package structure.
 
-- [ ] **Step 4: Configure `AndroidManifest.xml` and generate app launcher icons**
+- [x] **Step 4: Configure `AndroidManifest.xml` and generate app launcher icons**
 
 - Add location and internet permissions to `android/app/src/main/AndroidManifest.xml`.
 - Set app title in `strings.xml`.
 - Generate Yamo brand adaptive icons for `android/app/src/main/res/mipmap-*` (`ic_launcher.png`, `ic_launcher_round.png`).
 
-- [ ] **Step 5: Add Capacitor sync and build scripts to `package.json`**
+- [x] **Step 5: Add Capacitor sync and build scripts to `package.json`**
 
 Add scripts:
 `"cap:sync": "npm run build && npx cap sync android"`,
 `"cap:build": "npm run build && npx cap copy android"`.
 
-- [ ] **Step 6: Run full verification cycle**
+- [x] **Step 6: Run full verification cycle**
 
 Run:
 ```bash
@@ -326,7 +326,7 @@ npm run cap:sync
 ```
 Expected: All tests pass, build passes, and `npx cap sync android` successfully syncs web assets into the Android native project.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add capacitor.config.ts package.json package-lock.json android/ scripts/

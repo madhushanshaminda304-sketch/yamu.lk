@@ -8,9 +8,17 @@
     "build": "tsc --noEmit && vite build",
     "preview": "npm run build && wrangler dev",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "cap:sync": "npm run build && npx cap sync android",
+    "cap:build": "npm run build && npx cap copy android",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.10",
+    "@capacitor/geolocation": "^7.1.8",
+    "@capacitor/haptics": "^7.0.5",
+    "@capacitor/keyboard": "^7.0.6",
+    "@capacitor/status-bar": "^7.0.6",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.118.0",
     "react": "^19.0.0",
@@ -19,6 +27,8 @@
     "sonner": "^2.0.8"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/cli": "^7.6.10",
     "@cloudflare/vite-plugin": "^1.66.0",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.8",
