@@ -66,14 +66,14 @@ export function RideCardItem({
             </span>
           ))}
           {ride.hasTolls && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>
-              Expressway (Tolls Included)
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #d1fae5' }}>
+              ⚡ Expressway
             </span>
           )}
         </div>
         <div className="ride-card-price">
           {formatLkr(legPriceLkr)}
-          <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--bbc-text-secondary)', display: 'block', textAlign: 'right' }}>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--bbc-text-muted)', display: 'block', textAlign: 'right' }}>
             per seat
           </span>
         </div>
@@ -83,38 +83,43 @@ export function RideCardItem({
         <div className="itinerary-track">
           <div className="itinerary-point">
             <span className="itinerary-time">{formatColomboTime(fromStop.departureAt)}</span>
+            <div className="itinerary-node departure" aria-hidden="true" />
             <div className="itinerary-detail">
               <span className="itinerary-city">{fromCity}</span>
-              <span className="itinerary-landmark">{fromStop.pickupLandmark}</span>
+              {fromStop.pickupLandmark && <span className="itinerary-landmark">{fromStop.pickupLandmark}</span>}
             </div>
           </div>
 
-          <div style={{ paddingLeft: '72px', fontSize: '13px', color: 'var(--bbc-text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={15} />
-            <span>~{Math.round(legDurationMinutes / 60)}h {legDurationMinutes % 60}m</span>
+          <div className="itinerary-connector" aria-hidden="true">
+            <div className="itinerary-line" />
+            <div className="itinerary-duration">
+              <Clock size={12} weight="bold" />
+              <span>~{Math.round(legDurationMinutes / 60)}h {legDurationMinutes % 60}m</span>
+            </div>
           </div>
 
           <div className="itinerary-point">
             <span className="itinerary-time">{formatColomboTime(toStop.arrivalAt)}</span>
+            <div className="itinerary-node arrival" aria-hidden="true" />
             <div className="itinerary-detail">
               <span className="itinerary-city">{toCity}</span>
-              <span className="itinerary-landmark">{toStop.pickupLandmark}</span>
+              {toStop.pickupLandmark && <span className="itinerary-landmark">{toStop.pickupLandmark}</span>}
             </div>
           </div>
         </div>
 
-        <div style={{ textAlign: 'right', minWidth: '120px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 700, color: availableSeatsOnLeg <= 1 ? '#bf2600' : 'var(--bbc-navy)' }}>
-            <Users size={16} />
+        <div className="ride-card-seats-badge">
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 700, color: availableSeatsOnLeg <= 1 ? '#dc2626' : 'var(--bbc-navy)' }}>
+            <Users size={15} />
             <span>{availableSeatsOnLeg} {availableSeatsOnLeg === 1 ? 'seat left' : 'seats left'}</span>
           </div>
           {ride.approvalMode === 'instant' ? (
-            <div style={{ fontSize: '12px', color: 'var(--bbc-blue)', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-              <Sparkle size={14} weight="fill" />
+            <div style={{ fontSize: '12px', color: 'var(--yamo-emerald, #047857)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Sparkle size={13} weight="fill" />
               <span>{t(currentLocale, 'booking.instant')}</span>
             </div>
           ) : (
-            <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)' }}>
               {t(currentLocale, 'booking.manual')}
             </div>
           )}
