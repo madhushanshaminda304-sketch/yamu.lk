@@ -47,12 +47,28 @@
   padding: 0;
 }
 
+html, body {
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--bbc-text-primary);
   background-color: var(--bbc-bg);
   -webkit-font-smoothing: antialiased;
   line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5 {
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+:focus-visible {
+  outline: 2px solid var(--yamo-emerald);
+  outline-offset: 2px;
 }
 
 a {
@@ -1052,9 +1068,163 @@ button {
   .hidden.md\:block {
     display: none !important;
   }
+
+  /* Mobile Shell & Viewport Constraints */
+  .shell, .shell-narrow {
+    padding: 0 14px;
+  }
+
+  .hero-section {
+    padding: 20px 0 24px;
+  }
+
+  .hero-content {
+    margin: 0 auto 16px;
+    padding: 0 4px;
+  }
+
+  .hero-title {
+    font-size: clamp(23px, 6.2vw, 30px);
+    line-height: 1.22;
+    letter-spacing: -0.4px;
+    margin-bottom: 8px;
+    text-wrap: balance;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+    line-height: 1.45;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  /* Search Card on Mobile */
+  .search-card {
+    padding: 12px;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(4, 120, 87, 0.08);
+  }
+
+  .search-form-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .search-field {
+    background: #f8fafc;
+    border: 1px solid var(--bbc-border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    min-height: 52px;
+    cursor: default;
+  }
+
+  .search-field:focus-within {
+    background: #ffffff;
+    border-color: var(--yamo-emerald);
+    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
+  }
+
+  .search-field label {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .search-field select, .search-field input {
+    font-size: 15px;
+    min-height: 28px;
+  }
+
+  .swap-btn {
+    align-self: center;
+    margin: -4px auto;
+    width: 38px;
+    height: 38px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .scam-banner {
+    margin-top: 14px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    border-radius: 12px;
+    gap: 8px;
+  }
+
+  /* Mobile USP Trust Strip */
+  .usp-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 24px 0 28px;
+  }
+
+  .usp-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid var(--bbc-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+
+  .usp-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+    font-size: 20px;
+  }
+
+  .usp-card h3 {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .usp-card p {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  /* Mobile Corridors */
+  .corridors-section {
+    padding: 20px 0 36px;
+  }
+
+  .section-header h2 {
+    font-size: 19px;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+  }
+
+  .corridor-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .corridor-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .corridor-route {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .corridor-meta {
+    font-size: 13px;
+  }
+
+  .corridor-price {
+    font-size: 15px;
+  }
+
   /* Padding on mobile main content to prevent bottom navigation bar overlay */
   .app-root main {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 }
 

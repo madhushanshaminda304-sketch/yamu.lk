@@ -60,7 +60,7 @@ describe('Native Platform & Services Fallbacks', () => {
 
   it('setAppStatusBar resolves cleanly in non-native environment', async () => {
     await assert.doesNotReject(async () => {
-      await setAppStatusBar('#00875A', false);
+      await setAppStatusBar('#047857', false);
     });
   });
 });

@@ -52,8 +52,8 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            background: '#e6f4ea',
-            color: '#00875A',
+            background: '#ecfdf5',
+            color: '#047857',
             marginBottom: '16px',
           }}
         >
@@ -204,7 +204,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
               height: '68px',
               borderRadius: '50%',
               background: '#f0fdf4',
-              color: '#00875A',
+              color: '#047857',
               marginBottom: '16px',
             }}
           >
@@ -431,7 +431,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                         width: '10px',
                         height: '10px',
                         borderRadius: '50%',
-                        background: '#00875A',
+                        background: '#047857',
                         boxShadow: '0 0 0 2px #dcfce7',
                         flexShrink: 0,
                       }}
@@ -649,7 +649,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                       >
                         <div
                           style={{
-                            background: isMe ? '#00875A' : '#ffffff',
+                            background: isMe ? '#047857' : '#ffffff',
                             color: isMe ? '#ffffff' : '#002B36',
                             border: isMe ? 'none' : '1px solid #e2e8f0',
                             padding: '10px 14px',

@@ -67,24 +67,25 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           <div className="search-card">
             <form onSubmit={handleSearch} className="search-form-grid">
               <div className="search-field">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <label htmlFor="home-from-select">{t(locale, 'search.from')}</label>
                   <button
                     type="button"
                     onClick={handleUseLocation}
                     disabled={isLocating}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--bbc-blue)',
+                      background: 'var(--yamo-surface-tint, #f0fdf4)',
+                      border: '1px solid #d1fae5',
+                      color: 'var(--yamo-emerald, #047857)',
                       cursor: 'pointer',
                       fontSize: '11px',
                       fontWeight: 700,
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '3px',
-                      padding: '2px 4px',
-                      borderRadius: '4px',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      borderRadius: '9999px',
+                      flexShrink: 0,
                     }}
                     title={t(locale, 'location.use_my_location')}
                     aria-label={t(locale, 'location.use_my_location')}
