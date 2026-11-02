@@ -208,7 +208,15 @@ export function PublishRideView({
   return (
     <div className="shell-narrow" style={{ padding: '20px 0 88px' }}>
       {/* Wizard Progress Bar */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }} role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={6}>
+      <div
+        style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}
+        role="progressbar"
+        aria-valuenow={step}
+        aria-valuemin={1}
+        aria-valuemax={6}
+        aria-label="Publish ride progress"
+        aria-valuetext={`Step ${step} of 6`}
+      >
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}

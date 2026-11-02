@@ -4,7 +4,7 @@ import { findNearestHub } from '../src/native/geolocation.ts';
 import { ALL_HUBS } from '../src/domain/corridors.ts';
 import { isNativePlatform } from '../src/native/platform.ts';
 import { triggerHaptic } from '../src/native/haptics.ts';
-import { registerBackButtonHandler } from '../src/native/backButton.ts';
+import { registerBackButtonHandler, pushOverlayDismissHandler, triggerBackActionForTesting } from '../src/native/backButton.ts';
 import { setAppStatusBar } from '../src/native/statusBar.ts';
 
 describe('Nearest Sri Lankan Hub Geolocation Matcher', () => {
@@ -56,6 +56,75 @@ describe('Native Platform & Services Fallbacks', () => {
 
     assert.equal(typeof cleanup, 'function');
     cleanup();
+  });
+
+  it('pushOverlayDismissHandler intercepts back action in LIFO order before modal or navigation', () => {
+    let navTarget: string | number | null = null;
+    let modalClosed = false;
+
+    const cleanupHandler = registerBackButtonHandler(
+      (path) => { navTarget = path; },
+      () => true, // a base modal is open
+      () => { modalClosed = true; }
+    );
+
+    const callOrder: string[] = [];
+
+    // Push two overlay handlers (bottom sheet and child dialog)
+    const unregisterSheet = pushOverlayDismissHandler(() => {
+      callOrder.push('sheet');
+      return true; // consumed
+    });
+
+    const unregisterDialog = pushOverlayDismissHandler(() => {
+      callOrder.push('dialog');
+      return true; // consumed
+    });
+
+    // 1st back press: should dismiss dialog (LIFO)
+    triggerBackActionForTesting();
+    assert.deepEqual(callOrder, ['dialog']);
+    assert.equal(modalClosed, false, 'Base modal should not have closed');
+    assert.equal(navTarget, null, 'Navigation should not have occurred');
+
+    unregisterDialog();
+
+    // 2nd back press: should dismiss sheet
+    triggerBackActionForTesting();
+    assert.deepEqual(callOrder, ['dialog', 'sheet']);
+    assert.equal(modalClosed, false);
+    assert.equal(navTarget, null);
+
+    unregisterSheet();
+
+    // 3rd back press: no overlays left in stack -> closes base modal
+    triggerBackActionForTesting();
+    assert.equal(modalClosed, true, 'Base modal should close now that overlay stack is empty');
+
+    cleanupHandler();
+  });
+
+  it('pushOverlayDismissHandler cleanup unregisters cleanly', () => {
+    let overlayCalled = false;
+    const unregister = pushOverlayDismissHandler(() => {
+      overlayCalled = true;
+      return true;
+    });
+
+    unregister();
+
+    let modalClosed = false;
+    const cleanupHandler = registerBackButtonHandler(
+      () => {},
+      () => true,
+      () => { modalClosed = true; }
+    );
+
+    triggerBackActionForTesting();
+    assert.equal(overlayCalled, false, 'Unregistered overlay handler must not be called');
+    assert.equal(modalClosed, true);
+
+    cleanupHandler();
   });
 
   it('setAppStatusBar resolves cleanly in non-native environment', async () => {

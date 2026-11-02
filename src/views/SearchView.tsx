@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -8,20 +8,22 @@ import {
   Sparkle,
   Star,
   UserCheck,
-  GenderFemale,
   Wind,
-  PawPrint,
   X,
   FadersHorizontal,
+  Clock,
+  Users,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
 import { searchRides, type MatchedRideResult } from '../domain/matching.ts';
-import { t, formatLkr, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
+import { t, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
+import { pushOverlayDismissHandler } from '../native/backButton.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
 import { RideCardItem } from '../components/RideCardItem.tsx';
+import { SearchFilterControls } from '../components/SearchFilterControls.tsx';
 
 export function SearchView({
   state,
@@ -82,6 +84,58 @@ export function SearchView({
 
   // Mobile Bottom Sheet Filter Drawer
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+
+  // Hardware Back Button & Scroll Lock for Drawer
+  useEffect(() => {
+    if (!showFilterDrawer) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const unregisterBack = pushOverlayDismissHandler(() => {
+      setShowFilterDrawer(false);
+      return true;
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowFilterDrawer(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      unregisterBack();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showFilterDrawer]);
+
+  // Hardware Back Button & Scroll Lock for Alert Modal
+  useEffect(() => {
+    if (!showAlertModal) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const unregisterBack = pushOverlayDismissHandler(() => {
+      setShowAlertModal(false);
+      return true;
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAlertModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      unregisterBack();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showAlertModal]);
 
   const activeFilterCount =
     (sortBy !== 'departure' ? 1 : 0) +
@@ -233,9 +287,9 @@ export function SearchView({
           onClick={() => updateRoute(toHubId, fromHubId)}
           className="swap-btn"
           aria-label="Swap Route"
-          style={{ width: '36px', height: '36px', alignSelf: 'flex-end', marginBottom: '4px' }}
+          style={{ alignSelf: 'flex-end', marginBottom: '4px' }}
         >
-          <ArrowsLeftRight size={16} weight="bold" />
+          <ArrowsLeftRight size={18} weight="bold" />
         </button>
 
         <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -281,18 +335,20 @@ export function SearchView({
           }}
           className={`quick-filter-btn ${sortBy === 'price' ? 'active' : ''}`}
         >
-          <span>★ {t(locale, 'tag.cheapest')}</span>
+          <Star size={16} weight={sortBy === 'price' ? 'fill' : 'regular'} />
+          <span>{t(locale, 'tag.cheapest')}</span>
         </button>
 
         <button
           type="button"
           onClick={() => {
             triggerHaptic('selection');
-            setSortBy(sortBy === 'departure' ? 'duration' : 'departure');
+            setSortBy('departure');
           }}
           className={`quick-filter-btn ${sortBy === 'departure' ? 'active' : ''}`}
         >
-          <span>⏰ {t(locale, 'tag.earliest')}</span>
+          <Clock size={16} weight={sortBy === 'departure' ? 'bold' : 'regular'} />
+          <span>{t(locale, 'tag.earliest')}</span>
         </button>
 
         <button
@@ -303,7 +359,8 @@ export function SearchView({
           }}
           className={`quick-filter-btn ${instantOnly ? 'active' : ''}`}
         >
-          <span>⚡ {t(locale, 'filter.instant')}</span>
+          <Sparkle size={16} weight={instantOnly ? 'fill' : 'regular'} />
+          <span>{t(locale, 'filter.instant')}</span>
         </button>
 
         <button
@@ -314,7 +371,8 @@ export function SearchView({
           }}
           className={`quick-filter-btn ${verifiedOnly ? 'active' : ''}`}
         >
-          <span>🛡️ {t(locale, 'filter.verified')}</span>
+          <UserCheck size={16} weight={verifiedOnly ? 'bold' : 'regular'} />
+          <span>{t(locale, 'filter.verified')}</span>
         </button>
 
         <button
@@ -325,7 +383,8 @@ export function SearchView({
           }}
           className={`quick-filter-btn ${acOnly ? 'active' : ''}`}
         >
-          <span>❄️ {t(locale, 'filter.ac')}</span>
+          <Wind size={16} weight={acOnly ? 'bold' : 'regular'} />
+          <span>{t(locale, 'filter.ac')}</span>
         </button>
 
         <button
@@ -336,184 +395,38 @@ export function SearchView({
           }}
           className={`quick-filter-btn ${maxTwoInBackOnly ? 'active' : ''}`}
         >
-          <span>👥 {t(locale, 'filter.max_two_back')}</span>
+          <Users size={16} weight={maxTwoInBackOnly ? 'bold' : 'regular'} />
+          <span>{t(locale, 'filter.max_two_back')}</span>
         </button>
       </div>
 
       <div className="search-layout">
         {/* Sidebar Filters - Desktop Only */}
         <aside className="filters-sidebar hidden md:block">
-          <div className="filter-block">
-            <h3>{t(locale, 'filter.title')}</h3>
-            <div className="filter-options">
-              <label>
-                <input
-                  type="radio"
-                  name="sortBy"
-                  checked={sortBy === 'departure'}
-                  onChange={() => setSortBy('departure')}
-                />
-                Earliest departure
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="sortBy"
-                  checked={sortBy === 'price'}
-                  onChange={() => setSortBy('price')}
-                />
-                Lowest price
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="sortBy"
-                  checked={sortBy === 'duration'}
-                  onChange={() => setSortBy('duration')}
-                />
-                Shortest ride
-              </label>
-            </div>
-          </div>
-
-          <div className="filter-block">
-            <h3>Departure time</h3>
-            <div className="filter-options">
-              <label>
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  checked={timeWindow === 'all'}
-                  onChange={() => setTimeWindow('all')}
-                />
-                Any time
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  checked={timeWindow === 'before_6'}
-                  onChange={() => setTimeWindow('before_6')}
-                />
-                Early (Before 06:00)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  checked={timeWindow === 'morning_6_12'}
-                  onChange={() => setTimeWindow('morning_6_12')}
-                />
-                Morning (06:00 – 12:00)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  checked={timeWindow === 'afternoon_12_18'}
-                  onChange={() => setTimeWindow('afternoon_12_18')}
-                />
-                Afternoon (12:00 – 18:00)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  checked={timeWindow === 'evening_after_18'}
-                  onChange={() => setTimeWindow('evening_after_18')}
-                />
-                Evening (After 18:00)
-              </label>
-            </div>
-          </div>
-
-          <div className="filter-block">
-            <h3>Max Price: {formatLkr(maxPrice)}</h3>
-            <input
-              type="range"
-              min={500}
-              max={10000}
-              step={250}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--bbc-blue)' }}
-              aria-label="Maximum contribution price"
-            />
-          </div>
-
-          <div className="filter-block">
-            <h3>Trust & Booking Mode</h3>
-            <div className="filter-options">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={instantOnly}
-                  onChange={(e) => setInstantOnly(e.target.checked)}
-                />
-                <Sparkle size={16} color="var(--bbc-blue)" weight="fill" />
-                {t(locale, 'filter.instant')}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={superDriverOnly}
-                  onChange={(e) => setSuperDriverOnly(e.target.checked)}
-                />
-                <Star size={16} color="#f57f17" weight="fill" />
-                {t(locale, 'filter.super_driver')}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={verifiedOnly}
-                  onChange={(e) => setVerifiedOnly(e.target.checked)}
-                />
-                <UserCheck size={16} color="var(--bbc-blue)" weight="bold" />
-                {t(locale, 'filter.verified')}
-              </label>
-            </div>
-          </div>
-
-          <div className="filter-block">
-            <h3>Vehicle & Comfort</h3>
-            <div className="filter-options">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={acOnly}
-                  onChange={(e) => setAcOnly(e.target.checked)}
-                />
-                <Wind size={16} />
-                {t(locale, 'filter.ac')}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={maxTwoInBackOnly}
-                  onChange={(e) => setMaxTwoInBackOnly(e.target.checked)}
-                />
-                {t(locale, 'filter.max_two_back')}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={womenOnly}
-                  onChange={(e) => setWomenOnly(e.target.checked)}
-                />
-                <GenderFemale size={16} color="#d81b60" weight="bold" />
-                {t(locale, 'filter.women_only')}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={petsAllowedOnly}
-                  onChange={(e) => setPetsAllowedOnly(e.target.checked)}
-                />
-                <PawPrint size={16} />
-                {t(locale, 'filter.pets')}
-              </label>
-            </div>
-          </div>
+          <SearchFilterControls
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            timeWindow={timeWindow}
+            setTimeWindow={setTimeWindow}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+            instantOnly={instantOnly}
+            setInstantOnly={setInstantOnly}
+            superDriverOnly={superDriverOnly}
+            setSuperDriverOnly={setSuperDriverOnly}
+            verifiedOnly={verifiedOnly}
+            setVerifiedOnly={setVerifiedOnly}
+            maxTwoInBackOnly={maxTwoInBackOnly}
+            setMaxTwoInBackOnly={setMaxTwoInBackOnly}
+            womenOnly={womenOnly}
+            setWomenOnly={setWomenOnly}
+            acOnly={acOnly}
+            setAcOnly={setAcOnly}
+            petsAllowedOnly={petsAllowedOnly}
+            setPetsAllowedOnly={setPetsAllowedOnly}
+            locale={locale}
+            namePrefix="desktop"
+          />
         </aside>
 
         {/* Results List */}
@@ -578,7 +491,7 @@ export function SearchView({
                   <button
                     type="button"
                     onClick={handleResetFilters}
-                    style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
                   >
                     Reset All
                   </button>
@@ -590,8 +503,10 @@ export function SearchView({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '32px',
-                    height: '32px',
+                    width: '44px',
+                    minWidth: '44px',
+                    height: '44px',
+                    minHeight: '44px',
                     borderRadius: '50%',
                     background: '#f1f5f9',
                     border: 'none',
@@ -600,183 +515,36 @@ export function SearchView({
                   }}
                   aria-label="Close filters"
                 >
-                  <X size={18} weight="bold" />
+                  <X size={20} weight="bold" />
                 </button>
               </div>
             </div>
 
             <div className="bottom-sheet-body">
-              <div className="filter-block">
-                <h3>{t(locale, 'filter.title')}</h3>
-                <div className="filter-options">
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerSortBy"
-                      checked={sortBy === 'departure'}
-                      onChange={() => setSortBy('departure')}
-                    />
-                    Earliest departure
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerSortBy"
-                      checked={sortBy === 'price'}
-                      onChange={() => setSortBy('price')}
-                    />
-                    Lowest price
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerSortBy"
-                      checked={sortBy === 'duration'}
-                      onChange={() => setSortBy('duration')}
-                    />
-                    Shortest ride
-                  </label>
-                </div>
-              </div>
-
-              <div className="filter-block">
-                <h3>Departure time</h3>
-                <div className="filter-options">
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerTimeWindow"
-                      checked={timeWindow === 'all'}
-                      onChange={() => setTimeWindow('all')}
-                    />
-                    Any time
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerTimeWindow"
-                      checked={timeWindow === 'before_6'}
-                      onChange={() => setTimeWindow('before_6')}
-                    />
-                    Early (Before 06:00)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerTimeWindow"
-                      checked={timeWindow === 'morning_6_12'}
-                      onChange={() => setTimeWindow('morning_6_12')}
-                    />
-                    Morning (06:00 – 12:00)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerTimeWindow"
-                      checked={timeWindow === 'afternoon_12_18'}
-                      onChange={() => setTimeWindow('afternoon_12_18')}
-                    />
-                    Afternoon (12:00 – 18:00)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="drawerTimeWindow"
-                      checked={timeWindow === 'evening_after_18'}
-                      onChange={() => setTimeWindow('evening_after_18')}
-                    />
-                    Evening (After 18:00)
-                  </label>
-                </div>
-              </div>
-
-              <div className="filter-block">
-                <h3>Max Price: {formatLkr(maxPrice)}</h3>
-                <input
-                  type="range"
-                  min={500}
-                  max={10000}
-                  step={250}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--yamo-emerald, #047857)' }}
-                  aria-label="Maximum contribution price"
-                />
-              </div>
-
-              <div className="filter-block">
-                <h3>Trust & Booking Mode</h3>
-                <div className="filter-options">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={instantOnly}
-                      onChange={(e) => setInstantOnly(e.target.checked)}
-                    />
-                    <Sparkle size={16} color="var(--bbc-blue)" weight="fill" />
-                    {t(locale, 'filter.instant')}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={superDriverOnly}
-                      onChange={(e) => setSuperDriverOnly(e.target.checked)}
-                    />
-                    <Star size={16} color="#f57f17" weight="fill" />
-                    {t(locale, 'filter.super_driver')}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={verifiedOnly}
-                      onChange={(e) => setVerifiedOnly(e.target.checked)}
-                    />
-                    <UserCheck size={16} color="var(--bbc-blue)" weight="bold" />
-                    {t(locale, 'filter.verified')}
-                  </label>
-                </div>
-              </div>
-
-              <div className="filter-block">
-                <h3>Vehicle & Comfort</h3>
-                <div className="filter-options">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={acOnly}
-                      onChange={(e) => setAcOnly(e.target.checked)}
-                    />
-                    <Wind size={16} />
-                    {t(locale, 'filter.ac')}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={maxTwoInBackOnly}
-                      onChange={(e) => setMaxTwoInBackOnly(e.target.checked)}
-                    />
-                    {t(locale, 'filter.max_two_back')}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={womenOnly}
-                      onChange={(e) => setWomenOnly(e.target.checked)}
-                    />
-                    <GenderFemale size={16} color="#d81b60" weight="bold" />
-                    {t(locale, 'filter.women_only')}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={petsAllowedOnly}
-                      onChange={(e) => setPetsAllowedOnly(e.target.checked)}
-                    />
-                    <PawPrint size={16} />
-                    {t(locale, 'filter.pets')}
-                  </label>
-                </div>
-              </div>
+              <SearchFilterControls
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                timeWindow={timeWindow}
+                setTimeWindow={setTimeWindow}
+                maxPrice={maxPrice}
+                setMaxPrice={setMaxPrice}
+                instantOnly={instantOnly}
+                setInstantOnly={setInstantOnly}
+                superDriverOnly={superDriverOnly}
+                setSuperDriverOnly={setSuperDriverOnly}
+                verifiedOnly={verifiedOnly}
+                setVerifiedOnly={setVerifiedOnly}
+                maxTwoInBackOnly={maxTwoInBackOnly}
+                setMaxTwoInBackOnly={setMaxTwoInBackOnly}
+                womenOnly={womenOnly}
+                setWomenOnly={setWomenOnly}
+                acOnly={acOnly}
+                setAcOnly={setAcOnly}
+                petsAllowedOnly={petsAllowedOnly}
+                setPetsAllowedOnly={setPetsAllowedOnly}
+                locale={locale}
+                namePrefix="drawer"
+              />
             </div>
 
             <div className="bottom-sheet-footer">
@@ -801,10 +569,29 @@ export function SearchView({
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 71, 82, 0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '28px', maxWidth: '440px', width: '100%', boxShadow: 'var(--shadow-lg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
                 Create a Ride Alert
               </h3>
-              <button type="button" onClick={() => setShowAlertModal(false)} aria-label="Close dialog"><X size={20} /></button>
+              <button
+                type="button"
+                onClick={() => setShowAlertModal(false)}
+                aria-label="Close dialog"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '44px',
+                  minWidth: '44px',
+                  height: '44px',
+                  minHeight: '44px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--bbc-navy)',
+                }}
+              >
+                <X size={20} />
+              </button>
             </div>
 
             <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginBottom: '20px' }}>
@@ -826,10 +613,10 @@ export function SearchView({
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-                <button type="button" className="btn-secondary btn-sm" onClick={() => setShowAlertModal(false)}>
+                <button type="button" className="btn-secondary btn-sm" onClick={() => setShowAlertModal(false)} style={{ minHeight: '44px' }}>
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary btn-sm">
+                <button type="submit" className="btn-primary btn-sm" style={{ minHeight: '44px' }}>
                   Create Alert
                 </button>
               </div>

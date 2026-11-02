@@ -189,7 +189,7 @@ export function MobileTopBar({
                     color: active ? '#ffffff' : '#64748b',
                     border: 'none',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 0.15s ease, color 0.15s ease',
                   }}
                   aria-pressed={active}
                 >

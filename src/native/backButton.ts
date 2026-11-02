@@ -14,6 +14,27 @@ export interface BackButtonOptions {
 }
 
 let lastRootBackPress = 0;
+const overlayStack: Array<() => boolean> = [];
+
+/**
+ * Register a temporary overlay/sheet dismiss callback with the back button stack.
+ * Return true if the back press was consumed by closing the overlay.
+ */
+export function pushOverlayDismissHandler(dismiss: () => boolean): () => void {
+  overlayStack.push(dismiss);
+  return () => {
+    const idx = overlayStack.indexOf(dismiss);
+    if (idx !== -1) {
+      overlayStack.splice(idx, 1);
+    }
+  };
+}
+
+let activeBackActionForTesting: ((canGoBackFromNative?: boolean) => void) | null = null;
+
+export function triggerBackActionForTesting(canGoBackFromNative?: boolean): void {
+  activeBackActionForTesting?.(canGoBackFromNative);
+}
 
 export function registerBackButtonHandler(
   navigate: (path: string | -1) => void,
@@ -25,6 +46,13 @@ export function registerBackButtonHandler(
   let nativeListenerHandle: { remove: () => void } | null = null;
 
   const handleBackAction = (canGoBackFromNative?: boolean) => {
+    // 0. If any registered overlay in the stack consumes the back press, stop here
+    for (let i = overlayStack.length - 1; i >= 0; i--) {
+      if (overlayStack[i]()) {
+        return;
+      }
+    }
+
     // 1. If a modal or sheet is open, dismiss it first
     if (isModalOpen()) {
       closeModal();
@@ -56,6 +84,8 @@ export function registerBackButtonHandler(
       }
     }
   };
+
+  activeBackActionForTesting = handleBackAction;
 
   // Register Capacitor native backButton listener if available
   if (typeof window !== 'undefined' && window.Capacitor?.Plugins?.App?.addListener) {
@@ -101,6 +131,7 @@ export function registerBackButtonHandler(
   // Return unregister/cleanup function
   return () => {
     isCleanedUp = true;
+    activeBackActionForTesting = null;
     if (nativeListenerHandle?.remove) {
       nativeListenerHandle.remove();
       nativeListenerHandle = null;
