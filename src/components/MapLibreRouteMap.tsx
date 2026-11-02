@@ -189,6 +189,8 @@ export function MapLibreRouteMap({
     const container = containerRef.current;
     if (!container || mapRef.current) return;
 
+    let isMounted = true;
+
     const map = new maplibregl.Map({
       container,
       style: OPENFREEMAP_LIBERTY_STYLE_URL,
@@ -202,8 +204,10 @@ export function MapLibreRouteMap({
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
-    map.on('load', () => {
+    const handleLoad = () => {
+      if (!isMounted || !mapRef.current) return;
       setMapLoaded(true);
+
       // Route line source
       map.addSource('yamo-route-source', {
         type: 'geojson',
@@ -272,8 +276,9 @@ export function MapLibreRouteMap({
           'line-opacity': 0.85,
         },
       });
-    });
+    };
 
+    map.on('load', handleLoad);
     mapRef.current = map;
 
     const resizeObserver = new ResizeObserver(() => {
@@ -284,6 +289,8 @@ export function MapLibreRouteMap({
     resizeObserver.observe(container);
 
     return () => {
+      isMounted = false;
+      map.off('load', handleLoad);
       resizeObserver.disconnect();
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
@@ -300,7 +307,22 @@ export function MapLibreRouteMap({
   // Update Route Polyline & Waypoint Markers
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || waypoints.length === 0) return;
+    if (!map || !mapLoaded) return;
+
+    // Clean up if waypoints array is empty
+    if (waypoints.length === 0) {
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+      const geoSource = map.getSource('yamo-route-source') as maplibregl.GeoJSONSource | undefined;
+      if (geoSource) {
+        geoSource.setData({
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'LineString', coordinates: [] },
+        });
+      }
+      return;
+    }
 
     let cancelled = false;
     setRouteSource('loading');
@@ -375,7 +397,7 @@ export function MapLibreRouteMap({
         if (source === 'fallback') {
           activeMap.setPaintProperty('yamo-route-core', 'line-dasharray', [2, 2]);
         } else {
-          activeMap.setPaintProperty('yamo-route-core', 'line-dasharray', [1]);
+          activeMap.setPaintProperty('yamo-route-core', 'line-dasharray', null);
         }
       }
 
@@ -554,6 +576,17 @@ export function MapLibreRouteMap({
     } else {
       livePassengerMarkerRef.current?.remove();
       livePassengerMarkerRef.current = null;
+      const walkingSource = map.getSource('yamo-walking-source') as maplibregl.GeoJSONSource | undefined;
+      if (walkingSource) {
+        walkingSource.setData({
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [],
+          },
+        });
+      }
     }
 
     // Driver Marker

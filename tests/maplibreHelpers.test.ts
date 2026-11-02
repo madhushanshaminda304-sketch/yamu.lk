@@ -37,3 +37,16 @@ test('computeMapLibreBounds produces [[minLng, minLat], [maxLng, maxLat]] for Ma
     [80.2210, 6.9271], // [maxLng, maxLat]
   ]);
 });
+
+test('positionsToGeoJsonLine handles empty positions gracefully', () => {
+  const geojson = positionsToGeoJsonLine([]);
+  assert.equal(geojson.type, 'Feature');
+  assert.equal(geojson.geometry.type, 'LineString');
+  assert.deepEqual(geojson.geometry.coordinates, []);
+});
+
+test('computeMapLibreBounds returns null on empty waypoints array', () => {
+  const bounds = computeMapLibreBounds([]);
+  assert.equal(bounds, null);
+});
+
