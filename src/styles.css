@@ -836,6 +836,118 @@ button {
   color: var(--bbc-navy);
 }
 
+/* Mobile Quick Filter Strip */
+.mobile-quick-filter-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 14px;
+  scrollbar-width: none;
+}
+
+.mobile-quick-filter-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--bbc-border);
+  background: #ffffff;
+  color: var(--bbc-navy);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 40px;
+}
+
+.quick-filter-btn.active {
+  background: var(--yamo-emerald-light, #ecfdf5);
+  border-color: var(--yamo-emerald, #047857);
+  color: var(--yamo-emerald, #047857);
+  font-weight: 800;
+}
+
+.quick-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--yamo-emerald, #047857);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 9999px;
+  padding: 1px 6px;
+  min-width: 18px;
+  height: 18px;
+}
+
+/* Slide-up Bottom Sheet Drawer */
+.bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 78, 59, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.bottom-sheet-card {
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 32px rgba(6, 78, 59, 0.18);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #cbd5e1;
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+
+.bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bbc-border);
+  flex-shrink: 0;
+}
+
+.bottom-sheet-body {
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bottom-sheet-footer {
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--bbc-border);
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
 .auth-icon-badge {
   width: 56px;
   height: 56px;

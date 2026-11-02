@@ -12,6 +12,7 @@ import {
   Wind,
   PawPrint,
   X,
+  FadersHorizontal,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
@@ -79,6 +80,35 @@ export function SearchView({
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertEmail, setAlertEmail] = useState(state.currentUser?.email || '');
 
+  // Mobile Bottom Sheet Filter Drawer
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+
+  const activeFilterCount =
+    (sortBy !== 'departure' ? 1 : 0) +
+    (timeWindow !== 'all' ? 1 : 0) +
+    (maxPrice < 10000 ? 1 : 0) +
+    (instantOnly ? 1 : 0) +
+    (superDriverOnly ? 1 : 0) +
+    (verifiedOnly ? 1 : 0) +
+    (maxTwoInBackOnly ? 1 : 0) +
+    (womenOnly ? 1 : 0) +
+    (acOnly ? 1 : 0) +
+    (petsAllowedOnly ? 1 : 0);
+
+  const handleResetFilters = () => {
+    triggerHaptic('selection');
+    setSortBy('departure');
+    setTimeWindow('all');
+    setMaxPrice(10000);
+    setInstantOnly(false);
+    setSuperDriverOnly(false);
+    setVerifiedOnly(false);
+    setMaxTwoInBackOnly(false);
+    setWomenOnly(false);
+    setAcOnly(false);
+    setPetsAllowedOnly(false);
+  };
+
   const fromHub = getHubById(fromHubId);
   const toHub = getHubById(toHubId);
 
@@ -117,15 +147,15 @@ export function SearchView({
 
   return (
     <div className="shell">
-      <div style={{ padding: '24px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bbc-border)', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bbc-border)', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+          <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', lineHeight: 1.25 }}>
             <span>{fromHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || fromHub?.name.en || fromHubId}</span>
-            <ArrowRight size={22} />
+            <ArrowRight size={20} color="var(--yamo-emerald)" />
             <span>{toHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || toHub?.name.en || toHubId}</span>
           </h1>
-          <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>
-            {formatColomboDate(`${date}T12:00:00+05:30`)} · {seats} {seats === 1 ? 'Passenger' : 'Passengers'} · {results.length} rides available
+          <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '13.5px', marginTop: '4px' }}>
+            {formatColomboDate(`${date}T12:00:00+05:30`)} · {seats} {seats === 1 ? 'Passenger' : 'Passengers'} · <strong style={{ color: 'var(--yamo-emerald)' }}>{results.length} rides available</strong>
           </p>
         </div>
 
@@ -134,8 +164,9 @@ export function SearchView({
           className="btn-secondary btn-sm"
           onClick={() => setShowAlertModal(true)}
           aria-label="Create a Ride Alert"
+          style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <Bell size={18} />
+          <Bell size={16} />
           <span>{t(locale, 'alert.cta')}</span>
         </button>
       </div>
@@ -145,16 +176,16 @@ export function SearchView({
         background: '#ffffff',
         border: '1px solid var(--bbc-border)',
         borderRadius: 'var(--radius-md)',
-        padding: '12px 16px',
-        margin: '16px 0 20px',
+        padding: '12px 14px',
+        margin: '14px 0 16px',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
-        gap: '12px',
+        gap: '10px',
         boxShadow: 'var(--shadow-sm)',
       }}>
-        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
             <label htmlFor="search-from-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
               {t(locale, 'search.from')}
             </label>
@@ -163,16 +194,18 @@ export function SearchView({
               onClick={handleUseLocation}
               disabled={isLocating}
               style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--bbc-blue)',
+                background: 'var(--yamo-surface-tint, #f0fdf4)',
+                border: '1px solid #d1fae5',
+                color: 'var(--yamo-emerald, #047857)',
                 cursor: 'pointer',
                 fontSize: '11px',
                 fontWeight: 700,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '3px',
-                padding: '2px 4px',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                flexShrink: 0,
               }}
               title={t(locale, 'location.use_my_location')}
               aria-label={t(locale, 'location.use_my_location')}
@@ -185,7 +218,7 @@ export function SearchView({
             id="search-from-select"
             value={fromHubId}
             onChange={(e) => updateRoute(e.target.value, toHubId)}
-            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff' }}
+            style={{ padding: '9px 12px', borderRadius: '10px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff', minHeight: '44px' }}
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
@@ -200,12 +233,12 @@ export function SearchView({
           onClick={() => updateRoute(toHubId, fromHubId)}
           className="swap-btn"
           aria-label="Swap Route"
-          style={{ width: '34px', height: '34px', alignSelf: 'flex-end', marginBottom: '4px' }}
+          style={{ width: '36px', height: '36px', alignSelf: 'flex-end', marginBottom: '4px' }}
         >
           <ArrowsLeftRight size={16} weight="bold" />
         </button>
 
-        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label htmlFor="search-to-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
             {t(locale, 'search.to')}
           </label>
@@ -213,7 +246,7 @@ export function SearchView({
             id="search-to-select"
             value={toHubId}
             onChange={(e) => updateRoute(fromHubId, e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff' }}
+            style={{ padding: '9px 12px', borderRadius: '10px', border: '1px solid var(--bbc-border)', fontSize: '14px', fontWeight: 600, color: 'var(--bbc-navy)', background: '#fff', minHeight: '44px' }}
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
@@ -224,9 +257,92 @@ export function SearchView({
         </div>
       </div>
 
+      {/* Mobile Quick Filter Strip */}
+      <div className="mobile-quick-filter-strip md:hidden" role="toolbar" aria-label="Quick Filters">
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setShowFilterDrawer(true);
+          }}
+          className={`quick-filter-btn ${activeFilterCount > 0 ? 'active' : ''}`}
+          aria-label="Open Filter Options"
+        >
+          <FadersHorizontal size={18} weight="bold" />
+          <span>Filters</span>
+          {activeFilterCount > 0 && <span className="quick-filter-badge">{activeFilterCount}</span>}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setSortBy(sortBy === 'price' ? 'departure' : 'price');
+          }}
+          className={`quick-filter-btn ${sortBy === 'price' ? 'active' : ''}`}
+        >
+          <span>★ {t(locale, 'tag.cheapest')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setSortBy(sortBy === 'departure' ? 'duration' : 'departure');
+          }}
+          className={`quick-filter-btn ${sortBy === 'departure' ? 'active' : ''}`}
+        >
+          <span>⏰ {t(locale, 'tag.earliest')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setInstantOnly(!instantOnly);
+          }}
+          className={`quick-filter-btn ${instantOnly ? 'active' : ''}`}
+        >
+          <span>⚡ {t(locale, 'filter.instant')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setVerifiedOnly(!verifiedOnly);
+          }}
+          className={`quick-filter-btn ${verifiedOnly ? 'active' : ''}`}
+        >
+          <span>🛡️ {t(locale, 'filter.verified')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setAcOnly(!acOnly);
+          }}
+          className={`quick-filter-btn ${acOnly ? 'active' : ''}`}
+        >
+          <span>❄️ {t(locale, 'filter.ac')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setMaxTwoInBackOnly(!maxTwoInBackOnly);
+          }}
+          className={`quick-filter-btn ${maxTwoInBackOnly ? 'active' : ''}`}
+        >
+          <span>👥 {t(locale, 'filter.max_two_back')}</span>
+        </button>
+      </div>
+
       <div className="search-layout">
-        {/* Sidebar Filters */}
-        <aside className="filters-sidebar">
+        {/* Sidebar Filters - Desktop Only */}
+        <aside className="filters-sidebar hidden md:block">
           <div className="filter-block">
             <h3>{t(locale, 'filter.title')}</h3>
             <div className="filter-options">
@@ -432,6 +548,253 @@ export function SearchView({
           )}
         </main>
       </div>
+
+      {/* Mobile Slide-Up Bottom Sheet Filter Drawer */}
+      {showFilterDrawer && (
+        <div
+          className="bottom-sheet-backdrop md:hidden"
+          onClick={() => setShowFilterDrawer(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filter Rides"
+        >
+          <div
+            className="bottom-sheet-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bottom-sheet-handle" />
+
+            <div className="bottom-sheet-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
+                  Filter Rides
+                </h3>
+                {activeFilterCount > 0 && (
+                  <span className="quick-filter-badge">{activeFilterCount}</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Reset All
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowFilterDrawer(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: '#f1f5f9',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--bbc-navy)',
+                  }}
+                  aria-label="Close filters"
+                >
+                  <X size={18} weight="bold" />
+                </button>
+              </div>
+            </div>
+
+            <div className="bottom-sheet-body">
+              <div className="filter-block">
+                <h3>{t(locale, 'filter.title')}</h3>
+                <div className="filter-options">
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerSortBy"
+                      checked={sortBy === 'departure'}
+                      onChange={() => setSortBy('departure')}
+                    />
+                    Earliest departure
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerSortBy"
+                      checked={sortBy === 'price'}
+                      onChange={() => setSortBy('price')}
+                    />
+                    Lowest price
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerSortBy"
+                      checked={sortBy === 'duration'}
+                      onChange={() => setSortBy('duration')}
+                    />
+                    Shortest ride
+                  </label>
+                </div>
+              </div>
+
+              <div className="filter-block">
+                <h3>Departure time</h3>
+                <div className="filter-options">
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerTimeWindow"
+                      checked={timeWindow === 'all'}
+                      onChange={() => setTimeWindow('all')}
+                    />
+                    Any time
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerTimeWindow"
+                      checked={timeWindow === 'before_6'}
+                      onChange={() => setTimeWindow('before_6')}
+                    />
+                    Early (Before 06:00)
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerTimeWindow"
+                      checked={timeWindow === 'morning_6_12'}
+                      onChange={() => setTimeWindow('morning_6_12')}
+                    />
+                    Morning (06:00 – 12:00)
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerTimeWindow"
+                      checked={timeWindow === 'afternoon_12_18'}
+                      onChange={() => setTimeWindow('afternoon_12_18')}
+                    />
+                    Afternoon (12:00 – 18:00)
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="drawerTimeWindow"
+                      checked={timeWindow === 'evening_after_18'}
+                      onChange={() => setTimeWindow('evening_after_18')}
+                    />
+                    Evening (After 18:00)
+                  </label>
+                </div>
+              </div>
+
+              <div className="filter-block">
+                <h3>Max Price: {formatLkr(maxPrice)}</h3>
+                <input
+                  type="range"
+                  min={500}
+                  max={10000}
+                  step={250}
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--yamo-emerald, #047857)' }}
+                  aria-label="Maximum contribution price"
+                />
+              </div>
+
+              <div className="filter-block">
+                <h3>Trust & Booking Mode</h3>
+                <div className="filter-options">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={instantOnly}
+                      onChange={(e) => setInstantOnly(e.target.checked)}
+                    />
+                    <Sparkle size={16} color="var(--bbc-blue)" weight="fill" />
+                    {t(locale, 'filter.instant')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={superDriverOnly}
+                      onChange={(e) => setSuperDriverOnly(e.target.checked)}
+                    />
+                    <Star size={16} color="#f57f17" weight="fill" />
+                    {t(locale, 'filter.super_driver')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={verifiedOnly}
+                      onChange={(e) => setVerifiedOnly(e.target.checked)}
+                    />
+                    <UserCheck size={16} color="var(--bbc-blue)" weight="bold" />
+                    {t(locale, 'filter.verified')}
+                  </label>
+                </div>
+              </div>
+
+              <div className="filter-block">
+                <h3>Vehicle & Comfort</h3>
+                <div className="filter-options">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={acOnly}
+                      onChange={(e) => setAcOnly(e.target.checked)}
+                    />
+                    <Wind size={16} />
+                    {t(locale, 'filter.ac')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={maxTwoInBackOnly}
+                      onChange={(e) => setMaxTwoInBackOnly(e.target.checked)}
+                    />
+                    {t(locale, 'filter.max_two_back')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={womenOnly}
+                      onChange={(e) => setWomenOnly(e.target.checked)}
+                    />
+                    <GenderFemale size={16} color="#d81b60" weight="bold" />
+                    {t(locale, 'filter.women_only')}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={petsAllowedOnly}
+                      onChange={(e) => setPetsAllowedOnly(e.target.checked)}
+                    />
+                    <PawPrint size={16} />
+                    {t(locale, 'filter.pets')}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="bottom-sheet-footer">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  triggerHaptic('success');
+                  setShowFilterDrawer(false);
+                }}
+                style={{ width: '100%', minHeight: '48px', fontSize: '16px' }}
+              >
+                View {results.length} {results.length === 1 ? 'Ride' : 'Rides'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ride Alert Modal */}
       {showAlertModal && (
