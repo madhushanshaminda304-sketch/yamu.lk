@@ -16,6 +16,7 @@ import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state
 import type { Ride } from '../domain/matching.ts';
 import { buildWhatsAppCoordinationUrl } from '../domain/sharing.ts';
 import { RidePassModal } from '../components/RidePassModal.tsx';
+import { triggerHaptic } from '../native/haptics.ts';
 
 export function YourRidesView({
   state,
@@ -122,23 +123,33 @@ export function YourRidesView({
   };
 
   return (
-    <div className="shell" style={{ padding: '36px 0 80px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+    <div className="shell" style={{ padding: '20px 0 88px' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontSize: 'clamp(22px, 6vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', marginBottom: '14px' }}>
           Your Rides & Bookings
         </h1>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="segmented-tab-strip" role="tablist">
           <button
             type="button"
-            className={tab === 'passenger' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
-            onClick={() => setTab('passenger')}
+            role="tab"
+            aria-selected={tab === 'passenger'}
+            className={`segmented-tab-btn ${tab === 'passenger' ? 'active' : ''}`}
+            onClick={() => {
+              triggerHaptic('selection');
+              setTab('passenger');
+            }}
           >
             As Passenger ({myBookings.length})
           </button>
           <button
             type="button"
-            className={tab === 'driver' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
-            onClick={() => setTab('driver')}
+            role="tab"
+            aria-selected={tab === 'driver'}
+            className={`segmented-tab-btn ${tab === 'driver' ? 'active' : ''}`}
+            onClick={() => {
+              triggerHaptic('selection');
+              setTab('driver');
+            }}
           >
             As Driver ({myRides.length})
           </button>

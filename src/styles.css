@@ -908,6 +908,56 @@ button {
   color: var(--bbc-navy);
 }
 
+/* Publish Wizard Card */
+.publish-wizard-card {
+  background: #ffffff;
+  border: 1px solid var(--bbc-border);
+  border-radius: var(--radius-md);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .publish-wizard-card {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+}
+
+/* Segmented Mobile Tabs */
+.segmented-tab-strip {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.segmented-tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bbc-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.segmented-tab-btn.active {
+  background: #ffffff;
+  color: var(--yamo-emerald, #047857);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  font-weight: 800;
+}
+
 /* Mobile Quick Filter Strip */
 .mobile-quick-filter-strip {
   display: flex;

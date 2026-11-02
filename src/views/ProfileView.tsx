@@ -74,41 +74,41 @@ export function ProfileView({
   };
 
   return (
-    <div className="shell-narrow" style={{ padding: '36px 0 80px' }}>
-      <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)', marginBottom: '8px' }}>
+    <div className="shell-narrow" style={{ padding: '20px 0 88px' }}>
+      <h1 style={{ fontSize: 'clamp(22px, 6vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', marginBottom: '8px' }}>
         Profile & Sri Lankan Verification Hub
       </h1>
-      <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', marginBottom: '28px' }}>
+      <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '14.5px', lineHeight: 1.5, marginBottom: '20px' }}>
         Verified profiles build trust in the Sri Lankan carpooling community. Verify your National Identity Card (NIC) and mobile number to unlock higher booking confidence and Super Driver status.
       </p>
 
       {/* Super Driver Checklist Box */}
-      <div style={{ background: '#fff8e1', border: '1px solid #ffe082', borderRadius: 'var(--radius-md)', padding: '24px', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <Star size={20} color="#f57f17" weight="fill" />
-          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#f57f17' }}>Super Driver Qualification Status</h3>
+      <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '16px', padding: '16px 18px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <Star size={20} color="#f59e0b" weight="fill" />
+          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#b45309', margin: 0 }}>Super Driver Qualification Status</h3>
         </div>
-        <p style={{ fontSize: '13px', color: '#795548', marginBottom: '14px' }}>
+        <p style={{ fontSize: '13px', color: '#78350f', marginBottom: '12px', lineHeight: 1.4 }}>
           Super Drivers respond in under 3 hours, maintain a 4.7+ rating, a 2.8+ driving score, and have verified identity documents.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
-          <div style={{ color: user.verifiedPhone && user.verifiedNic ? '#2e7d32' : '#c62828' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '8px', fontSize: '13px' }}>
+          <div style={{ color: user.verifiedPhone && user.verifiedNic ? '#047857' : '#dc2626', fontWeight: 600 }}>
             {user.verifiedPhone && user.verifiedNic ? '✓' : '✗'} Verified NIC & +94 Phone
           </div>
-          <div style={{ color: user.overallRating >= 4.7 ? '#2e7d32' : '#c62828' }}>
+          <div style={{ color: user.overallRating >= 4.7 ? '#047857' : '#dc2626', fontWeight: 600 }}>
             {user.overallRating >= 4.7 ? '✓' : '✗'} 4.7+ Rating ({user.overallRating.toFixed(2)})
           </div>
-          <div style={{ color: user.drivingSkillScore >= 2.8 ? '#2e7d32' : '#c62828' }}>
+          <div style={{ color: user.drivingSkillScore >= 2.8 ? '#047857' : '#dc2626', fontWeight: 600 }}>
             {user.drivingSkillScore >= 2.8 ? '✓' : '✗'} 2.8+ Driving Skill ({user.drivingSkillScore.toFixed(2)})
           </div>
-          <div style={{ color: user.cancellationRatePercent < 5 ? '#2e7d32' : '#c62828' }}>
+          <div style={{ color: user.cancellationRatePercent < 5 ? '#047857' : '#dc2626', fontWeight: 600 }}>
             {user.cancellationRatePercent < 5 ? '✓' : '✗'} Low Cancellation ({user.cancellationRatePercent}%)
           </div>
         </div>
       </div>
 
-      <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '32px', boxShadow: 'var(--shadow-sm)' }}>
+      <div className="publish-wizard-card">
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label htmlFor="profile-name" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Full Name</label>

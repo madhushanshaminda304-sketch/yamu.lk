@@ -206,22 +206,38 @@ export function PublishRideView({
   }
 
   return (
-    <div className="shell-narrow" style={{ padding: '36px 0 80px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
+    <div className="shell-narrow" style={{ padding: '20px 0 88px' }}>
+      {/* Wizard Progress Bar */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }} role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={6}>
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              height: '4px',
+              borderRadius: '9999px',
+              background: i <= step ? 'var(--yamo-emerald, #047857)' : '#e2e8f0',
+              transition: 'background 0.2s ease',
+            }}
+          />
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
           Publish a Ride (Step {step} of 6)
         </h1>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--bbc-text-secondary)' }}>
-          {step === 1 && 'Where & Landmarks'}
-          {step === 2 && 'Route & Toll Policy'}
-          {step === 3 && 'Date & Return Ride'}
-          {step === 4 && 'Seats & Vehicle'}
-          {step === 5 && 'LKR Contribution'}
-          {step === 6 && 'Approval & Review'}
+        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '9999px' }}>
+          {step === 1 && '1. Where & Landmarks'}
+          {step === 2 && '2. Route & Toll Policy'}
+          {step === 3 && '3. Date & Return Ride'}
+          {step === 4 && '4. Seats & Vehicle'}
+          {step === 5 && '5. LKR Contribution'}
+          {step === 6 && '6. Approval & Review'}
         </span>
       </div>
 
-      <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '32px', boxShadow: 'var(--shadow-sm)' }}>
+      <div className="publish-wizard-card">
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
