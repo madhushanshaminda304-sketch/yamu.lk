@@ -101,7 +101,8 @@ export function MobileBottomNav({
   const badges = computeMobileBadges(
     state?.rides ?? [],
     currentUserName,
-    unreadMessagesCount
+    unreadMessagesCount,
+    state?.bookings ?? []
   );
 
   const handleTabPress = (path: string) => {

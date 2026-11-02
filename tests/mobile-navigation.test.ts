@@ -58,6 +58,22 @@ describe('Mobile Bottom Navigation Badges', () => {
     assert.equal(badges.yourRidesPendingCount, 0);
     assert.equal(badges.inboxUnreadCount, 0);
   });
+
+  it('calculates pending bookings from top-level store bookings matching driver rides', () => {
+    const rides = [
+      { id: 'r1', driver: { name: 'Sunil Perera' } },
+      { id: 'r2', driver: { name: 'Other Driver' } }
+    ];
+    const bookings = [
+      { id: 'b1', rideId: 'r1', status: 'pending' },
+      { id: 'b2', rideId: 'r1', status: 'confirmed' },
+      { id: 'b3', rideId: 'r2', status: 'pending' },
+      { id: 'b4', rideId: 'r1', status: 'pending' }
+    ];
+    const badges = computeMobileBadges(rides as any, 'Sunil Perera', 3, bookings as any);
+    assert.equal(badges.yourRidesPendingCount, 2, 'Should count 2 pending bookings for Sunil');
+    assert.equal(badges.inboxUnreadCount, 3);
+  });
 });
 
 describe('Mobile Tab Active Route Matching', () => {

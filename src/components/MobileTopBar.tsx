@@ -4,7 +4,7 @@ import { CaretLeft, UserCheck, SignIn, CheckCircle } from '@phosphor-icons/react
 import { YamoIcon } from './YamoLogo.tsx';
 import { triggerHaptic } from '../native/haptics.ts';
 import { t, type LocaleCode } from '../domain/i18n.ts';
-import { useMarketplaceStore, type MarketplaceStore } from '../state/store.ts';
+import { useMarketplaceStore, defaultMarketplaceStore, type MarketplaceStore } from '../state/store.ts';
 import type { MarketplaceState } from '../state/types.ts';
 
 export interface MobileTopBarProps {
@@ -71,8 +71,9 @@ export function MobileTopBar({
 
   const handleLanguageChange = (newLocale: LocaleCode) => {
     triggerHaptic('selection');
-    if (propStore?.setLocale) {
-      propStore.setLocale(newLocale);
+    const targetStore = propStore ?? defaultMarketplaceStore;
+    if (targetStore?.setLocale) {
+      targetStore.setLocale(newLocale);
     }
   };
 
@@ -184,7 +185,7 @@ export function MobileTopBar({
                     fontSize: '11px',
                     fontWeight: active ? 800 : 600,
                     borderRadius: '9999px',
-                    background: active ? '#047857' : 'transparent',
+                    background: active ? '#00875A' : 'transparent',
                     color: active ? '#ffffff' : '#64748b',
                     border: 'none',
                     cursor: 'pointer',

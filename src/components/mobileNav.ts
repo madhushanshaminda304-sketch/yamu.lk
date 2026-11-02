@@ -10,15 +10,27 @@ export interface MobileBadgeCounts {
 export function computeMobileBadges(
   rides: any[] = [],
   currentUserName: string = '',
-  unreadMessagesCount: number = 0
+  unreadMessagesCount: number = 0,
+  bookings: any[] = []
 ): MobileBadgeCounts {
   let yourRidesPendingCount = 0;
   if (currentUserName && Array.isArray(rides)) {
-    for (const ride of rides) {
-      if (ride?.driver?.name === currentUserName && Array.isArray(ride?.bookings)) {
-        for (const booking of ride.bookings) {
-          if (booking?.status === 'pending') {
-            yourRidesPendingCount++;
+    if (Array.isArray(bookings) && bookings.length > 0) {
+      const driverRideIds = new Set(
+        rides.filter((r) => r?.driver?.name === currentUserName).map((r) => r.id)
+      );
+      for (const booking of bookings) {
+        if (booking?.status === 'pending' && driverRideIds.has(booking.rideId)) {
+          yourRidesPendingCount++;
+        }
+      }
+    } else {
+      for (const ride of rides) {
+        if (ride?.driver?.name === currentUserName && Array.isArray(ride?.bookings)) {
+          for (const booking of ride.bookings) {
+            if (booking?.status === 'pending') {
+              yourRidesPendingCount++;
+            }
           }
         }
       }
