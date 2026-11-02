@@ -93,9 +93,18 @@ export function MobileBottomNav({
   const currentUserName = state?.currentUser?.name ?? '';
   const currentUserId = state?.currentUser?.id ?? '';
 
-  // Calculate unread message count
+  // Calculate unread message count using lastReadAtByBooking
   const unreadMessagesCount = Array.isArray(state?.messages)
-    ? state.messages.filter((m: any) => m.senderId !== currentUserId && !m.isRead).length
+    ? state.messages.filter((m: any) => {
+        const isNotMe = currentUserId
+          ? m.senderId !== currentUserId
+          : currentUserName
+            ? m.senderName !== currentUserName
+            : true;
+        const lastRead = state?.lastReadAtByBooking?.[m.bookingId] ?? '';
+        const msgTime = m.sentAt || m.createdAt || '';
+        return isNotMe && (!lastRead || msgTime > lastRead);
+      }).length
     : (state?.notifications?.length ?? 0);
 
   const badges = computeMobileBadges(

@@ -86,6 +86,7 @@ export function createInitialState(): MarketplaceState {
         createdAt: new Date().toISOString(),
       },
     ],
+    lastReadAtByBooking: {},
   };
 }
 
@@ -476,6 +477,18 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       };
       notify();
       return inspection;
+    },
+
+    markConversationRead(bookingId: string, timestamp?: string): void {
+      const readAt = timestamp ?? new Date().toISOString();
+      state = {
+        ...state,
+        lastReadAtByBooking: {
+          ...state.lastReadAtByBooking,
+          [bookingId]: readAt,
+        },
+      };
+      notify();
     },
 
     submitDoubleBlindRating(input: {

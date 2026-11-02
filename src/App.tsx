@@ -7,6 +7,7 @@ import {
   UserCheck,
   SignIn,
   CheckCircle,
+  ChatCircleDots,
 } from '@phosphor-icons/react';
 import { Toaster, toast } from 'sonner';
 
@@ -25,6 +26,7 @@ import { SearchView } from './views/SearchView.tsx';
 import { RideDetailView } from './views/RideDetailView.tsx';
 import { PublishRideView } from './views/PublishRideView.tsx';
 import { YourRidesView } from './views/YourRidesView.tsx';
+import { InboxView } from './views/InboxView.tsx';
 import { ProfileView } from './views/ProfileView.tsx';
 
 // Singleton persistent store
@@ -116,6 +118,28 @@ export default function App() {
                 <span className="badge-pill">{state.bookings.length}</span>
               )}
             </Link>
+            <Link to="/inbox" className="nav-item">
+              <ChatCircleDots size={18} weight="bold" />
+              <span>{t(locale, 'nav.inbox')}</span>
+              {Array.isArray(state.messages) &&
+                state.messages.filter((m) => {
+                  const isNotMe = user?.id ? m.senderId !== user.id : true;
+                  const lastRead = state.lastReadAtByBooking?.[m.bookingId] ?? '';
+                  const msgTime = m.createdAt || '';
+                  return isNotMe && (!lastRead || msgTime > lastRead);
+                }).length > 0 && (
+                  <span className="badge-pill">
+                    {
+                      state.messages.filter((m) => {
+                        const isNotMe = user?.id ? m.senderId !== user.id : true;
+                        const lastRead = state.lastReadAtByBooking?.[m.bookingId] ?? '';
+                        const msgTime = m.createdAt || '';
+                        return isNotMe && (!lastRead || msgTime > lastRead);
+                      }).length
+                    }
+                  </span>
+                )}
+            </Link>
             {user ? (
               <Link to="/profile" className="nav-item">
                 <UserCheck size={18} weight="bold" />
@@ -177,6 +201,7 @@ export default function App() {
           <Route path="/publish" element={<PublishRideView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/your-rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
+          <Route path="/inbox" element={<InboxView state={state} store={store} openAuthModal={openAuthModal} />} />
           <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
         </Routes>
       </main>

@@ -112,6 +112,7 @@ export interface MarketplaceState {
   messages: ChatMessage[];
   ratings: DoubleBlindRating[];
   notifications: AppNotification[];
+  lastReadAtByBooking: Record<string, string>;
 }
 
 export const SEEDED_USERS: Record<string, UserProfile> = {
