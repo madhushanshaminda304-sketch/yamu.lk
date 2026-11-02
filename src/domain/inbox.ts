@@ -53,7 +53,7 @@ export function computeUnreadMessagesCount(
   currentUserId?: string,
   currentUserName?: string
 ): number {
-  if (!Array.isArray(messages)) return 0;
+  if (!Array.isArray(messages) || (!currentUserId && !currentUserName)) return 0;
   return messages.filter((m) => {
     const isMe =
       (currentUserId && m.senderId === currentUserId) ||
@@ -144,41 +144,47 @@ export function aggregateInboxThreads(
       ride?.driver?.verifiedPhone || ride?.driver?.verifiedNic
     );
 
+    const normalizedUser = currentUserName ? currentUserName.trim().toLowerCase() : '';
+    const isPassenger =
+      (Boolean(passengerName) && normalizedUser === passengerName.trim().toLowerCase()) ||
+      (Boolean(currentUserId) && booking?.passengerId === currentUserId);
+    const isDriver =
+      (Boolean(driverName) && normalizedUser === driverName.trim().toLowerCase()) ||
+      (Boolean(currentUserId) &&
+        (ride?.driverId === currentUserId || ride?.driver?.id === currentUserId));
+    const isMessageSender = currentUserId
+      ? sorted.some((m) => m.senderId === currentUserId)
+      : currentUserName
+        ? sorted.some((m) => m.senderName?.trim().toLowerCase() === normalizedUser)
+        : false;
+
+    // Privacy protection: If authenticated user is provided, only include threads they belong to
+    if (currentUserName || currentUserId) {
+      if (!isPassenger && !isDriver && !isMessageSender) {
+        continue;
+      }
+    }
+
     let counterpartName = 'Travel Partner';
     let counterpartRole: 'driver' | 'passenger' = 'passenger';
     let counterpartPhone = '';
 
-    if (currentUserName) {
-      const normalizedUser = currentUserName.trim().toLowerCase();
-      if (passengerName && normalizedUser === passengerName.trim().toLowerCase()) {
-        counterpartName = driverName || 'Driver';
-        counterpartRole = 'driver';
-        counterpartPhone = driverPhone;
-      } else if (driverName && normalizedUser === driverName.trim().toLowerCase()) {
-        counterpartName = passengerName || 'Passenger';
-        counterpartRole = 'passenger';
-        counterpartPhone = passengerPhone;
-      } else {
-        if (passengerName) {
-          counterpartName = passengerName;
-          counterpartRole = 'passenger';
-          counterpartPhone = passengerPhone;
-        } else if (driverName) {
-          counterpartName = driverName;
-          counterpartRole = 'driver';
-          counterpartPhone = driverPhone;
-        }
-      }
-    } else {
-      if (passengerName) {
-        counterpartName = passengerName;
-        counterpartRole = 'passenger';
-        counterpartPhone = passengerPhone;
-      } else if (driverName) {
-        counterpartName = driverName;
-        counterpartRole = 'driver';
-        counterpartPhone = driverPhone;
-      }
+    if (isPassenger) {
+      counterpartName = driverName || 'Driver';
+      counterpartRole = 'driver';
+      counterpartPhone = driverPhone;
+    } else if (isDriver) {
+      counterpartName = passengerName || 'Passenger';
+      counterpartRole = 'passenger';
+      counterpartPhone = passengerPhone;
+    } else if (passengerName) {
+      counterpartName = passengerName;
+      counterpartRole = 'passenger';
+      counterpartPhone = passengerPhone;
+    } else if (driverName) {
+      counterpartName = driverName;
+      counterpartRole = 'driver';
+      counterpartPhone = driverPhone;
     }
 
     // Corridor title

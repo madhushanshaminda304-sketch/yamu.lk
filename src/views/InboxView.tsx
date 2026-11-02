@@ -513,14 +513,16 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                 {activeThread.counterpartPhone && (
                   <a
                     href={
-                      activeThread.ride && activeThread.booking
+                      activeThread.counterpartRole === 'driver' && activeThread.ride && activeThread.booking
                         ? buildWhatsAppCoordinationUrl(
                             activeThread.counterpartPhone,
                             activeThread.ride,
                             activeThread.booking,
                             activeThread.corridorTitle.split('→')[0].trim()
                           )
-                        : `https://wa.me/${normalizeWhatsAppPhone(activeThread.counterpartPhone)}`
+                        : `https://wa.me/${normalizeWhatsAppPhone(activeThread.counterpartPhone)}?text=${encodeURIComponent(
+                            `Hi ${activeThread.counterpartName}, this is regarding our Yamo ride on ${activeThread.corridorTitle}.`
+                          )}`
                     }
                     target="_blank"
                     rel="noreferrer"
@@ -632,7 +634,8 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                   .filter((m) => m.bookingId === activeBookingId)
                   .map((msg) => {
                     const isMe = msg.senderId === currentUser.id;
-                    const time = formatRelativeTime(msg.createdAt);
+                    const time = formatRelativeTime(msg.createdAt || (msg as any).sentAt);
+                    const messageBody = msg.text || (msg as any).body || '';
                     return (
                       <div
                         key={msg.id}
@@ -657,7 +660,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                             wordBreak: 'break-word',
                           }}
                         >
-                          <div>{msg.text}</div>
+                          <div>{messageBody}</div>
                         </div>
                         <div
                           style={{

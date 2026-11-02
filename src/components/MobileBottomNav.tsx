@@ -9,6 +9,7 @@ import {
 } from '@phosphor-icons/react';
 import { triggerHaptic } from '../native/haptics.ts';
 import { t, type LocaleCode } from '../domain/i18n.ts';
+import { computeUnreadMessagesCount } from '../domain/inbox.ts';
 import { useMarketplaceStore, type MarketplaceStore } from '../state/store.ts';
 import type { MarketplaceState } from '../state/types.ts';
 import { computeMobileBadges, isTabActive, type MobileBadgeCounts } from './mobileNav.ts';
@@ -93,19 +94,16 @@ export function MobileBottomNav({
   const currentUserName = state?.currentUser?.name ?? '';
   const currentUserId = state?.currentUser?.id ?? '';
 
-  // Calculate unread message count using lastReadAtByBooking
-  const unreadMessagesCount = Array.isArray(state?.messages)
-    ? state.messages.filter((m: any) => {
-        const isNotMe = currentUserId
-          ? m.senderId !== currentUserId
-          : currentUserName
-            ? m.senderName !== currentUserName
-            : true;
-        const lastRead = state?.lastReadAtByBooking?.[m.bookingId] ?? '';
-        const msgTime = m.sentAt || m.createdAt || '';
-        return isNotMe && (!lastRead || msgTime > lastRead);
-      }).length
-    : (state?.notifications?.length ?? 0);
+  // Calculate unread message count using computeUnreadMessagesCount (0 for unauthenticated guests)
+  const unreadMessagesCount =
+    currentUserId || currentUserName
+      ? computeUnreadMessagesCount(
+          state?.messages ?? [],
+          state?.lastReadAtByBooking ?? {},
+          currentUserId,
+          currentUserName
+        )
+      : 0;
 
   const badges = computeMobileBadges(
     state?.rides ?? [],

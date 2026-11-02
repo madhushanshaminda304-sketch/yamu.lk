@@ -12,6 +12,7 @@ import {
 import { Toaster, toast } from 'sonner';
 
 import { t } from './domain/i18n.ts';
+import { computeUnreadMessagesCount } from './domain/inbox.ts';
 import { createMarketplaceStore } from './state/store.ts';
 import { initRemoteSync } from './state/supabaseSync.ts';
 import { AuthModal } from './components/AuthModal.tsx';
@@ -121,22 +122,20 @@ export default function App() {
             <Link to="/inbox" className="nav-item">
               <ChatCircleDots size={18} weight="bold" />
               <span>{t(locale, 'nav.inbox')}</span>
-              {Array.isArray(state.messages) &&
-                state.messages.filter((m) => {
-                  const isNotMe = user?.id ? m.senderId !== user.id : true;
-                  const lastRead = state.lastReadAtByBooking?.[m.bookingId] ?? '';
-                  const msgTime = m.createdAt || '';
-                  return isNotMe && (!lastRead || msgTime > lastRead);
-                }).length > 0 && (
+              {user &&
+                computeUnreadMessagesCount(
+                  state.messages,
+                  state.lastReadAtByBooking,
+                  user.id,
+                  user.name
+                ) > 0 && (
                   <span className="badge-pill">
-                    {
-                      state.messages.filter((m) => {
-                        const isNotMe = user?.id ? m.senderId !== user.id : true;
-                        const lastRead = state.lastReadAtByBooking?.[m.bookingId] ?? '';
-                        const msgTime = m.createdAt || '';
-                        return isNotMe && (!lastRead || msgTime > lastRead);
-                      }).length
-                    }
+                    {computeUnreadMessagesCount(
+                      state.messages,
+                      state.lastReadAtByBooking,
+                      user.id,
+                      user.name
+                    )}
                   </span>
                 )}
             </Link>

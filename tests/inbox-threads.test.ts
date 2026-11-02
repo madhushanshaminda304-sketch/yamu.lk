@@ -181,4 +181,28 @@ describe('Inbox Thread Aggregation & State', () => {
     assert.equal(threads[0].counterpartName, 'Travel Partner');
     assert.equal(threads[0].corridorTitle, 'Ride Coordination');
   });
+
+  it('filters out private conversation threads from unrelated third-party users', () => {
+    const messages = [
+      { id: 'm1', bookingId: 'bk-private', body: 'Secret ride details', sentAt: '2026-11-02T10:00:00Z', senderId: 'u-alice', senderName: 'Alice' }
+    ];
+    const rides = [
+      { id: 'r1', driverId: 'u-alice', driver: { id: 'u-alice', name: 'Alice' } }
+    ];
+    const bookings = [
+      { id: 'bk-private', rideId: 'r1', passengerId: 'u-bob', passengerName: 'Bob' }
+    ];
+
+    // Alice sees the thread
+    const aliceThreads = aggregateInboxThreads(messages as any, rides as any, bookings as any, 'Alice', {}, 'u-alice');
+    assert.equal(aliceThreads.length, 1);
+
+    // Bob sees the thread
+    const bobThreads = aggregateInboxThreads(messages as any, rides as any, bookings as any, 'Bob', {}, 'u-bob');
+    assert.equal(bobThreads.length, 1);
+
+    // Unrelated user Eve must NOT see the thread
+    const eveThreads = aggregateInboxThreads(messages as any, rides as any, bookings as any, 'Eve', {}, 'u-eve');
+    assert.equal(eveThreads.length, 0, 'Eve must not see private conversation between Alice and Bob');
+  });
 });
