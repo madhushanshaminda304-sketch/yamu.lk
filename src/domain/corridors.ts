@@ -453,8 +453,55 @@ export const CORRIDORS: readonly Corridor[] = [
   },
 ] as const;
 
-export function getHubById(hubId: string): Hub | undefined {
-  return HUBS.find((h) => h.id === hubId);
+export function getHubById(hubId: string | null | undefined): Hub | undefined {
+  if (!hubId || typeof hubId !== 'string') return undefined;
+  const clean = hubId.toLowerCase().trim();
+  return HUBS.find((h) => h.id.toLowerCase() === clean);
+}
+
+export function resolveHubKey(input: string | null | undefined, fallback: string): string {
+  if (!input || typeof input !== 'string') return fallback;
+
+  const raw = input.trim();
+  if (!raw) return fallback;
+
+  // 1. Direct match with hub ID
+  const lower = raw.toLowerCase();
+  const directId = ALL_HUBS.find((h) => h.id.toLowerCase() === lower);
+  if (directId) return directId.id;
+
+  // 2. Strip emojis, symbols, and parenthetical suffixes like " (MMC/Exit)"
+  const cleaned = raw
+    .replace(/[\u{1F300}-\u{1F9FF}|⚡|📍|🚗|•]/gu, '')
+    .replace(/\([^)]*\)/g, '')
+    .trim()
+    .toLowerCase();
+
+  if (!cleaned) return fallback;
+
+  // 3. Match against hub ID or English name
+  const byCleanId = ALL_HUBS.find((h) => h.id.toLowerCase() === cleaned);
+  if (byCleanId) return byCleanId.id;
+
+  const byNameEn = ALL_HUBS.find((h) => h.name.en.toLowerCase() === cleaned);
+  if (byNameEn) return byNameEn.id;
+
+  // 4. Exact match against Sinhala or Tamil name
+  const byLocaleName = ALL_HUBS.find(
+    (h) => h.name.si === raw.trim() || h.name.ta === raw.trim()
+  );
+  if (byLocaleName) return byLocaleName.id;
+
+  // 5. Partial match / landmarks match
+  const byPrefix = ALL_HUBS.find(
+    (h) =>
+      h.name.en.toLowerCase().startsWith(cleaned) ||
+      cleaned.startsWith(h.name.en.toLowerCase()) ||
+      h.landmarks.some((l) => l.toLowerCase().includes(cleaned) || cleaned.includes(l.toLowerCase()))
+  );
+  if (byPrefix) return byPrefix.id;
+
+  return fallback;
 }
 
 function haversineKm(a: Hub, b: Hub): number {

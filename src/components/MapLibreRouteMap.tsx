@@ -183,6 +183,7 @@ export function MapLibreRouteMap({
   const [activeStatusText, setActiveStatusText] = useState<string>('');
   const [driverLive, setDriverLive] = useState<LiveParticipantLocation | null>(null);
   const [passengerLive, setPassengerLive] = useState<LiveParticipantLocation | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Initialize MapLibre GL JS with OpenFreeMap Liberty Vector Style
   useEffect(() => {
@@ -190,17 +191,24 @@ export function MapLibreRouteMap({
     if (!container || mapRef.current) return;
 
     let isMounted = true;
+    let map: maplibregl.Map;
 
-    const map = new maplibregl.Map({
-      container,
-      style: OPENFREEMAP_LIBERTY_STYLE_URL,
-      center: [80.6337, 7.2906], // Sri Lanka central coordinates [lng, lat]
-      zoom: 8,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-      attributionControl: false,
-    });
+    try {
+      map = new maplibregl.Map({
+        container,
+        style: OPENFREEMAP_LIBERTY_STYLE_URL,
+        center: [80.6337, 7.2906], // Sri Lanka central coordinates [lng, lat]
+        zoom: 8,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
+        attributionControl: false,
+      });
+    } catch (err) {
+      console.warn('MapLibre GL initialization error (falling back to lightweight preview):', err);
+      setMapError(err instanceof Error ? err.message : 'Map rendering unavailable');
+      return;
+    }
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
@@ -298,7 +306,11 @@ export function MapLibreRouteMap({
       liveDriverMarkerRef.current = null;
       livePassengerMarkerRef.current?.remove();
       livePassengerMarkerRef.current = null;
-      map.remove();
+      try {
+        map?.remove();
+      } catch {
+        // Safe unmount
+      }
       mapRef.current = null;
       setMapLoaded(false);
     };
@@ -752,16 +764,54 @@ export function MapLibreRouteMap({
 
       {/* Map Canvas */}
       <div style={{ position: 'relative' }}>
-        <div
-          ref={containerRef}
-          style={{
-            width: '100%',
-            height: `${height}px`,
-            background: '#f8fafc',
-            zIndex: 1,
-          }}
-          aria-label="Interactive Sri Lanka vector navigation & route map"
-        />
+        {mapError ? (
+          <div
+            style={{
+              width: '100%',
+              height: `${height}px`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#f8fafc',
+              padding: '16px',
+              textAlign: 'center',
+            }}
+          >
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#174D3A' }}>
+              📍 Route Preview ({waypoints.length} waypoint{waypoints.length === 1 ? '' : 's'})
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px', justifyContent: 'center' }}>
+              {waypoints.map((wp, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: '12px',
+                    background: wp.isOrigin ? '#ecfdf5' : wp.isDestination ? '#eff6ff' : '#f1f5f9',
+                    color: wp.isOrigin ? '#047857' : wp.isDestination ? '#1d4ed8' : '#334155',
+                    border: '1px solid #cbd5e1',
+                    padding: '3px 10px',
+                    borderRadius: '9999px',
+                    fontWeight: 600,
+                  }}
+                >
+                  {i + 1}. {wp.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            style={{
+              width: '100%',
+              height: `${height}px`,
+              background: '#f8fafc',
+              zIndex: 1,
+            }}
+            aria-label="Interactive Sri Lanka vector navigation & route map"
+          />
+        )}
         {/* Crisp vector map attribution without flags or CARTO notices */}
         <div
           style={{

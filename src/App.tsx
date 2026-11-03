@@ -22,6 +22,7 @@ import { MobileBottomNav } from './components/MobileBottomNav.tsx';
 import { registerBackButtonHandler } from './native/backButton.ts';
 import { setAppStatusBar } from './native/statusBar.ts';
 
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
 import { RideDetailView } from './views/RideDetailView.tsx';
@@ -193,16 +194,18 @@ export default function App() {
       </header>
 
       <main>
-        <Routes>
-          <Route path="/" element={<HomeView state={state} />} />
-          <Route path="/search" element={<SearchView state={state} store={store} />} />
-          <Route path="/rides/:id" element={<RideDetailView state={state} store={store} openAuthModal={openAuthModal} />} />
-          <Route path="/publish" element={<PublishRideView state={state} store={store} openAuthModal={openAuthModal} />} />
-          <Route path="/rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
-          <Route path="/your-rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
-          <Route path="/inbox" element={<InboxView state={state} store={store} openAuthModal={openAuthModal} />} />
-          <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomeView state={state} />} />
+            <Route path="/search" element={<SearchView state={state} store={store} />} />
+            <Route path="/rides/:id" element={<RideDetailView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="/publish" element={<PublishRideView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="/rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="/your-rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="/inbox" element={<InboxView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
 
       {/* Mobile 5-Tab Bottom Navigation Bar: visible on mobile viewports (< 769px) */}

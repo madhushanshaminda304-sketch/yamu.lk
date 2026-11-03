@@ -371,3 +371,37 @@ export function assignSmartTags(results: readonly MatchedRideResult[]): MatchedR
     };
   });
 }
+
+/**
+ * Deduplicates rides by unique ID and unique journey fingerprint
+ * (driverId + originHubId + destinationHubId + departureAt/departureDate).
+ * Ensures corrupted data, loops, or repeated syncs never result in duplicate cards.
+ */
+export function deduplicateRides(rides: readonly Ride[] | null | undefined): Ride[] {
+  if (!rides || !Array.isArray(rides)) return [];
+
+  const seenIds = new Set<string>();
+  const seenFingerprints = new Set<string>();
+  const result: Ride[] = [];
+
+  for (const ride of rides) {
+    if (!ride || !ride.id) continue;
+
+    if (seenIds.has(ride.id)) {
+      continue;
+    }
+
+    const departureKey = ride.departureAt || ride.departureDate || '';
+    const fingerprint = `${ride.driverId || ''}|${ride.originHubId || ''}|${ride.destinationHubId || ''}|${departureKey}`;
+
+    if (seenFingerprints.has(fingerprint)) {
+      continue;
+    }
+
+    seenIds.add(ride.id);
+    seenFingerprints.add(fingerprint);
+    result.push(ride);
+  }
+
+  return result;
+}

@@ -39,8 +39,12 @@ export function PublishRideView({
       const coords = await getCurrentLocation();
       const nearest = findNearestHub(coords, ALL_HUBS);
       setOriginHubId(nearest.hub.id);
+      if (destinationHubId === nearest.hub.id) {
+        const alt = HUBS.find((h) => h.id !== nearest.hub.id)?.id || 'galle';
+        setDestinationHubId(alt);
+      }
       await triggerHaptic('success');
-      const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+      const langKey = (state.locale || 'en').slice(0, 2) as 'en' | 'si' | 'ta';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
       toast.success(`${t(state.locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
     } catch {
@@ -56,6 +60,19 @@ export function PublishRideView({
   const [selectedStopovers, setSelectedStopovers] = useState<string[]>([]);
   const [boostEnabled, setBoostEnabled] = useState(true);
   const [tollPolicy, setTollPolicy] = useState<TollPolicy>('included');
+
+  // Keep selectedCorridorId in sync whenever origin/destination or routeOptions change
+  useEffect(() => {
+    if (routeOptions.length > 0) {
+      if (!routeOptions.some((r) => r.corridorId === selectedCorridorId)) {
+        setSelectedCorridorId(routeOptions[0].corridorId);
+        setSelectedStopovers([]);
+      }
+    } else {
+      setSelectedCorridorId('');
+      setSelectedStopovers([]);
+    }
+  }, [originHubId, destinationHubId, routeOptions, selectedCorridorId]);
 
   // Step 3 Timing & Optional Return Ride
   const [date, setDate] = useState(tomorrow);
@@ -106,10 +123,15 @@ export function PublishRideView({
   const handlePublish = (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const resolvedCorridor = selectedCorridorId || activeRoute?.corridorId || routeOptions[0]?.corridorId;
+      if (!resolvedCorridor) {
+        toast.error('Please select a valid highway corridor before publishing.');
+        return;
+      }
       const newRide = store.publishRide({
         originHubId,
         destinationHubId,
-        corridorId: selectedCorridorId || activeRoute?.corridorId,
+        corridorId: resolvedCorridor,
         date,
         departureTime,
         returnTripEnabled: hasReturnRide,
@@ -275,11 +297,18 @@ export function PublishRideView({
               <select
                 id="publish-origin-select"
                 value={originHubId}
-                onChange={(e) => setOriginHubId(e.target.value)}
+                onChange={(e) => {
+                  const newOrigin = e.target.value;
+                  setOriginHubId(newOrigin);
+                  if (destinationHubId === newOrigin) {
+                    const alt = HUBS.find((h) => h.id !== newOrigin)?.id || 'galle';
+                    setDestinationHubId(alt);
+                  }
+                }}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               >
                 {HUBS.map((h) => {
-                  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+                  const langKey = (state?.locale || 'en').slice(0, 2) as 'en' | 'si' | 'ta';
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
@@ -307,11 +336,18 @@ export function PublishRideView({
               <select
                 id="publish-dest-select"
                 value={destinationHubId}
-                onChange={(e) => setDestinationHubId(e.target.value)}
+                onChange={(e) => {
+                  const newDest = e.target.value;
+                  setDestinationHubId(newDest);
+                  if (originHubId === newDest) {
+                    const alt = HUBS.find((h) => h.id !== newDest)?.id || 'colombo';
+                    setOriginHubId(alt);
+                  }
+                }}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               >
                 {HUBS.filter((h) => h.id !== originHubId).map((h) => {
-                  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+                  const langKey = (state?.locale || 'en').slice(0, 2) as 'en' | 'si' | 'ta';
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
@@ -332,7 +368,18 @@ export function PublishRideView({
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               />
             </div>
-            <button type="button" className="btn-primary" onClick={() => setStep(2)}>
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={originHubId === destinationHubId}
+              onClick={() => {
+                if (originHubId === destinationHubId) {
+                  toast.error('Origin and Destination cannot be the same hub.');
+                  return;
+                }
+                setStep(2);
+              }}
+            >
               Continue to Route Selection →
             </button>
           </div>
@@ -344,45 +391,59 @@ export function PublishRideView({
               Choose your Sri Lankan Highway Corridor & Toll Policy
             </h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {routeOptions.map((opt) => (
-                <label
-                  key={opt.corridorId}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px',
-                    border: `2px solid ${selectedCorridorId === opt.corridorId ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    background: selectedCorridorId === opt.corridorId ? '#f0f9ff' : 'transparent',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input
-                      type="radio"
-                      name="corridor"
-                      checked={selectedCorridorId === opt.corridorId}
-                      onChange={() => setSelectedCorridorId(opt.corridorId)}
-                    />
-                    <div>
-                      <strong style={{ fontSize: '15px', color: 'var(--bbc-navy)' }}>{opt.corridorName}</strong>
-                      <div style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>
-                        {opt.distanceKm} km · ~{Math.round(opt.durationMinutes / 60)}h {opt.durationMinutes % 60}m
-                        {opt.hasTolls ? ' · Expressway tolls apply' : ' · Toll-free route'}
+            {routeOptions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--bbc-border)' }}>
+                <p style={{ color: 'var(--bbc-navy)', fontWeight: 700, margin: '0 0 12px' }}>
+                  No pre-configured corridors found between these locations.
+                </p>
+                <button type="button" className="btn-secondary" onClick={() => setStep(1)}>
+                  ← Change Origin or Destination
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {routeOptions.map((opt) => (
+                  <label
+                    key={opt.corridorId}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px',
+                      border: `2px solid ${selectedCorridorId === opt.corridorId ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`,
+                      borderRadius: 'var(--radius-sm)',
+                      cursor: 'pointer',
+                      background: selectedCorridorId === opt.corridorId ? '#f0f9ff' : 'transparent',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <input
+                        type="radio"
+                        name="corridor"
+                        checked={selectedCorridorId === opt.corridorId}
+                        onChange={() => {
+                          setSelectedCorridorId(opt.corridorId);
+                          setSelectedStopovers([]);
+                        }}
+                      />
+                      <div>
+                        <strong style={{ fontSize: '15px', color: 'var(--bbc-navy)' }}>{opt.corridorName}</strong>
+                        <div style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>
+                          {opt.distanceKm} km · ~{Math.round(opt.durationMinutes / 60)}h {opt.durationMinutes % 60}m
+                          {opt.hasTolls ? ' · Expressway tolls apply' : ' · Toll-free route'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>Expressway</span>}
-                </label>
-              ))}
-            </div>
+                    {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>Expressway</span>}
+                  </label>
+                ))}
+              </div>
+            )}
 
             {/* Toll Policy Selector when expressway is selected */}
-            {activeRoute && activeRoute.stops.length >= 2 && (
+            {activeRoute && (activeRoute.stops?.length ?? 0) >= 2 && (
               <LeafletRouteMap
-                waypoints={buildRouteOptionWaypoints(activeRoute.stops, state.locale.slice(0, 2) as 'en' | 'si' | 'ta')}
+                waypoints={buildRouteOptionWaypoints(activeRoute.stops, ((state?.locale || 'en').slice(0, 2)) as 'en' | 'si' | 'ta')}
                 height={220}
                 enableLiveTracking={false}
               />
@@ -409,12 +470,13 @@ export function PublishRideView({
               </div>
             )}
 
-            {activeRoute && activeRoute.intermediateHubs.length > 0 && (
+            {(activeRoute?.intermediateHubs?.length ?? 0) > 0 && (
               <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
                 <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>Declared Stopovers (Get more passengers)</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {activeRoute.intermediateHubs.map((hubId) => {
+                  {(activeRoute?.intermediateHubs ?? []).map((hubId) => {
                     const hub = getHubById(hubId);
+                    const hubName = hub?.name?.en ?? hub?.id ?? hubId;
                     const isSelected = selectedStopovers.includes(hubId);
                     return (
                       <button
@@ -435,7 +497,7 @@ export function PublishRideView({
                           color: isSelected ? '#ffffff' : 'var(--bbc-navy)',
                         }}
                       >
-                        {isSelected ? '✓ ' : '+ '} {hub?.name.en}
+                        {isSelected ? '✓ ' : '+ '} {hubName}
                       </button>
                     );
                   })}
@@ -455,7 +517,15 @@ export function PublishRideView({
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="button" className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(3)}>Continue to Timing →</button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ flex: 1 }}
+                disabled={routeOptions.length === 0 || !activeRoute}
+                onClick={() => setStep(3)}
+              >
+                Continue to Timing →
+              </button>
             </div>
           </div>
         )}

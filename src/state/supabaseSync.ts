@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase.ts';
-import type { Ride, LuggageSize, RideStop } from '../domain/matching.ts';
+import { type Ride, type LuggageSize, type RideStop, deduplicateRides } from '../domain/matching.ts';
 import type { BookingRecord } from './types.ts';
 import { deriveBoardingPin } from '../domain/sharing.ts';
 
@@ -176,7 +176,8 @@ export async function fetchRemoteRides(): Promise<Ride[] | null> {
     if (!data || data.length === 0) {
       return [];
     }
-    return data.map((row) => mapRowToRide(row as PostgresRideRow));
+    const rides = data.map((row) => mapRowToRide(row as PostgresRideRow));
+    return deduplicateRides(rides);
   } catch (err) {
     console.warn('Supabase fetchRemoteRides failed (offline fallback):', err);
     return null;

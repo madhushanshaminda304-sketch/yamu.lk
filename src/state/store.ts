@@ -10,6 +10,7 @@ import {
   canBookLeg,
   applyLegBooking,
   releaseLegBooking,
+  deduplicateRides,
 } from '../domain/matching.ts';
 import {
   type DoubleBlindRating,
@@ -70,7 +71,7 @@ export function createInitialState(): MarketplaceState {
     currentUser: auth.currentUser,
     registeredUsers: auth.registeredUsers,
     activeOtpChallenge: null,
-    rides: buildSeededRides(tomorrow),
+    rides: deduplicateRides(buildSeededRides(tomorrow)),
     bookings: [],
     rideAlerts: [],
     messages: [],
@@ -117,7 +118,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
     },
 
     setRides(rides: Ride[]): void {
-      state = { ...state, rides };
+      state = { ...state, rides: deduplicateRides(rides) };
       notify();
     },
 
@@ -156,7 +157,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       const newRidesToAdd = returnRide ? [newRide, returnRide] : [newRide];
       state = {
         ...state,
-        rides: [...newRidesToAdd, ...state.rides],
+        rides: deduplicateRides([...newRidesToAdd, ...state.rides]),
         notifications: [...triggeredNotifications, ...state.notifications],
       };
       notify();

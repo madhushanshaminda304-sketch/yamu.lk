@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, formatColomboDate } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state/store.ts';
-import type { Ride } from '../domain/matching.ts';
+import { type Ride, deduplicateRides } from '../domain/matching.ts';
 import { buildWhatsAppCoordinationUrl } from '../domain/sharing.ts';
 import { RidePassModal } from '../components/RidePassModal.tsx';
 import { ForgottenItemsModal } from '../components/ForgottenItemsModal.tsx';
@@ -71,8 +71,10 @@ export function YourRidesView({
   }
 
   const currentUser = state.currentUser;
-  const myBookings = state.bookings.filter((b) => b.passengerId === currentUser.id);
-  const myRides = state.rides.filter((r) => r.driverId === currentUser.id);
+  const myBookings = Array.from(
+    new Map(state.bookings.filter((b) => b.passengerId === currentUser.id).map((b) => [b.id, b])).values()
+  );
+  const myRides = deduplicateRides(state.rides.filter((r) => r.driverId === currentUser.id));
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();

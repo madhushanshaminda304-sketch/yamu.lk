@@ -206,22 +206,36 @@ export function formatLkr(amount: number): string {
   return 'LKR ' + Math.round(amount).toLocaleString('en-US');
 }
 
-export function formatColomboTime(isoString: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Colombo',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(isoString));
+export function formatColomboTime(isoString: string | null | undefined): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Colombo',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(d);
+  } catch {
+    return '';
+  }
 }
 
-export function formatColomboDate(isoString: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Colombo',
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  }).format(new Date(isoString));
+export function formatColomboDate(isoString: string | null | undefined): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Colombo',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    }).format(d);
+  } catch {
+    return '';
+  }
 }
 
 export function getColomboDateOffset(daysOffset = 0): string {

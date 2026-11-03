@@ -15,8 +15,8 @@ import {
   Users,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
-import { searchRides, type MatchedRideResult, type VehicleCategory } from '../domain/matching.ts';
+import { HUBS, ALL_HUBS, getHubById, resolveHubKey } from '../domain/corridors.ts';
+import { searchRides, deduplicateRides, type MatchedRideResult, type VehicleCategory } from '../domain/matching.ts';
 import { t, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -37,10 +37,12 @@ export function SearchView({
   const [params, setSearchParams] = useSearchParams();
   const locale = state.locale;
 
-  const fromHubId = params.get('from') || 'colombo';
-  const toHubId = params.get('to') || 'galle';
-  const date = params.get('date') || getColomboDateOffset(1);
-  const seats = Number(params.get('seats') || '1');
+  const fromHubId = resolveHubKey(params.get('from'), 'colombo');
+  const toHubId = resolveHubKey(params.get('to'), 'galle');
+  const rawDate = params.get('date');
+  const date = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : getColomboDateOffset(1);
+  const seatsParam = params.get('seats') || params.get('passengers') || '1';
+  const seats = Math.max(1, Math.min(8, parseInt(seatsParam, 10) || 1));
   const [isLocating, setIsLocating] = useState(false);
 
   const updateRoute = (newFrom: string, newTo: string) => {
@@ -181,10 +183,10 @@ export function SearchView({
     setAirportOnly(false);
   };
 
-  const fromHub = getHubById(fromHubId);
-  const toHub = getHubById(toHubId);
+  const fromHub = getHubById(fromHubId) || ALL_HUBS.find((h) => h.id === 'colombo') || ALL_HUBS[0];
+  const toHub = getHubById(toHubId) || ALL_HUBS.find((h) => h.id === 'galle') || ALL_HUBS[1];
 
-  const results: MatchedRideResult[] = searchRides(state.rides, {
+  const results: MatchedRideResult[] = searchRides(deduplicateRides(state.rides), {
     fromHubId,
     toHubId,
     date,
@@ -583,20 +585,29 @@ export function SearchView({
           )}
           {results.length === 0 ? (
             <div className="empty-results">
-              <h2>No rides found for this date & filters</h2>
+              <h2>No exact rides at this hour</h2>
               <p>
-                Drivers often post their journeys 2-3 days before departure. Set a Ride Alert to receive an email as soon as a driver publishes!
+                Drivers often post their journeys 1–2 days before departure. Set a Ride Alert to receive an email as soon as a driver publishes, or offer a ride if you have empty seats!
               </p>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => setShowAlertModal(true)}
-                style={{ marginTop: '20px' }}
-                aria-label="Create a Ride Alert"
-              >
-                <Bell size={18} />
-                <span>Create a Ride Alert</span>
-              </button>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setShowAlertModal(true)}
+                  aria-label="Create a Ride Alert"
+                >
+                  <Bell size={18} />
+                  <span>Create a Ride Alert</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => updateRoute('colombo', 'galle')}
+                  aria-label="See popular corridor departures"
+                >
+                  <span>See Colombo ↔ Galle Rides</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="rides-list">
