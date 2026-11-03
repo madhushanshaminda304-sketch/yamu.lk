@@ -16,6 +16,7 @@ import type { MatchedRideResult } from '../domain/matching.ts';
 import { getHubById } from '../domain/corridors.ts';
 import { formatLkr, formatColomboTime, t, type LocaleCode } from '../domain/i18n.ts';
 import { CarPlateBadge } from './CarPlateBadge.tsx';
+import { generateCostSplitBadge, lookupRdaExpresswayToll } from '../utils/sriLankaTollAndFuel.ts';
 
 export function getDriverInitials(name: string): string {
   return name
@@ -34,7 +35,7 @@ export function RideCardItem({
   result: MatchedRideResult;
   locale?: LocaleCode;
 }) {
-  const { ride, fromStop, toStop, legPriceLkr, legDurationMinutes, availableSeatsOnLeg, smartTags } = result;
+  const { ride, fromStop, toStop, legPriceLkr, legDistanceKm, legDurationMinutes, availableSeatsOnLeg, smartTags } = result;
   const navigate = useNavigate();
   const currentLocale = locale ?? 'en-LK';
   const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
@@ -43,6 +44,17 @@ export function RideCardItem({
   const toHub = getHubById(toStop.hubId);
   const fromCity = fromHub?.name[langKey] || fromHub?.name.en || fromStop.hubId;
   const toCity = toHub?.name[langKey] || toHub?.name.en || toStop.hubId;
+
+  const tollLkr = ride.estimatedTollLkr > 0 ? ride.estimatedTollLkr : lookupRdaExpresswayToll(fromStop.hubId, toStop.hubId);
+  const distKm = legDistanceKm && legDistanceKm > 0 ? legDistanceKm : Math.max(20, Math.round(legDurationMinutes * 0.95));
+  const routeCode = ride.hasTolls
+    ? (fromStop.hubId.includes('kandy') || toStop.hubId.includes('kandy')
+        ? 'E04'
+        : fromStop.hubId.includes('katunayake') || toStop.hubId.includes('katunayake')
+        ? 'E03'
+        : 'E01')
+    : 'Direct';
+  const costSplitBadge = generateCostSplitBadge(distKm, tollLkr, routeCode);
 
   return (
     <article
@@ -137,6 +149,27 @@ export function RideCardItem({
             per seat
           </span>
         </div>
+      </div>
+
+      <div
+        className="ride-card-cost-split-pill"
+        style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: '#047857',
+          background: '#ecfdf5',
+          padding: '4px 10px',
+          borderRadius: '6px',
+          border: '1px solid #a7f3d0',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          width: 'fit-content',
+          marginTop: '-6px',
+        }}
+      >
+        <span>⛽</span>
+        <span>{costSplitBadge.badgeText}</span>
       </div>
 
       <div className="ride-card-body">

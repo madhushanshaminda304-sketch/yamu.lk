@@ -19,6 +19,7 @@ import { t, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceState } from '../state/store.ts';
+import { FuelAndTollCalculator } from '../components/FuelAndTollCalculator.tsx';
 
 export function HomeView({ state }: { state: MarketplaceState }) {
   const navigate = useNavigate();
@@ -255,6 +256,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
         </div>
       </section>
 
+      {/* Split the Toll & Fuel Calculator Section */}
+      <FuelAndTollCalculator />
+
       {/* Popular Corridors */}
       <section className="shell corridors-section">
         <div className="section-header">
@@ -277,6 +281,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
               <span>via A1 / Central E04</span>
               <span className="corridor-price">from LKR 1,850</span>
             </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Includes E04 Toll (LKR 300) + Fuel Split • Save 67% vs Solo Drive
+            </div>
           </Link>
 
           <Link to={`/search?from=makumbura&to=galle&date=${tomorrow}`} className="corridor-card">
@@ -288,6 +295,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
             <div className="corridor-meta">
               <span>via E01 Expressway</span>
               <span className="corridor-price">from LKR 1,750</span>
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Includes E01 Toll (LKR 500) + Fuel Split • Save 67% vs Solo Drive
             </div>
           </Link>
 
@@ -301,6 +311,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
               <span>via E01 Tolls</span>
               <span className="corridor-price">from LKR 2,400</span>
             </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Includes E01 Toll (LKR 650) + Fuel Split • Save 67% vs Solo Drive
+            </div>
           </Link>
 
           <Link to={`/search?from=colombo&to=jaffna&date=${tomorrow}`} className="corridor-card">
@@ -312,6 +325,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
             <div className="corridor-meta">
               <span>via Katunayake & A9</span>
               <span className="corridor-price">from LKR 7,500</span>
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Includes E03 Toll (LKR 350) + A9 Fuel Split • Save 72% vs Solo Drive
             </div>
           </Link>
         </div>
