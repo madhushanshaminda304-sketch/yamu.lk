@@ -20,6 +20,8 @@ import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceState } from '../state/store.ts';
 import { FuelAndTollCalculator } from '../components/FuelAndTollCalculator.tsx';
+import { COMMUTE_CORRIDORS } from '../domain/passengerRequests.ts';
+import { PassengerRequestCard } from '../components/PassengerRequestCard.tsx';
 
 export function HomeView({ state }: { state: MarketplaceState }) {
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
   const [date, setDate] = useState(tomorrow);
   const [seats, setSeats] = useState(1);
   const [isLocating, setIsLocating] = useState(false);
+  const [isCommuteMode, setIsCommuteMode] = useState(false);
 
   const savedPlaces = state.currentUser?.savedPlaces && state.currentUser.savedPlaces.length > 0
     ? state.currentUser.savedPlaces
@@ -65,7 +68,8 @@ export function HomeView({ state }: { state: MarketplaceState }) {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search?from=${fromHubId}&to=${toHubId}&date=${date}&seats=${seats}`);
+    const commuteFlag = isCommuteMode ? '&commute=1' : '';
+    navigate(`/search?from=${fromHubId}&to=${toHubId}&date=${date}&seats=${seats}${commuteFlag}`);
   };
 
   return (
@@ -173,8 +177,36 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('selection');
+                  setIsCommuteMode(!isCommuteMode);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '5px 12px',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  background: isCommuteMode ? '#174D3A' : '#ecfdf5',
+                  color: isCommuteMode ? '#ffffff' : '#047857',
+                  border: isCommuteMode ? '1px solid #174D3A' : '1px solid #a7f3d0',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <span>🔁</span>
+                <span>Recurring Mon–Fri Commute</span>
+              </button>
+
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                Commute:
+                Quick Hubs:
               </span>
               {savedPlaces.map((place) => {
                 const hub = getHubById(place.hubId);
@@ -218,6 +250,69 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 );
               })}
             </div>
+
+            {/* Weekday Office & Campus Commute Panel */}
+            {isCommuteMode && (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  background: '#f0fdf4',
+                  borderTop: '1px solid #d1fae5',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🔁</span>
+                    <span>Daily Office & Campus Commute Pass (Mon–Fri)</span>
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#065f46', background: '#d1fae5', padding: '2px 8px', borderRadius: '4px' }}>
+                    Save up to LKR 14,000/week
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#334155' }}>
+                  Split fuel & tolls 5 days/week on high-congestion corridors with verified regular carpoolers:
+                </div>
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                  {COMMUTE_CORRIDORS.map((c) => {
+                    const isCorridorActive = fromHubId === c.originHubId && toHubId === c.destinationHubId;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('selection');
+                          setFromHubId(c.originHubId);
+                          setToHubId(c.destinationHubId);
+                          toast.success(`Commute route set: ${c.title}`);
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: isCorridorActive ? '2px solid #047857' : '1px solid #cbd5e1',
+                          background: isCorridorActive ? '#ffffff' : '#f8fafc',
+                          color: '#1e293b',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: '2px',
+                          boxShadow: isCorridorActive ? '0 2px 4px rgba(4, 120, 87, 0.15)' : 'none',
+                        }}
+                      >
+                        <span style={{ color: '#047857', fontWeight: 800 }}>{c.title}</span>
+                        <span style={{ fontSize: '10.5px', color: '#64748b' }}>{c.highlights}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="scam-banner">
@@ -330,6 +425,51 @@ export function HomeView({ state }: { state: MarketplaceState }) {
               Includes E03 Toll (LKR 350) + A9 Fuel Split • Save 72% vs Solo Drive
             </div>
           </Link>
+        </div>
+      </section>
+
+      {/* Waiting Passenger Requests Live Preview Strip */}
+      <section className="shell" style={{ padding: '36px 0 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '6px' }}>
+              <span>🙋‍♂️ Waiting Passenger Requests</span>
+              <span>• Two-Way Marketplace</span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
+              Passengers Looking for Seats Right Now
+            </h2>
+            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0' }}>
+              Driving these corridors with empty seats? Offer a ride to verified passengers and split your fuel + expressway tolls.
+            </p>
+          </div>
+
+          <Link
+            to="/search?tab=requests"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              color: '#047857',
+              background: '#ffffff',
+              border: '1px solid #a7f3d0',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              textDecoration: 'none',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+            }}
+          >
+            <span>View All Passenger Requests ({state.passengerRequests?.length || 0})</span>
+            <ArrowRight size={15} weight="bold" />
+          </Link>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+          {(state.passengerRequests || []).slice(0, 3).map((req) => (
+            <PassengerRequestCard key={req.id} request={req} />
+          ))}
         </div>
       </section>
     </div>

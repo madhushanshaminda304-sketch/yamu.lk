@@ -19,7 +19,7 @@ export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
     'usp.1.title': 'Your pick of rides at low prices',
     'usp.1.body': 'No matter where you’re going in Sri Lanka, by expressway or scenic A-road, find the ideal shared ride and split fuel & tolls fairly.',
     'usp.2.title': 'Trust who you travel with',
-    'usp.2.body': 'We verify Sri Lankan NICs, Driving Licences, and +94 mobile numbers. Check Super Driver badges, ratings, and BlaBla chattiness before you book.',
+    'usp.2.body': 'We verify Sri Lankan NICs, Driving Licences, and +94 mobile numbers. Check Super Driver badges, NIC/Licence verification, Women-Only seat options, and pickup flexibility before you book.',
     'usp.3.title': 'Scroll, click, tap and go!',
     'usp.3.body': 'Book an Instant Booking seat in seconds or set a Ride Alert for upcoming trips. Settle onboard in Cash (LKR) or LankaQR.',
     'scam.banner': 'To avoid scams, never visit links sent by members to pay or transfer money. Pay your driver directly in Cash (LKR) or LankaQR when you meet.',

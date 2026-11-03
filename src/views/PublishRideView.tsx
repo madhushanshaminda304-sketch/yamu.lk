@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkle, CheckCircle, Crosshair } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS, getHubById, findRouteOptions } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById, findRouteOptions, resolveHubKey } from '../domain/corridors.ts';
 import { calculateRecommendedLkr, getContributionBounds, getPriceBand, stepContributionLkr, type TollPolicy } from '../domain/pricing.ts';
 import type { Ride, ApprovalMode, VehicleCategory, LuggageSize } from '../domain/matching.ts';
 import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
@@ -22,12 +22,19 @@ export function PublishRideView({
   openAuthModal?: (onSuccess?: () => void) => void;
 }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialFrom = searchParams.get('from') || searchParams.get('origin');
+  const initialTo = searchParams.get('to') || searchParams.get('destination');
+  const initialDate = searchParams.get('date');
+  const initialTime = searchParams.get('time');
+  const matchedReqId = searchParams.get('reqId');
+
   const tomorrow = getColomboDateOffset(1);
   const dayAfter = getColomboDateOffset(2);
 
   const [step, setStep] = useState(1);
-  const [originHubId, setOriginHubId] = useState('colombo');
-  const [destinationHubId, setDestinationHubId] = useState('galle');
+  const [originHubId, setOriginHubId] = useState(initialFrom ? resolveHubKey(initialFrom, 'colombo') : 'colombo');
+  const [destinationHubId, setDestinationHubId] = useState(initialTo ? resolveHubKey(initialTo, 'galle') : 'galle');
   const [pickupLandmark, setPickupLandmark] = useState('');
   const [dropoffLandmark, setDropoffLandmark] = useState('');
   const [isLocating, setIsLocating] = useState(false);
@@ -75,8 +82,8 @@ export function PublishRideView({
   }, [originHubId, destinationHubId, routeOptions, selectedCorridorId]);
 
   // Step 3 Timing & Optional Return Ride
-  const [date, setDate] = useState(tomorrow);
-  const [departureTime, setDepartureTime] = useState('07:30');
+  const [date, setDate] = useState(initialDate || tomorrow);
+  const [departureTime, setDepartureTime] = useState(initialTime || '07:30');
   const [hasReturnRide, setHasReturnRide] = useState(false);
   const [returnDate, setReturnDate] = useState(dayAfter);
   const [returnTime, setReturnTime] = useState('17:00');
@@ -262,6 +269,25 @@ export function PublishRideView({
       <div className="publish-wizard-card">
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {matchedReqId && (
+              <div
+                style={{
+                  background: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#047857',
+                }}
+              >
+                <CheckCircle size={18} weight="fill" />
+                <span>Offering seat to passenger request. Origin, destination, date, and time pre-filled!</span>
+              </div>
+            )}
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
               Where are you leaving from and going to?
             </h2>

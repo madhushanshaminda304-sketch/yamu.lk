@@ -3,6 +3,7 @@ import type { TollPolicy } from '../domain/pricing.ts';
 import type { DoubleBlindRating } from '../domain/trust.ts';
 import type { LocaleCode } from '../domain/i18n.ts';
 import type { OtpChallenge } from '../domain/auth.ts';
+import type { PassengerRideRequest } from '../domain/passengerRequests.ts';
 
 export type LuggageCapacity = LuggageSize;
 export type SettlementMethod = 'cash_lkr' | 'lankaqr';
@@ -134,6 +135,7 @@ export interface MarketplaceState {
   messages: ChatMessage[];
   ratings: DoubleBlindRating[];
   notifications: AppNotification[];
+  passengerRequests: PassengerRideRequest[];
   lastReadAtByBooking: Record<string, string>;
 }
 

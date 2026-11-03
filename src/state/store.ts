@@ -27,6 +27,11 @@ import {
   createOtpChallenge,
   verifyOtpCode,
 } from '../domain/auth.ts';
+import {
+  SEEDED_PASSENGER_REQUESTS,
+  createPassengerRequest,
+  type PassengerRideRequest,
+} from '../domain/passengerRequests.ts';
 import { buildSeededRides } from './seededRides.ts';
 import {
   type SettlementMethod,
@@ -82,6 +87,7 @@ export function createInitialState(): MarketplaceState {
       body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.',
       createdAt: new Date().toISOString(),
     }],
+    passengerRequests: [...SEEDED_PASSENGER_REQUESTS],
     lastReadAtByBooking: {},
   };
 }
@@ -376,6 +382,26 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
       };
       notify();
       return alert;
+    },
+
+    postPassengerRequest(input: Parameters<typeof createPassengerRequest>[0]): PassengerRideRequest {
+      const req = createPassengerRequest(input);
+      state = {
+        ...state,
+        passengerRequests: [req, ...state.passengerRequests],
+      };
+      notify();
+      return req;
+    },
+
+    offerSeatToPassengerRequest(requestId: string): void {
+      state = {
+        ...state,
+        passengerRequests: state.passengerRequests.map((r) =>
+          r.id === requestId ? { ...r, status: 'matched' as const } : r
+        ),
+      };
+      notify();
     },
 
     sendMessage(bookingId: string, text: string): ChatInspectionResult {

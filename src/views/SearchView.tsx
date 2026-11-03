@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   ArrowsLeftRight,
@@ -26,6 +26,9 @@ import { RideCardItem } from '../components/RideCardItem.tsx';
 import { SearchFilterControls } from '../components/SearchFilterControls.tsx';
 import { LeafletRouteMap } from '../components/LeafletRouteMap.tsx';
 import { extractRouteMapWaypoints, buildHubPairWaypoints } from '../domain/routeMapGeometry.ts';
+import { PassengerRequestCard } from '../components/PassengerRequestCard.tsx';
+import { PostSeatRequestModal } from '../components/PostSeatRequestModal.tsx';
+import { filterPassengerRequests } from '../domain/passengerRequests.ts';
 
 export function SearchView({
   state,
@@ -43,7 +46,26 @@ export function SearchView({
   const date = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : getColomboDateOffset(1);
   const seatsParam = params.get('seats') || params.get('passengers') || '1';
   const seats = Math.max(1, Math.min(8, parseInt(seatsParam, 10) || 1));
+  const navigate = useNavigate();
   const [isLocating, setIsLocating] = useState(false);
+
+  const tabParam = params.get('tab');
+  const [activeTab, setActiveTab] = useState<'drivers' | 'requests'>(tabParam === 'requests' ? 'requests' : 'drivers');
+  const [showRequestModal, setShowRequestModal] = useState(false);
+
+  useEffect(() => {
+    if (tabParam === 'requests' || tabParam === 'drivers') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: 'drivers' | 'requests') => {
+    triggerHaptic('selection');
+    setActiveTab(tab);
+    const nextParams = new URLSearchParams(params);
+    nextParams.set('tab', tab);
+    setSearchParams(nextParams);
+  };
 
   const updateRoute = (newFrom: string, newTo: string) => {
     const nextParams = new URLSearchParams(params);
@@ -208,6 +230,12 @@ export function SearchView({
     petsAllowedOnly,
   });
 
+  const passengerRequests = state.passengerRequests ?? [];
+  const matchingRequests = useMemo(
+    () => filterPassengerRequests(passengerRequests, fromHubId, toHubId, date),
+    [passengerRequests, fromHubId, toHubId, date]
+  );
+
   const firstResultStops = results[0]?.ride.stops;
   const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
   const searchMapWaypoints = useMemo(
@@ -354,6 +382,116 @@ export function SearchView({
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Two-Way Marketplace Switcher: Driver Seats vs Waiting Passenger Requests */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          margin: '0 0 14px 0',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => handleTabChange('drivers')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              border: activeTab === 'drivers' ? '1px solid #047857' : '1px solid transparent',
+              background: activeTab === 'drivers' ? '#ffffff' : 'transparent',
+              color: activeTab === 'drivers' ? '#047857' : '#64748b',
+              boxShadow: activeTab === 'drivers' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>🚗 Available Driver Seats</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                background: activeTab === 'drivers' ? '#ecfdf5' : '#e2e8f0',
+                color: activeTab === 'drivers' ? '#047857' : '#475569',
+                padding: '2px 7px',
+                borderRadius: '9999px',
+              }}
+            >
+              {results.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('requests')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              border: activeTab === 'requests' ? '1px solid #047857' : '1px solid transparent',
+              background: activeTab === 'requests' ? '#ffffff' : 'transparent',
+              color: activeTab === 'requests' ? '#047857' : '#64748b',
+              boxShadow: activeTab === 'requests' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>🙋‍♂️ Waiting Passenger Requests</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                background: activeTab === 'requests' ? '#ecfdf5' : '#e2e8f0',
+                color: activeTab === 'requests' ? '#047857' : '#475569',
+                padding: '2px 7px',
+                borderRadius: '9999px',
+              }}
+            >
+              {matchingRequests.length}
+            </span>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('selection');
+            setShowRequestModal(true);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 14px',
+            borderRadius: '8px',
+            fontSize: '12.5px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: '1px solid #d1fae5',
+            background: '#ecfdf5',
+            color: '#047857',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>➕ Post a Seat Request</span>
+        </button>
       </div>
 
       {/* Vehicle Tier Selector (Yandex-Style Tariffs) */}
@@ -583,16 +721,81 @@ export function SearchView({
               />
             </div>
           )}
-          {results.length === 0 ? (
+          {activeTab === 'requests' ? (
+            matchingRequests.length === 0 ? (
+              <div className="empty-results">
+                <h2>No open passenger requests on this corridor</h2>
+                <p>
+                  Be the first passenger to post a request! Verified drivers on this route will see your trip and can offer their empty seats with 1 tap.
+                </p>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => setShowRequestModal(true)}
+                  >
+                    <span>🙋‍♂️ Post a Seat Request (15 sec)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleTabChange('drivers')}
+                  >
+                    <span>Check Available Driver Seats</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+                    {matchingRequests.length} verified passengers looking for seats:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestModal(true)}
+                    style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <span>➕ Post a Seat Request</span>
+                  </button>
+                </div>
+                {matchingRequests.map((req) => (
+                  <PassengerRequestCard
+                    key={req.id}
+                    request={req}
+                    onOfferSeat={(r) => {
+                      store.offerSeatToPassengerRequest(r.id);
+                      toast.success(`Opening publisher with ${r.passengerName}'s requested route`);
+                      navigate(
+                        `/publish?origin=${encodeURIComponent(r.originHubId)}&destination=${encodeURIComponent(
+                          r.destinationHubId
+                        )}&date=${encodeURIComponent(r.date)}&time=${encodeURIComponent(
+                          r.time
+                        )}&reqId=${encodeURIComponent(r.id)}`
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            )
+          ) : results.length === 0 ? (
             <div className="empty-results">
               <h2>No exact rides at this hour</h2>
               <p>
-                Drivers often post their journeys 1–2 days before departure. Set a Ride Alert to receive an email as soon as a driver publishes, or offer a ride if you have empty seats!
+                Drivers often post their journeys 1–2 days before departure. Post a Seat Request so drivers see your route, or create a Ride Alert!
               </p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
                 <button
                   type="button"
                   className="btn-primary"
+                  onClick={() => setShowRequestModal(true)}
+                  aria-label="Post a Seat Request"
+                >
+                  <span>🙋‍♂️ Post a Seat Request</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
                   onClick={() => setShowAlertModal(true)}
                   aria-label="Create a Ride Alert"
                 >
@@ -795,6 +998,21 @@ export function SearchView({
           </div>
         </div>
       )}
+
+      {/* Post Seat Request Modal */}
+      <PostSeatRequestModal
+        isOpen={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        onSubmit={(reqData) => {
+          const req = store.postPassengerRequest(reqData);
+          handleTabChange('requests');
+          return req;
+        }}
+        initialFromHubId={fromHubId}
+        initialToHubId={toHubId}
+        initialDate={date}
+        locale={locale}
+      />
     </div>
   );
 }
