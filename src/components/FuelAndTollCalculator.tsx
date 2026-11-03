@@ -18,11 +18,13 @@ import {
   type FuelTypeId,
   type TripFrequency,
 } from '../utils/sriLankaTollAndFuel.ts';
-import { formatLkr, getColomboDateOffset } from '../domain/i18n.ts';
+import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
+import { useMarketplaceStore } from '../state/store.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 
 export function FuelAndTollCalculator() {
   const navigate = useNavigate();
+  const locale = useMarketplaceStore((s) => s.locale);
   const tomorrow = getColomboDateOffset(1);
 
   const [selectedCorridorId, setSelectedCorridorId] = useState<string>('makumbura-galle');
@@ -79,7 +81,7 @@ export function FuelAndTollCalculator() {
               </span>
             </div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#064e3b', margin: '4px 0 6px', letterSpacing: '-0.02em' }}>
-              Split the Toll & Fuel Calculator
+              {t(locale, 'calculator.title')}
             </h2>
             <p style={{ color: '#475569', fontSize: '14px', margin: 0, maxWidth: '640px' }}>
               Official November 2026 retail fuel rates (Petrol 92: LKR 424/L, Auto Diesel: LKR 397/L) + gazetted RDA expressway point-to-point tolls. Calculate per-seat savings in real time.

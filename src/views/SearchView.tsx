@@ -431,7 +431,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🚗 Available Driver Seats</span>
+            <span>🚗 {locale === 'si-LK' ? 'රියදුරු ආසන' : locale === 'ta-LK' ? 'ஓட்டுநர் இருக்கைகள்' : 'Available Driver Seats'}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -465,7 +465,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🙋‍♂️ Waiting Passenger Requests</span>
+            <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -502,7 +502,7 @@ export function SearchView({
             transition: 'all 0.15s ease',
           }}
         >
-          <span>➕ Post a Seat Request</span>
+          <span>➕ {t(locale, 'requests.post_cta')}</span>
         </button>
       </div>
 

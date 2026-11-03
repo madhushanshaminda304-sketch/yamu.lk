@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Deep Forest Green Premium Tile (#174D3A) -->
+  <rect width="64" height="64" rx="16" fill="#174D3A" />
+
+  <!-- Geometric Y: Two connecting roads converging into one shared journey -->
+  <!-- Left Road (Origin A) -->
+  <path
+    d="M17 16 C21 28, 28 32, 32 36 L32 50"
+    stroke="#FFFFFF"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right Road (Origin B) -->
+  <path
+    d="M47 16 C43 28, 36 32, 32 36 L32 50"
+    stroke="#FFFFFF"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

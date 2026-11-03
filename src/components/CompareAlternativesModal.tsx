@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, CheckCircle, WarningCircle, ShieldCheck, QrCode, Money, Car, Bus, Users } from '@phosphor-icons/react';
-import { formatLkr } from '../domain/i18n.ts';
+import { formatLkr, t } from '../domain/i18n.ts';
+import { useMarketplaceStore } from '../state/store.ts';
 
 interface CompareAlternativesModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function CompareAlternativesModal({
   corridorCode = 'Expressway',
   hasTolls = true,
 }: CompareAlternativesModalProps) {
+  const locale = useMarketplaceStore((s) => s.locale);
   if (!isOpen) return null;
 
   // Approximate solo car/taxi and highway bus benchmarks for Sri Lanka intercity corridors
@@ -68,7 +70,7 @@ export function CompareAlternativesModal({
               <span>🇱🇰 SRI LANKA TRAVEL COMPARISON</span>
             </div>
             <h2 id="compare-modal-title" style={{ fontSize: '22px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-              Why Yamo Beats the Alternatives
+              {t(locale, 'compare.title')}
             </h2>
             <p style={{ fontSize: '13.5px', color: '#64748b', margin: '4px 0 0' }}>
               {fromName} ↔ {toName} ({corridorCode})
@@ -111,7 +113,7 @@ export function CompareAlternativesModal({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#475569' }}>
               <Car size={16} />
-              <span>Solo Car / Taxi</span>
+              <span>{t(locale, 'compare.taxi')}</span>
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: '#dc2626' }}>
@@ -149,7 +151,7 @@ export function CompareAlternativesModal({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#475569' }}>
               <Bus size={16} />
-              <span>Highway Bus (MMC)</span>
+              <span>{t(locale, 'compare.bus')}</span>
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706' }}>
@@ -188,7 +190,7 @@ export function CompareAlternativesModal({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 800, color: '#047857' }}>
               <Users size={16} weight="bold" />
-              <span>Yamo Shared Seat</span>
+              <span>{t(locale, 'compare.yamo')}</span>
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 900, color: '#047857' }}>
@@ -228,7 +230,7 @@ export function CompareAlternativesModal({
           <ShieldCheck size={28} color="#d97706" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
             <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#92400e', marginBottom: '4px' }}>
-              Sri Lanka Anti-Scam Protection & Safe Settlement
+              {t(locale, 'compare.antiscam')}
             </div>
             <p style={{ fontSize: '12.5px', color: '#78350f', margin: 0, lineHeight: 1.5 }}>
               Never click links sent in chat to make advance bank transfers. Always settle your cost-share directly inside the car upon departure using <strong>Cash (LKR)</strong> or <strong>LankaQR Instant Scan</strong>.

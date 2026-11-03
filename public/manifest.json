@@ -1,0 +1,17 @@
+{
+  "name": "Yamo.lk — Ride Together, Split the Toll | Sri Lanka Intercity Carpooling",
+  "short_name": "Yamo.lk",
+  "description": "Sri Lanka's trusted intercity carpooling network. Share empty seats along Southern Expressway (E01), Colombo–Kandy, Jaffna, and Ella.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#174D3A",
+  "theme_color": "#174D3A",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

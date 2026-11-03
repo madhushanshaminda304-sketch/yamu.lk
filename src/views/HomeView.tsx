@@ -202,7 +202,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 }}
               >
                 <span>🔁</span>
-                <span>Recurring Mon–Fri Commute</span>
+                <span>{t(locale, 'commute.toggle')}</span>
               </button>
 
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
@@ -433,11 +433,11 @@ export function HomeView({ state }: { state: MarketplaceState }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '6px' }}>
-              <span>🙋‍♂️ Waiting Passenger Requests</span>
+              <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
               <span>• Two-Way Marketplace</span>
             </div>
             <h2 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-              Passengers Looking for Seats Right Now
+              {t(locale, 'requests.subtitle')}
             </h2>
             <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0' }}>
               Driving these corridors with empty seats? Offer a ride to verified passengers and split your fuel + expressway tolls.

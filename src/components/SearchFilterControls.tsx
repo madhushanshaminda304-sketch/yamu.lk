@@ -312,12 +312,12 @@ export function SearchFilterControls({
       </div>
 
       <div className="filter-block">
-        <h3>Sri Lankan Commuter Options</h3>
+        <h3>{t(locale, 'filter.pickup_precision')} & {t(locale, 'filter.settlement')}</h3>
         <div className="filter-options">
           {setPickupPrecision && (
             <div style={{ marginBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                📍 Pickup Precision
+                📍 {t(locale, 'filter.pickup_precision')}
               </span>
               <select
                 value={pickupPrecision || 'all'}
@@ -325,8 +325,8 @@ export function SearchFilterControls({
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
                 <option value="all">Any Pickup Location</option>
-                <option value="interchange_only">Expressway Interchange / MMC (Zero Detour)</option>
-                <option value="town_center">Town Center Pickup (Up to 2 km detour)</option>
+                <option value="interchange_only">{t(locale, 'filter.interchange_only')}</option>
+                <option value="town_center">{t(locale, 'filter.town_center')}</option>
               </select>
             </div>
           )}
@@ -334,7 +334,7 @@ export function SearchFilterControls({
           {setLuggageSpace && (
             <div style={{ marginBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                🧳 Luggage Capacity
+                🧳 {t(locale, 'filter.luggage')}
               </span>
               <select
                 value={luggageSpace || 'all'}
@@ -342,8 +342,8 @@ export function SearchFilterControls({
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
                 <option value="all">Any Luggage Size</option>
-                <option value="backpack_only">Backpack / Laptop Bag Only</option>
-                <option value="large_suitcase">Large Suitcase OK (Airport E03 Friendly)</option>
+                <option value="backpack_only">{t(locale, 'luggage.backpack')}</option>
+                <option value="large_suitcase">{t(locale, 'filter.large_suitcase')}</option>
               </select>
             </div>
           )}
@@ -351,7 +351,7 @@ export function SearchFilterControls({
           {setSettlementPreference && (
             <div>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                💳 Onboard Settlement
+                💳 {t(locale, 'filter.settlement')}
               </span>
               <select
                 value={settlementPreference || 'all'}
@@ -359,8 +359,8 @@ export function SearchFilterControls({
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
                 <option value="all">Any Settlement Method</option>
-                <option value="lankaqr">LankaQR Instant Scan</option>
-                <option value="cash_lkr">Cash Handover (LKR)</option>
+                <option value="lankaqr">{t(locale, 'filter.lankaqr')}</option>
+                <option value="cash_lkr">{t(locale, 'settlement.cash')}</option>
               </select>
             </div>
           )}

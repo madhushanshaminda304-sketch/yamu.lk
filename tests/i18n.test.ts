@@ -41,6 +41,15 @@ test('i18n includes key commuter convenience touchpoints', () => {
     'publish.return_trip',
     'booking.seats_needed',
     'booking.confirm',
+    'nav.offer_ride',
+    'nav.requests',
+    'calculator.title',
+    'requests.title',
+    'commute.title',
+    'filter.pickup_precision',
+    'filter.interchange_only',
+    'compare.title',
+    'compare.antiscam',
   ];
 
   for (const key of requiredKeys) {

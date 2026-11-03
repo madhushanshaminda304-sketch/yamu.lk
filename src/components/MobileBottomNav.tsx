@@ -17,7 +17,7 @@ import { computeMobileBadges, isTabActive, type MobileBadgeCounts } from './mobi
 export { computeMobileBadges, isTabActive, type MobileBadgeCounts };
 
 export interface MobileTabDefinition {
-  id: 'search' | 'publish' | 'rides' | 'inbox' | 'profile';
+  id: 'search' | 'publish' | 'requests' | 'rides' | 'profile' | 'inbox';
   labelKey: string;
   defaultLabel: string;
   path: string;
@@ -36,27 +36,27 @@ export const MOBILE_NAV_TABS: MobileTabDefinition[] = [
   },
   {
     id: 'publish',
-    labelKey: 'nav.publish',
-    defaultLabel: 'Publish',
+    labelKey: 'nav.offer_ride',
+    defaultLabel: 'Offer Ride',
     path: '/publish',
     matchPaths: ['/publish'],
     icon: PlusCircle,
   },
   {
+    id: 'requests',
+    labelKey: 'nav.requests',
+    defaultLabel: 'Requests',
+    path: '/search?tab=requests',
+    matchPaths: ['/requests'],
+    icon: ChatCircleDots,
+  },
+  {
     id: 'rides',
     labelKey: 'nav.rides',
-    defaultLabel: 'Your Rides',
+    defaultLabel: 'Rides',
     path: '/your-rides',
     matchPaths: ['/your-rides', '/rides'],
     icon: Car,
-  },
-  {
-    id: 'inbox',
-    labelKey: 'nav.inbox',
-    defaultLabel: 'Inbox',
-    path: '/inbox',
-    matchPaths: ['/inbox'],
-    icon: ChatCircleDots,
   },
   {
     id: 'profile',
@@ -150,13 +150,23 @@ export function MobileBottomNav({
         }}
       >
         {MOBILE_NAV_TABS.map((tab) => {
-          const active = isTabActive(activePath, tab.matchPaths);
+          let active = false;
+          if (tab.id === 'requests') {
+            active = location.search.includes('tab=requests') || activePath === '/requests';
+          } else if (tab.id === 'search') {
+            active = !location.search.includes('tab=requests') && (activePath === '/' || activePath.startsWith('/search'));
+          } else {
+            active = isTabActive(activePath, tab.matchPaths);
+          }
+
           const IconComponent = tab.icon;
           const label = t(locale, tab.labelKey) !== tab.labelKey ? t(locale, tab.labelKey) : tab.defaultLabel;
 
           let badgeCount = 0;
           if (tab.id === 'rides') {
             badgeCount = badges.yourRidesPendingCount;
+          } else if (tab.id === 'requests') {
+            badgeCount = state?.passengerRequests?.filter((r) => r.status === 'open').length ?? 0;
           } else if (tab.id === 'inbox') {
             badgeCount = badges.inboxUnreadCount;
           }
