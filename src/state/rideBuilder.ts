@@ -104,6 +104,8 @@ export function buildReturnRide(
     approvalMode: input.approvalMode,
     boostEnabled: input.boostEnabled,
     luggageCapacity: input.luggageCapacity ?? input.comfort.luggage ?? 'medium',
+    pickupPrecision: input.pickupPrecision,
+    settlementMethods: input.settlementMethods,
     vehicle: outboundRide.vehicle,
     comfort: input.comfort,
     driver: outboundRide.driver,
@@ -232,6 +234,8 @@ export function buildOutboundRide(
       bio: currentUser.bio,
     },
     notes: input.notes,
+    pickupPrecision: input.pickupPrecision,
+    settlementMethods: input.settlementMethods,
     status: 'published',
   };
 

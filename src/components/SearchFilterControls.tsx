@@ -42,6 +42,12 @@ export interface SearchFilterControlsProps {
   setWheelchairOnly?: (val: boolean) => void;
   airportOnly?: boolean;
   setAirportOnly?: (val: boolean) => void;
+  pickupPrecision?: 'all' | 'interchange_only' | 'town_center';
+  setPickupPrecision?: (val: 'all' | 'interchange_only' | 'town_center') => void;
+  luggageSpace?: 'all' | 'backpack_only' | 'large_suitcase';
+  setLuggageSpace?: (val: 'all' | 'backpack_only' | 'large_suitcase') => void;
+  settlementPreference?: 'all' | 'lankaqr' | 'cash_lkr';
+  setSettlementPreference?: (val: 'all' | 'lankaqr' | 'cash_lkr') => void;
   locale: LocaleCode;
   namePrefix?: string;
 }
@@ -77,6 +83,12 @@ export function SearchFilterControls({
   setWheelchairOnly,
   airportOnly,
   setAirportOnly,
+  pickupPrecision,
+  setPickupPrecision,
+  luggageSpace,
+  setLuggageSpace,
+  settlementPreference,
+  setSettlementPreference,
   locale,
   namePrefix = 'filter',
 }: SearchFilterControlsProps) {
@@ -295,6 +307,62 @@ export function SearchFilterControls({
               <span style={{ fontSize: '15px' }}>✈️</span>
               Airport / BIA Transit
             </label>
+          )}
+        </div>
+      </div>
+
+      <div className="filter-block">
+        <h3>Sri Lankan Commuter Options</h3>
+        <div className="filter-options">
+          {setPickupPrecision && (
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                📍 Pickup Precision
+              </span>
+              <select
+                value={pickupPrecision || 'all'}
+                onChange={(e) => setPickupPrecision(e.target.value as 'all' | 'interchange_only' | 'town_center')}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+              >
+                <option value="all">Any Pickup Location</option>
+                <option value="interchange_only">Expressway Interchange / MMC (Zero Detour)</option>
+                <option value="town_center">Town Center Pickup (Up to 2 km detour)</option>
+              </select>
+            </div>
+          )}
+
+          {setLuggageSpace && (
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                🧳 Luggage Capacity
+              </span>
+              <select
+                value={luggageSpace || 'all'}
+                onChange={(e) => setLuggageSpace(e.target.value as 'all' | 'backpack_only' | 'large_suitcase')}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+              >
+                <option value="all">Any Luggage Size</option>
+                <option value="backpack_only">Backpack / Laptop Bag Only</option>
+                <option value="large_suitcase">Large Suitcase OK (Airport E03 Friendly)</option>
+              </select>
+            </div>
+          )}
+
+          {setSettlementPreference && (
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                💳 Onboard Settlement
+              </span>
+              <select
+                value={settlementPreference || 'all'}
+                onChange={(e) => setSettlementPreference(e.target.value as 'all' | 'lankaqr' | 'cash_lkr')}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+              >
+                <option value="all">Any Settlement Method</option>
+                <option value="lankaqr">LankaQR Instant Scan</option>
+                <option value="cash_lkr">Cash Handover (LKR)</option>
+              </select>
+            </div>
           )}
         </div>
       </div>

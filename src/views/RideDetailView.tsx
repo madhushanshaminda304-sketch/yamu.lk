@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { RidePassModal } from '../components/RidePassModal.tsx';
 import { RouteCorridorMap } from '../components/RouteCorridorMap.tsx';
 import { CarPlateBadge } from '../components/CarPlateBadge.tsx';
+import { CompareAlternativesModal } from '../components/CompareAlternativesModal.tsx';
 import { getHubById } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
 import { normalizeSriLankanMobile } from '../domain/auth.ts';
@@ -42,6 +43,7 @@ export function RideDetailView({
   const [guestPhone, setGuestPhone] = useState('');
   const [bookingConfirmed, setBookingConfirmed] = useState<BookingRecord | null>(null);
   const [showRidePass, setShowRidePass] = useState(false);
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   if (!ride) {
     return (
@@ -446,6 +448,29 @@ export function RideDetailView({
                   )}
                 </button>
 
+                <button
+                  type="button"
+                  onClick={() => setShowCompareModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1px solid #a7f3d0',
+                    cursor: 'pointer',
+                    width: '100%',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>📊 Compare vs Highway Bus & Solo Taxi</span>
+                </button>
+
                 <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', textAlign: 'center', lineHeight: 1.4 }}>
                   No online payment is taken. Pay your driver onboard via {settlementMethod === 'lankaqr' ? 'LankaQR' : 'Cash (LKR)'}.
                 </p>
@@ -465,6 +490,16 @@ export function RideDetailView({
           locale={state.locale}
         />
       )}
+
+      <CompareAlternativesModal
+        isOpen={showCompareModal}
+        onClose={() => setShowCompareModal(false)}
+        fromName={fromName}
+        toName={toName}
+        yamoPriceLkr={legCheck.legPriceLkr}
+        corridorCode={ride.corridorCode}
+        hasTolls={ride.hasTolls}
+      />
     </div>
   );
 }

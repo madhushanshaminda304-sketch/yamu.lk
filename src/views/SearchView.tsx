@@ -108,6 +108,9 @@ export function SearchView({
   const [childSeatOnly, setChildSeatOnly] = useState(false);
   const [wheelchairOnly, setWheelchairOnly] = useState(false);
   const [airportOnly, setAirportOnly] = useState(false);
+  const [pickupPrecision, setPickupPrecision] = useState<'all' | 'interchange_only' | 'town_center'>('all');
+  const [luggageSpace, setLuggageSpace] = useState<'all' | 'backpack_only' | 'large_suitcase'>('all');
+  const [settlementPreference, setSettlementPreference] = useState<'all' | 'lankaqr' | 'cash_lkr'>('all');
 
   // Ride Alert Modal
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -184,7 +187,10 @@ export function SearchView({
     (petsAllowedOnly ? 1 : 0) +
     (childSeatOnly ? 1 : 0) +
     (wheelchairOnly ? 1 : 0) +
-    (airportOnly ? 1 : 0);
+    (airportOnly ? 1 : 0) +
+    (pickupPrecision !== 'all' ? 1 : 0) +
+    (luggageSpace !== 'all' ? 1 : 0) +
+    (settlementPreference !== 'all' ? 1 : 0);
 
   const handleResetFilters = () => {
     triggerHaptic('selection');
@@ -203,6 +209,9 @@ export function SearchView({
     setChildSeatOnly(false);
     setWheelchairOnly(false);
     setAirportOnly(false);
+    setPickupPrecision('all');
+    setLuggageSpace('all');
+    setSettlementPreference('all');
   };
 
   const fromHub = getHubById(fromHubId) || ALL_HUBS.find((h) => h.id === 'colombo') || ALL_HUBS[0];
@@ -228,6 +237,9 @@ export function SearchView({
     womenOnly,
     acOnly,
     petsAllowedOnly,
+    pickupPrecision,
+    luggageSpace,
+    settlementPreference,
   });
 
   const passengerRequests = state.passengerRequests ?? [];
@@ -705,6 +717,12 @@ export function SearchView({
             setWheelchairOnly={setWheelchairOnly}
             airportOnly={airportOnly}
             setAirportOnly={setAirportOnly}
+            pickupPrecision={pickupPrecision}
+            setPickupPrecision={setPickupPrecision}
+            luggageSpace={luggageSpace}
+            setLuggageSpace={setLuggageSpace}
+            settlementPreference={settlementPreference}
+            setSettlementPreference={setSettlementPreference}
             locale={locale}
             namePrefix="desktop"
           />
@@ -916,6 +934,12 @@ export function SearchView({
                 setWheelchairOnly={setWheelchairOnly}
                 airportOnly={airportOnly}
                 setAirportOnly={setAirportOnly}
+                pickupPrecision={pickupPrecision}
+                setPickupPrecision={setPickupPrecision}
+                luggageSpace={luggageSpace}
+                setLuggageSpace={setLuggageSpace}
+                settlementPreference={settlementPreference}
+                setSettlementPreference={setSettlementPreference}
                 locale={locale}
                 namePrefix="drawer"
               />

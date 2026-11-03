@@ -91,6 +91,8 @@ export interface Ride {
   returnRideId?: string;
   journeyStatus?: 'scheduled' | 'departed' | 'completed';
   specialRequirements?: SpecialRequirements;
+  pickupPrecision?: 'interchange_only' | 'town_center';
+  settlementMethods?: ('lankaqr' | 'cash_lkr')[];
   status: 'published' | 'cancelled';
 }
 
@@ -127,6 +129,9 @@ export interface SearchQuery {
   childSeatOnly?: boolean;
   wheelchairOnly?: boolean;
   airportOnly?: boolean;
+  pickupPrecision?: 'all' | 'interchange_only' | 'town_center';
+  luggageSpace?: 'all' | 'backpack_only' | 'large_suitcase';
+  settlementPreference?: 'all' | 'lankaqr' | 'cash_lkr';
 }
 
 export interface MatchedRideResult {
@@ -309,6 +314,25 @@ export function searchRides(rides: readonly Ride[], query: SearchQuery): Matched
       const hasAirportOption = Boolean(ride.specialRequirements?.airportFlightTransfer);
       const passesAirportHub = ride.stops.some((s) => s.hubId === 'katunayake');
       if (!hasAirportOption && !passesAirportHub) continue;
+    }
+
+    if (query.pickupPrecision && query.pickupPrecision !== 'all') {
+      const isInterchange = leg.fromStop.pickupLandmark?.toLowerCase().includes('mmc') ||
+        leg.fromStop.pickupLandmark?.toLowerCase().includes('interchange') ||
+        leg.fromStop.pickupLandmark?.toLowerCase().includes('exit') ||
+        ride.pickupPrecision === 'interchange_only';
+      if (query.pickupPrecision === 'interchange_only' && !isInterchange) continue;
+      if (query.pickupPrecision === 'town_center' && isInterchange && ride.pickupPrecision === 'interchange_only') continue;
+    }
+
+    if (query.luggageSpace && query.luggageSpace !== 'all') {
+      const lug = ride.luggageCapacity || ride.comfort?.luggage || 'medium';
+      if (query.luggageSpace === 'large_suitcase' && lug !== 'large') continue;
+      if (query.luggageSpace === 'backpack_only' && lug === 'large') continue;
+    }
+
+    if (query.settlementPreference && query.settlementPreference !== 'all') {
+      if (ride.settlementMethods && !ride.settlementMethods.includes(query.settlementPreference)) continue;
     }
 
     if (query.timeWindow && query.timeWindow !== 'all') {

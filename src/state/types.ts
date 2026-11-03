@@ -121,6 +121,8 @@ export interface PublishRideInput {
   comfort: ComfortProfile;
   specialRequirements?: SpecialRequirements;
   luggageCapacity?: LuggageCapacity;
+  pickupPrecision?: 'interchange_only' | 'town_center';
+  settlementMethods?: ('lankaqr' | 'cash_lkr')[];
   notes: string;
 }
 

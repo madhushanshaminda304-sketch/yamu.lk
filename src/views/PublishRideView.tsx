@@ -100,6 +100,8 @@ export function PublishRideView({
   const [childSeatAvailable, setChildSeatAvailable] = useState(false);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
   const [airportFlightTransfer, setAirportFlightTransfer] = useState(false);
+  const [pickupPrecision, setPickupPrecision] = useState<'interchange_only' | 'town_center'>('interchange_only');
+  const [settlementMethods, setSettlementMethods] = useState<('lankaqr' | 'cash_lkr')[]>(['lankaqr', 'cash_lkr']);
 
   // Step 5 Pricing
   const activeRoute = routeOptions.find((r) => r.corridorId === selectedCorridorId) || routeOptions[0];
@@ -171,6 +173,8 @@ export function PublishRideView({
           womenOnly,
         },
         luggageCapacity: luggage,
+        pickupPrecision,
+        settlementMethods,
         notes,
       });
 
@@ -738,6 +742,80 @@ export function PublishRideView({
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
+                📍 Pickup Precision & Highway Policy
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPickupPrecision('interchange_only')}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: `2px solid ${pickupPrecision === 'interchange_only' ? '#047857' : 'var(--bbc-border)'}`,
+                    background: pickupPrecision === 'interchange_only' ? '#ecfdf5' : '#ffffff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <strong style={{ fontSize: '12.5px', color: '#047857', display: 'block' }}>⚡ Interchange / MMC (Zero Detour)</strong>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Quick boarding at highway exit slip road or MMC terminal.</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPickupPrecision('town_center')}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: `2px solid ${pickupPrecision === 'town_center' ? '#047857' : 'var(--bbc-border)'}`,
+                    background: pickupPrecision === 'town_center' ? '#ecfdf5' : '#ffffff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <strong style={{ fontSize: '12.5px', color: 'var(--bbc-navy)', display: 'block' }}>📍 Town Center Pickup</strong>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Up to 1–2 km flexible town detour for rider convenience.</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
+                💳 Onboard Settlement Methods Accepted
+              </span>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={settlementMethods.includes('lankaqr')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSettlementMethods([...settlementMethods, 'lankaqr']);
+                      } else if (settlementMethods.length > 1) {
+                        setSettlementMethods(settlementMethods.filter((m) => m !== 'lankaqr'));
+                      }
+                    }}
+                  />
+                  <span>LankaQR Instant Scan</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={settlementMethods.includes('cash_lkr')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSettlementMethods([...settlementMethods, 'cash_lkr']);
+                      } else if (settlementMethods.length > 1) {
+                        setSettlementMethods(settlementMethods.filter((m) => m !== 'cash_lkr'));
+                      }
+                    }}
+                  />
+                  <span>Cash Handover (LKR)</span>
+                </label>
               </div>
             </div>
 
