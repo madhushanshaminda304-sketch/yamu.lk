@@ -10,6 +10,8 @@ test('language routes preserve deep links, filters, fragments and ride identifie
   assert.equal(localeFromPath('/si/rides/ride-123'), 'si-LK');
   assert.equal(localeFromPath('/ta/'), 'ta-LK');
   assert.equal(localeFromPath('/search'), null);
+  assert.equal(localeFromPath('/ru/search'), null);
+  assert.equal(localizedPath('/ru/search?seats=2', 'en-LK'), '/en/search?seats=2');
   assert.equal(localeFromPath('/english/search'), null);
   assert.equal(stripLanguagePrefix('/si/'), '/');
   assert.equal(stripLanguagePrefix('/si/search'), '/search');
@@ -28,10 +30,10 @@ test('saved choices take precedence over device suggestions, with an English fal
   assert.equal(preferredLocale(null, []), 'en-LK');
 });
 
-test('every supplemental interface message has Sinhala, Tamil and Russian translations with matching placeholders', () => {
+test('every supplemental interface message has Sinhala and Tamil translations with matching placeholders', () => {
   const placeholders = (text: string) => [...text.matchAll(/\{([^}]+)\}/g)].map(match => match[1]).sort();
   for (const [source, translations] of Object.entries(UI_MESSAGES)) {
-    assert.equal(translations.length, 3, source);
+    assert.equal(translations.length, 2, source);
     for (const translation of translations) {
       assert.ok(translation.trim(), source);
       assert.deepEqual(placeholders(translation), placeholders(source), source);

@@ -252,7 +252,7 @@ export function SearchView({
   );
 
   const firstResultStops = results[0]?.ride.stops;
-  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
   const searchMapWaypoints = useMemo(
     () =>
       firstResultStops
@@ -287,7 +287,7 @@ export function SearchView({
             <span>{getHubDisplayName(toHub, locale)}</span>
           </h1>
           <p data-testid="search-summary" style={{ color: 'var(--bbc-text-secondary)', fontSize: '13.5px', marginTop: '4px' }}>
-            {formatColomboDate(`${date}T12:00:00+05:30`, uiLocale)} · {seats} {seats === 1 ? tr("Passenger") : tr("Passengers")} · <strong style={{ color: 'var(--yamo-emerald)' }}>{results.length} {tr("rides available")}</strong>
+            <span>{formatColomboDate(`${date}T12:00:00+05:30`, uiLocale)}</span><span>{t(locale, 'search.summary.passengers', { count: seats })}</span><strong>{t(locale, 'search.summary.results', { count: results.length })}</strong>
           </p>
         </div>
 
@@ -298,7 +298,7 @@ export function SearchView({
             onClick={() => setShowSearchMap((prev) => !prev)}
             style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', fontWeight: 700, color: '#047857', borderColor: '#a7f3d0', background: showSearchMap ? '#ecfdf5' : '#ffffff' }}
           >
-            <span>{showSearchMap ? tr("🗺️ Hide Route Map") : tr("🗺️ Show Route Map")}</span>
+            <span>{t(locale, showSearchMap ? 'search.map.hide' : 'search.map.show')}</span>
           </button>
           <button
             type="button"
@@ -308,13 +308,13 @@ export function SearchView({
             style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Bell size={16} />
-            <span>{t(locale, 'alert.cta')}</span>
+            <span>{t(locale, 'search.alert.action')}</span>
           </button>
         </div>
       </div>
 
       {/* Origin & Destination Bar with 1-Tap Geolocation */}
-      <div style={{
+      <div className="route-search-fields" style={{
         background: '#ffffff',
         border: '1px solid var(--bbc-border)',
         borderRadius: 'var(--radius-md)',
@@ -326,7 +326,7 @@ export function SearchView({
         gap: '10px',
         boxShadow: 'var(--shadow-sm)',
       }}>
-        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="route-search-field" style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
             <label htmlFor="search-from-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
               {t(locale, 'search.from')}
@@ -364,7 +364,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                {getHubDisplayName(h, locale)}
               </option>
             ))}
           </select>
@@ -380,7 +380,7 @@ export function SearchView({
           <ArrowsLeftRight size={18} weight="bold" />
         </button>
 
-        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="route-search-field" style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label htmlFor="search-to-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
             {t(locale, 'search.to')}
           </label>
@@ -392,7 +392,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                {getHubDisplayName(h, locale)}
               </option>
             ))}
           </select>
@@ -434,7 +434,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🚗 {locale === 'si-LK' ? 'රියදුරු ආසන' : locale === 'ta-LK' ? 'ஓட்டுநர் இருக்கைகள்' : tr("Available Driver Seats")}</span>
+            <span>🚗 {locale === 'si-LK' ? 'රියදුරු ආසන' : locale === 'ta-LK' ? 'ஓட்டுநர் இருக்கைகள்' : t(locale, 'search.tab.drivers')}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -468,7 +468,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
+            <span>🙋‍♂️ {t(locale, 'search.tab.requests')}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -753,7 +753,7 @@ export function SearchView({
                     className="btn-primary"
                     onClick={() => setShowRequestModal(true)}
                   >
-                    <span>{tr("🙋‍♂️ Post a Seat Request (15 sec)")}</span>
+                    <span>{t(locale, 'search.request.action')}</span>
                   </button>
                   <button
                     type="button"
@@ -774,7 +774,7 @@ export function SearchView({
                     onClick={() => setShowRequestModal(true)}
                     style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    <span>{tr("➕ Post a Seat Request")}</span>
+                    <span>{t(locale, 'search.request.action')}</span>
                   </button>
                 </div>
                 {matchingRequests.map((req) => (
@@ -798,16 +798,16 @@ export function SearchView({
             )
           ) : results.length === 0 ? (
             <div className="empty-results">
-              <h2>{tr("No exact rides at this hour")}</h2>
-              <p>{tr("Drivers often post their journeys 1–2 days before departure. Post a Seat Request so drivers see your route, or create a Ride Alert!")}</p>
+              <h2>{t(locale, 'search.empty.title')}</h2>
+              <p>{t(locale, 'search.empty.body')}</p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
                 <button
                   type="button"
                   className="btn-primary"
                   onClick={() => setShowRequestModal(true)}
-                  aria-label={tr("Post a Seat Request")}
+                  aria-label={t(locale, 'search.request.action')}
                 >
-                  <span>{tr("🙋‍♂️ Post a Seat Request")}</span>
+                  <span>{t(locale, 'search.request.action')}</span>
                 </button>
                 <button
                   type="button"
@@ -983,7 +983,7 @@ export function SearchView({
               </button>
             </div>
 
-            <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginBottom: '20px' }}>{tr("We will notify you immediately when a verified driver publishes a seat from")}<strong>{getHubDisplayName(fromHub, uiLocale)}</strong> {tr("to")} <strong>{getHubDisplayName(toHub, uiLocale)}</strong> {tr("on")} {formatColomboDate(`${date}T00:00:00+05:30`, uiLocale)}.
+            <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginBottom: '20px' }}>{t(locale, 'search.alert.body', { from: getHubDisplayName(fromHub, locale), to: getHubDisplayName(toHub, locale), date: formatColomboDate(`${date}T12:00:00+05:30`, locale) })}
             </p>
 
             <form onSubmit={handleCreateAlert} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

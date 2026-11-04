@@ -1,9 +1,8 @@
 import enData from '../locales/en.json' with { type: 'json' };
 import siData from '../locales/si.json' with { type: 'json' };
 import taData from '../locales/ta.json' with { type: 'json' };
-import ruData from '../locales/ru.json' with { type: 'json' };
 
-export type LocaleCode = 'en-LK' | 'si-LK' | 'ta-LK' | 'ru-RU';
+export type LocaleCode = 'en-LK' | 'si-LK' | 'ta-LK';
 
 export interface LocaleMetadata {
   code: LocaleCode;
@@ -13,20 +12,18 @@ export interface LocaleMetadata {
   langCode: string;
 }
 
-export const SUPPORTED_LOCALES: LocaleCode[] = ['en-LK', 'si-LK', 'ta-LK', 'ru-RU'];
+export const SUPPORTED_LOCALES: LocaleCode[] = ['en-LK', 'si-LK', 'ta-LK'];
 
 export const LOCALE_META: Record<LocaleCode, LocaleMetadata> = {
   'en-LK': { code: 'en-LK', label: 'EN', fullLabel: 'English', flag: '🇬🇧', langCode: 'en' },
   'si-LK': { code: 'si-LK', label: 'සිං', fullLabel: 'සිංහල', flag: '🇱🇰', langCode: 'si' },
   'ta-LK': { code: 'ta-LK', label: 'தமிழ்', fullLabel: 'தமிழ்', flag: '🇱🇰', langCode: 'ta' },
-  'ru-RU': { code: 'ru-RU', label: 'РУС', fullLabel: 'Русский', flag: '🇷🇺', langCode: 'ru' },
 };
 
 export const DICTIONARY: Record<LocaleCode, Record<string, string>> = {
   'en-LK': enData,
   'si-LK': siData,
   'ta-LK': taData,
-  'ru-RU': ruData,
 };
 
 export function isValidLocale(code: unknown): code is LocaleCode {
@@ -38,7 +35,6 @@ export function getValidLocale(raw: string | null | undefined): LocaleCode {
   if (raw === 'en') return 'en-LK';
   if (raw === 'si') return 'si-LK';
   if (raw === 'ta') return 'ta-LK';
-  if (raw === 'ru') return 'ru-RU';
   return 'en-LK';
 }
 
@@ -48,12 +44,8 @@ export function t(
   params?: Record<string, string | number>
 ): string {
   let text = DICTIONARY[locale]?.[key] ?? DICTIONARY['en-LK']?.[key] ?? key;
-  if (params && typeof text === 'string') {
-    for (const [k, v] of Object.entries(params)) {
-      text = text.replaceAll(`{${k}}`, () => String(v));
-    }
-  }
-  return text;
+  return text.replace(/\{([^}]+)\}/g, (placeholder, name: string) =>
+    params && Object.hasOwn(params, name) ? String(params[name]) : placeholder);
 }
 
 export function formatLkr(amount: number, locale: LocaleCode = 'en-LK'): string {

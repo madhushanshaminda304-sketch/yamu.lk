@@ -57,7 +57,7 @@ export function RideDetailView({
     );
   }
 
-  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
   const fromHub = getHubById(fromHubId);
   const toHub = getHubById(toHubId);
   const fromName = getHubDisplayName(fromHub, state.locale) || fromHubId;
@@ -122,7 +122,7 @@ export function RideDetailView({
     <div className="shell" style={{ padding: '32px 0 80px' }}>
       <Link to={`/search?from=${fromHubId}&to=${toHubId}&date=${ride.departureDate}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--bbc-blue)', fontWeight: 700, marginBottom: '24px' }}>{tr("← Back to search results")}</Link>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px' }}>
+      <div className="ride-detail-layout">
         {/* Left: Journey Itinerary & Driver */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <RouteCorridorMap
@@ -137,7 +137,7 @@ export function RideDetailView({
           />
 
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '28px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div className="ride-journey-heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
                   {formatColomboDate(ride.departureAt, uiLocale)}
@@ -173,7 +173,7 @@ export function RideDetailView({
                     </div>
                     <div style={{ width: '16px', height: '16px', borderRadius: '9999px', background: isSelectedFrom || isSelectedTo ? 'var(--bbc-blue)' : isBoarding ? '#047857' : '#c2cbd0', border: '3px solid #ffffff', boxShadow: 'var(--shadow-sm)', marginTop: '4px' }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '16px', fontWeight: 700, color: isBoarding ? 'var(--bbc-navy)' : 'var(--bbc-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div className="ride-stop-title" style={{ fontSize: '16px', fontWeight: 700, color: isBoarding ? 'var(--bbc-navy)' : 'var(--bbc-text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{stopName}</span>
                         {stop.isBoostStop && (
                           <span style={{ fontSize: '11px', fontWeight: 700, background: '#fff3e0', color: '#e65100', padding: '1px 6px', borderRadius: '4px' }}>{tr("Boost Stopover")}</span>
@@ -194,27 +194,27 @@ export function RideDetailView({
           {/* Driver Card */}
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
             <h3 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '16px', color: 'var(--bbc-navy)' }}>{tr("Driver Details")}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+            <div className="ride-driver-overview" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
               <div className="driver-avatar" style={{ width: '56px', height: '56px', fontSize: '20px' }}>
                 {getDriverInitials(ride.driver.name)}
               </div>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="ride-driver-name" style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>{ride.driver.name}</span>
                   {ride.driver.isSuperDriver && (
                     <span className="super-driver-badge">
                       <Star size={12} weight="fill" />{tr("Super Driver")}</span>
                   )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
+                <div className="ride-driver-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                     <Star size={15} color="#f57f17" weight="fill" />
                     <strong>{ride.driver.rating.toFixed(2)}</strong> / 5.0
                   </span>
                   <span>·</span>
-                  <span>{ride.driver.completedRides} {tr("rides completed")}</span>
+                  <span>{t(state.locale, 'booking.driver.trips', { count: ride.driver.completedRides })}</span>
                   <span>·</span>
-                  <span>{tr("Answers in ~")}{ride.driver.responseHours}h</span>
+                  <span>{t(state.locale, 'booking.driver.response', { hours: ride.driver.responseHours })}</span>
                 </div>
               </div>
             </div>
@@ -240,7 +240,7 @@ export function RideDetailView({
                 size="md"
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', fontSize: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '14px', fontSize: '14px' }}>
               <div><strong>{tr("Category:")}</strong> {(ride.vehicleCategory || ride.vehicle.category) === 'suv' ? tr("Comfort SUV") : (ride.vehicleCategory || ride.vehicle.category) === 'van' ? tr("Spacious Van") : tr("Standard Car")}</div>
               <div><strong>{tr("Car:")}</strong> {ride.vehicle.makeModel}</div>
               <div><strong>{tr("Quiet Commute:")}</strong> {ride.comfort?.quietRide ? tr("🔇 Quiet / Work Friendly") : tr("Normal / Friendly")}</div>
@@ -275,7 +275,7 @@ export function RideDetailView({
         {/* Right: Booking Box */}
         <div>
           <div style={{ background: '#ffffff', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '28px', boxShadow: 'var(--shadow-md)', position: 'sticky', top: '100px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div className="ride-price-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <span style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', fontWeight: 700 }}>
                   {t(state.locale, 'booking.total_cost')}
@@ -291,11 +291,11 @@ export function RideDetailView({
               <div style={{ background: '#e8f5e9', border: '1px solid #c8e6c9', borderRadius: 'var(--radius-sm)', padding: '20px', textAlign: 'center' }}>
                 <CheckCircle size={48} color="#2e7d32" weight="fill" style={{ margin: '0 auto 12px' }} />
                 <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#1b5e20' }}>
-                  {bookingConfirmed.status === 'accepted' ? tr("Booking Confirmed!") : tr("Request Sent to Driver")}
+                  {bookingConfirmed.status === 'accepted' ? t(state.locale, 'booking.confirmed.title') : t(state.locale, 'booking.requested.title')}
                 </h4>
                 <p style={{ fontSize: '14px', color: '#2e7d32', marginTop: '6px' }}>
                   {bookingConfirmed.status === 'accepted'
-                    ? tr("Your {0} seat(s) are reserved. Please meet at {1}. Settle {2} onboard.", { "0": bookingConfirmed.seats, "1": fromStop.pickupLandmark, "2": formatLkr(bookingConfirmed.totalPriceLkr, uiLocale) })
+                    ? t(state.locale, 'booking.confirmed.body', { count: bookingConfirmed.seats, place: fromStop.pickupLandmark, price: formatLkr(bookingConfirmed.totalPriceLkr, uiLocale) })
                     : tr("The driver has received your booking request and will accept shortly.")}
                 </p>
                 <div style={{ marginTop: '18px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -320,15 +320,15 @@ export function RideDetailView({
                   >
                     {Array.from({ length: legCheck.availableSeatsOnLeg || 1 }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
-                        {n} {n === 1 ? tr("seat") : tr("seats")} — {formatLkr(legCheck.legPriceLkr * n, uiLocale)}
+                        {t(state.locale, 'booking.seat.option', { count: n, price: formatLkr(legCheck.legPriceLkr * n, state.locale) })}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Onboard Settlement Method")}</span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{t(state.locale, 'booking.payment.label')}</span>
+                  <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: `1px solid ${settlementMethod === 'lankaqr' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: '8px', cursor: 'pointer', background: settlementMethod === 'lankaqr' ? '#f0f9ff' : 'transparent' }}>
                       <input
                         type="radio"
@@ -353,10 +353,12 @@ export function RideDetailView({
                 </div>
 
                 <div>
-                  <label htmlFor="booking-note-textarea" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Note to Driver")}<span style={{ color: 'var(--bbc-text-secondary)', fontWeight: 400 }}>{tr("(optional)")}</span>
+                  <label htmlFor="booking-note-textarea" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{t(state.locale, 'booking.note.label')}
                   </label>
+                  <p id="booking-note-hint" className="booking-action-hint">{t(state.locale, 'booking.note.hint')}</p>
                   <textarea
                     id="booking-note-textarea"
+                    aria-describedby="booking-note-hint"
                     rows={2}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -403,31 +405,33 @@ export function RideDetailView({
 
                 <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
-                    <span>{tr("Total contribution")}</span>
+                    <span>{t(state.locale, 'booking.price.total')}</span>
                     <strong>{formatLkr(legCheck.legPriceLkr * seats, uiLocale)}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--bbc-green)' }}>
-                    <span>{tr("Platform booking fee")}</span>
-                    <strong>{tr("FREE (Pilot)")}</strong>
+                    <span>{t(state.locale, 'booking.price.fee')}</span>
+                    <strong>{t(state.locale, 'booking.price.free')}</strong>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={!legCheck.allowed}
+                  data-testid="booking-confirm"
                   className="btn-primary"
                   style={{ width: '100%', padding: '16px' }}
                 >
                   {ride.approvalMode === 'instant' ? (
                     <>
                       <Sparkle size={18} weight="fill" />
-                      <span>{t(state.locale, 'booking.instant')} ({formatLkr(legCheck.legPriceLkr * seats, uiLocale)})</span>
+                      <span>{t(state.locale, 'booking.action.reserve')}</span>
                     </>
                   ) : (
-                    <span>{t(state.locale, 'booking.manual')}</span>
+                    <span>{t(state.locale, 'booking.action.request')}</span>
                   )}
                 </button>
 
+                <p className="booking-action-hint">{t(state.locale, ride.approvalMode === 'instant' ? 'booking.action.instantHint' : 'booking.action.requestHint')}</p>
                 <button
                   type="button"
                   onClick={() => setShowCompareModal(true)}

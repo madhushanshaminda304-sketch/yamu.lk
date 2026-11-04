@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { HUBS, ALL_HUBS, getHubById, findRouteOptions, resolveHubKey, getHubDisplayName } from '../domain/corridors.ts';
 import { calculateRecommendedLkr, getContributionBounds, getPriceBand, stepContributionLkr, type TollPolicy } from '../domain/pricing.ts';
 import type { Ride, ApprovalMode, VehicleCategory, LuggageSize } from '../domain/matching.ts';
-import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
+import { formatLkr, formatColomboDate, getColomboDateOffset, t } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 import type { MarketplaceStore, MarketplaceState } from '../state/store.ts';
@@ -247,7 +247,8 @@ export function PublishRideView({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{tr('Publish a Ride (Step {0} of 6)', { 0: step })}</h1>
+        <h1 className="desktop-only" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{t(state.locale, 'publish.step.heading', { step })}</h1>
+        <p className="mobile-only publish-step-caption">{t(state.locale, 'publish.step.progress', { step })}</p>
         <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '9999px' }}>
           {['', tr("1. Where & Landmarks"), tr("2. Route & Toll Policy"), tr("3. Date & Return Ride"), tr("4. Seats & Vehicle"), tr("5. LKR Contribution"), tr("6. Approval & Review")][step]}
         </span>
@@ -275,7 +276,7 @@ export function PublishRideView({
                 <span>{tr("Offering seat to passenger request. Origin, destination, date, and time pre-filled!")}</span>
               </div>
             )}
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Where are you leaving from and going to?")}</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{t(state.locale, 'publish.route.heading')}</h2>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>
@@ -323,14 +324,14 @@ export function PublishRideView({
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
-                      {hubName} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                      {hubName}
                     </option>
                   );
                 })}
               </select>
             </div>
             <div>
-              <label htmlFor="publish-pickup-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Pickup Landmark Meeting Point")}</label>
+              <label htmlFor="publish-pickup-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{t(state.locale, 'publish.route.pickup')}</label>
               <input
                 id="publish-pickup-landmark"
                 type="text"
@@ -362,14 +363,14 @@ export function PublishRideView({
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
-                      {hubName} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                      {hubName}
                     </option>
                   );
                 })}
               </select>
             </div>
             <div>
-              <label htmlFor="publish-dropoff-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Drop-off Landmark")}</label>
+              <label htmlFor="publish-dropoff-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{t(state.locale, 'publish.route.dropoff')}</label>
               <input
                 id="publish-dropoff-landmark"
                 type="text"
@@ -390,7 +391,7 @@ export function PublishRideView({
                 }
                 setStep(2);
               }}
-            >{tr("Continue to Route Selection →")}</button>
+            >{t(state.locale, 'publish.next.route')}</button>
           </div>
         )}
 
@@ -454,7 +455,7 @@ export function PublishRideView({
             {activeRoute?.hasTolls && (
               <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
                 <span style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', display: 'block' }}>{tr("Expressway Toll Policy")}</span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', border: `1px solid ${tollPolicy === 'included' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: '8px', cursor: 'pointer', background: tollPolicy === 'included' ? '#f0f9ff' : 'transparent' }}>
                     <input type="radio" name="tollPolicy" checked={tollPolicy === 'included'} onChange={() => setTollPolicy('included')} />
                     <div>
@@ -516,15 +517,15 @@ export function PublishRideView({
               </div>
             </label>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(1)}>{tr("← Back")}</button>
+            <div className="wizard-actions" style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setStep(1)}>{t(state.locale, 'common.back')}</button>
               <button
                 type="button"
                 className="btn-primary"
                 style={{ flex: 1 }}
                 disabled={routeOptions.length === 0 || !activeRoute}
                 onClick={() => setStep(3)}
-              >{tr("Continue to Timing →")}</button>
+              >{t(state.locale, 'publish.next.time')}</button>
             </div>
           </div>
         )}
@@ -568,7 +569,7 @@ export function PublishRideView({
               </label>
 
               {hasReturnRide && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--bbc-surface-subtle)', padding: '16px', borderRadius: '8px' }}>
+                <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--bbc-surface-subtle)', padding: '16px', borderRadius: '8px' }}>
                   <div>
                     <label htmlFor="return-date-input" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>{tr("Return Date")}</label>
                     <input
@@ -594,9 +595,9 @@ export function PublishRideView({
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(2)}>{tr("← Back")}</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(4)}>{tr("Continue to Seats & Vehicle →")}</button>
+            <div className="wizard-actions" style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setStep(2)}>{t(state.locale, 'common.back')}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(4)}>{t(state.locale, 'publish.next.vehicle')}</button>
             </div>
           </div>
         )}
@@ -618,7 +619,7 @@ export function PublishRideView({
 
             <div>
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Vehicle Class")}</span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {[
                   { id: 'car', label: tr("Car / Sedan"), icon: '🚗' },
                   { id: 'suv', label: tr("Comfort SUV"), icon: '🚙' },
@@ -679,7 +680,7 @@ export function PublishRideView({
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
                 {t(state.locale, 'luggage.title')}
               </span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {[
                   { key: 'small', label: t(state.locale, 'luggage.backpack'), icon: '🎒', desc: 'No boot space' },
                   { key: 'medium', label: t(state.locale, 'luggage.medium'), icon: '🧳', desc: 'Standard suitcase' },
@@ -712,7 +713,7 @@ export function PublishRideView({
 
             <div>
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>{tr("📍 Pickup Precision & Highway Policy")}</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <button
                   type="button"
                   onClick={() => setPickupPrecision('interchange_only')}
@@ -780,9 +781,9 @@ export function PublishRideView({
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(3)}>{tr("← Back")}</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(5)}>{tr("Continue to Pricing →")}</button>
+            <div className="wizard-actions" style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setStep(3)}>{t(state.locale, 'common.back')}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(5)}>{t(state.locale, 'publish.next.price')}</button>
             </div>
           </div>
         )}
@@ -828,9 +829,9 @@ export function PublishRideView({
               </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(4)}>{tr("← Back")}</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(6)}>{tr("Continue to Review →")}</button>
+            <div className="wizard-actions" style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setStep(4)}>{t(state.locale, 'common.back')}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(6)}>{t(state.locale, 'publish.next.review')}</button>
             </div>
           </div>
         )}
@@ -841,7 +842,7 @@ export function PublishRideView({
 
             <div>
               <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px' }}>{tr("Can passengers book instantly?")}</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <label style={{ padding: '14px', border: `2px solid ${approvalMode === 'instant' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: approvalMode === 'instant' ? '#f0f9ff' : 'transparent' }}>
                   <input type="radio" name="approval" checked={approvalMode === 'instant'} onChange={() => setApprovalMode('instant')} />
                   <div style={{ marginTop: '6px' }}>
@@ -873,12 +874,11 @@ export function PublishRideView({
             </div>
 
             <div style={{ background: '#f4f6f8', padding: '16px', borderRadius: '8px', fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>
-              <strong>{tr("Summary:")}</strong> {getHubDisplayName(getHubById(originHubId), uiLocale)} → {getHubDisplayName(getHubById(destinationHubId), uiLocale)} {tr("on")} {date} {tr("at")} {departureTime} · {seats} {tr("seats at")} {formatLkr(priceLkr, uiLocale)} {tr("per seat (")}{approvalMode === 'instant' ? tr("Instant Booking") : tr("Manual Request")}).
-              {hasReturnRide && tr(" · Includes return ride on {0} at {1}.", { "0": returnDate, "1": returnTime })}
+              <strong>{t(state.locale, 'publish.review.heading')}</strong><p>{t(state.locale, 'publish.review.body', { from: getHubDisplayName(getHubById(originHubId), state.locale), to: getHubDisplayName(getHubById(destinationHubId), state.locale), date: formatColomboDate(`${date}T12:00:00+05:30`, state.locale), time: departureTime, seats, price: formatLkr(priceLkr, state.locale) })}</p><p>{t(state.locale, 'publish.review.approval', { mode: t(state.locale, approvalMode === 'instant' ? 'booking.instant' : 'booking.manual') })}</p>{hasReturnRide && <p>{t(state.locale, 'publish.review.return', { date: formatColomboDate(`${returnDate}T12:00:00+05:30`, state.locale), time: returnTime })}</p>}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(5)}>{tr("← Back")}</button>
+            <div className="wizard-actions" style={{ display: 'flex', gap: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setStep(5)}>{t(state.locale, 'common.back')}</button>
               <button type="submit" className="btn-primary" style={{ flex: 1, padding: '16px' }}>{tr("Publish Your Ride")}</button>
             </div>
           </form>

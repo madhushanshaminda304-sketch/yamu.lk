@@ -14,12 +14,12 @@ const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;
 for (const locale of SUPPORTED_LOCALES) {
   const language = LOCALE_META[locale].langCode;
   const title = `${t(locale, 'brand.tagline')} | Yamo`;
-  const description = t(locale, 'hero.subtitle');
+  const description = t(locale, 'home.hero.description');
   const languages = SUPPORTED_LOCALES.map(code => `<a href="${localizedPath('/', code)}" lang="${LOCALE_META[code].langCode}" hreflang="${LOCALE_META[code].langCode}">${escape(LOCALE_META[code].fullLabel)}</a>`).join(' · ');
   const corridors = [['colombo', 'kandy'], ['makumbura', 'galle'], ['colombo', 'matara'], ['colombo', 'jaffna']]
     .map(([from, to]) => `<li><a href="${localizedPath('/search', locale)}?from=${from}&amp;to=${to}">${escape(getHubDisplayName(getHubById(from), locale))} → ${escape(getHubDisplayName(getHubById(to), locale))}</a></li>`).join('');
   const content = `<header class="shell"><a href="/${language}/">Yamo</a><nav aria-label="${escape(t(locale, 'nav.search'))}">${languages}</nav></header>
-    <main><section class="hero-section"><div class="shell hero-content"><h1 class="hero-title">${escape(t(locale, 'hero.title'))}</h1><p class="hero-subtitle">${escape(description)}</p>
+    <main><section class="hero-section"><div class="shell hero-content"><h1 class="hero-title">${escape(t(locale, 'home.hero.heading'))}</h1><p class="hero-subtitle">${escape(description)}</p>
     <a class="btn-primary" href="/${language}/search">${escape(t(locale, 'nav.search'))}</a> <a class="btn-secondary" href="/${language}/publish">${escape(t(locale, 'nav.publish'))}</a></div></section>
     <section class="shell">${[1, 2, 3].map(i => `<h2>${escape(t(locale, `usp.${i}.title`))}</h2><p>${escape(t(locale, `usp.${i}.body`))}</p>`).join('')}<ul>${corridors}</ul><p>${escape(t(locale, 'scam.banner'))}</p></section></main>`;
   let html = template.replace(/<html lang="[^"]*">/, `<html lang="${language}">`)
@@ -36,4 +36,4 @@ for (const locale of SUPPORTED_LOCALES) {
   await fs.writeFile(path.join(output, language, 'index.html'), html);
   if (language === 'en') await fs.writeFile(path.join(output, 'index.html'), html);
 }
-console.log('Prerendered English, Sinhala, Tamil and Russian homepages' + (origin ? ` for ${origin}` : '. Set SITE_URL for build-time canonical and hreflang URLs.'));
+console.log('Prerendered English, Sinhala and Tamil homepages' + (origin ? ` for ${origin}` : '. Set SITE_URL for build-time canonical and hreflang URLs.'));

@@ -1,6 +1,6 @@
 # Yamo language support
 
-The website uses `/en/`, `/si/`, `/ta/`, and `/ru/`. One React application and one marketplace store serve every language. Ride IDs, booking IDs, search parameters, and user content are shared across languages.
+The website uses `/en/`, `/si/`, and `/ta/`. One React application and one marketplace store serve every language. Ride IDs, booking IDs, search parameters, and user content are shared across languages.
 
 ## Development
 
@@ -19,9 +19,9 @@ The Android app uses the same bundled translations and saved setting. Its back h
 
 ## Translations
 
-Existing semantic translation keys remain in `src/locales/en.json`, `si.json`, `ta.json`, and `ru.json`, accessed through `t(locale, key)`.
+Existing semantic translation keys remain in `src/locales/en.json`, `si.json`, and `ta.json`, accessed through `t(locale, key)`.
 
-Additional interface copy lives in `src/locales/ui.json`. The English source text is its key; each value contains translations in the fixed order **Sinhala, Tamil, Russian**. In a React component, use `useUiText()` and `tr('English source')`. Supply a component's explicit locale to `useUiText(locale)` when applicable.
+Additional interface copy lives in `src/locales/ui.json`. The English source text is its key; each value contains translations in the fixed order **Sinhala, Tamil**. In a React component, use `useUiText()` and `tr('English source')`. Supply a component's explicit locale to `useUiText(locale)` when applicable.
 
 For sentences containing dynamic data, use one complete template with numbered placeholders, for example `tr('Ride from {0} to {1} with {2}', { 0: origin, 1: destination, 2: driverName })`. The catalog supports reordering. Do not translate user-entered names, custom titles, driver notes, chat messages, or form values. Curated hub names use `getHubDisplayName(hub, locale)`.
 
@@ -44,8 +44,18 @@ Tests cover language precedence, legacy links, refreshes, history, search filter
 
 ## Build and hosting
 
-`npm run build` emits translated homepage HTML into `dist/en/`, `dist/si/`, `dist/ta/`, and `dist/ru/` before JavaScript loads. Search results and account screens remain client rendered.
+`npm run build` emits translated homepage HTML into `dist/en/`, `dist/si/`, and `dist/ta/` before JavaScript loads. Search results and account screens remain client rendered.
 
 Set `SITE_URL` (or `VITE_SITE_URL`) to the actual public origin in the hosting environment, for example `https://your-domain.example`, before building. This adds absolute canonical and reciprocal `hreflang` links to the prerendered homepages. While the application runs, metadata uses the actual browser origin. Private and unknown routes receive `noindex` metadata.
 
 Keep the existing SPA fallback for deep links. Verify both `/si/` and `/si/rides/<id>` on the selected host before release. Capacitor continues to package `dist` with `npm run cap:sync`.
+
+## Copy and layout review
+
+Navigation labels, page headings, helper text and complete summaries have separate contextual keys in the locale catalogs. Write for the action and available space rather than mirroring English word order. Use one complete message for each sentence, with named placeholders, and preserve user-entered content.
+
+The tone is friendly and professional. Sinhala uses consistent terms for trips, accounts and bookings; Tamil uses Sri Lankan terminology such as சாரதி where appropriate. Proper names and LankaQR remain unchanged. New contextual copy is an editorial draft, not a claim of independent native-speaker approval.
+
+Mobile page titles occupy their own row. Native-script font stacks, expandable controls and bounded grid columns let translated text fit without hiding it. The layout browser tests check clipping and off-screen controls, including all six publishing steps. Retired Russian URLs redirect to the equivalent supported-language route.
+
+Fonts are bundled locally: Manrope for Latin text, Noto Sans Sinhala and Noto Sans Tamil for native scripts. The application does not request Google Fonts. SIL Open Font License texts are included under public/font-licenses.

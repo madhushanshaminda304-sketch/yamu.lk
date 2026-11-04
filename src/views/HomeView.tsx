@@ -53,7 +53,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
       const nearest = findNearestHub(coords, ALL_HUBS);
       setFromHubId(nearest.hub.id);
       await triggerHaptic('success');
-      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
       toast.success(tr(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`));
     } catch {
@@ -78,8 +78,8 @@ export function HomeView({ state }: { state: MarketplaceState }) {
     <div>
       <section className="hero-section">
         <div className="shell hero-content">
-          <h1 className="hero-title">{t(locale, 'hero.title')}</h1>
-          <p className="hero-subtitle">{t(locale, 'hero.subtitle')}</p>
+          <h1 className="hero-title">{t(locale, 'home.hero.heading')}</h1>
+          <p className="hero-subtitle">{t(locale, 'home.hero.description')}</p>
         </div>
 
         <div className="shell">
@@ -116,7 +116,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-from-select" value={fromHubId} onChange={(e) => setFromHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                      {getHubDisplayName(h, locale)}
                     </option>
                   ))}
                 </select>
@@ -131,7 +131,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-to-select" value={toHubId} onChange={(e) => setToHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
+                      {getHubDisplayName(h, locale)}
                     </option>
                   ))}
                 </select>
@@ -207,7 +207,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <span>{t(locale, 'commute.toggle')}</span>
               </button>
 
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{tr("Quick Hubs:")}</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{t(locale, 'home.shortcuts.label')}</span>
               {savedPlaces.map((place) => {
                 const hub = getHubById(place.hubId);
                 const hubName = getHubDisplayName(hub, uiLocale) || place.hubId;
@@ -245,7 +245,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                      place.label === 'work' ? <Briefcase size={13} weight={isSelected ? 'fill' : 'bold'} /> :
                      place.label === 'university' ? <GraduationCap size={13} weight={isSelected ? 'fill' : 'bold'} /> :
                      <MapPin size={13} weight={isSelected ? 'fill' : 'bold'} />}
-                    <span>{place.title}</span>
+                    <span>{['Home', 'Work', 'Campus'].includes(place.title) || place.id.startsWith('def-') ? t(locale, 'home.shortcuts.' + place.label) : place.title}</span>
                   </button>
                 );
               })}
@@ -354,8 +354,8 @@ export function HomeView({ state }: { state: MarketplaceState }) {
       <section className="shell corridors-section">
         <div className="section-header">
           <div>
-            <h2>{tr("Popular Sri Lankan Carpool Corridors")}</h2>
-            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>{tr("Explore frequently travelled routes with verified drivers and cost-sharing rates.")}</p>
+            <h2>{t(locale, 'home.corridors.title')}</h2>
+            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>{t(locale, 'home.corridors.description')}</p>
           </div>
         </div>
 
@@ -420,7 +420,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '6px' }}>
               <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
-              <span>{tr("• Two-Way Marketplace")}</span>
+
             </div>
             <h2 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
               {t(locale, 'requests.subtitle')}
@@ -450,7 +450,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '16px' }}>
           {(state.passengerRequests || []).slice(0, 3).map((req) => (
             <PassengerRequestCard key={req.id} request={req} />
           ))}

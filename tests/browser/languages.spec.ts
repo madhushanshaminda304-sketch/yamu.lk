@@ -61,11 +61,11 @@ test('publishing draft and wizard step survive a language change', async ({ page
   await page.goto('/en/publish');
   await page.locator('#publish-pickup-landmark').fill('My meeting point');
   await page.locator('#publish-dropoff-landmark').fill('My dropoff');
-  await page.getByRole('button', { name: 'Continue to Route Selection →' }).click();
+  await page.getByRole('button', { name: 'Choose route' }).click();
   await page.getByRole('button', { name: 'தமிழ்', exact: true }).filter({ visible: true }).click();
   await expect(page).toHaveURL('/ta/publish');
   await expect(page.locator('main')).toContainText('வழித்தடத்தையும்');
-  await page.locator('main').getByRole('button', { name: '← பின்செல்லவும்', exact: true }).click();
+  await page.locator('main .wizard-actions .btn-secondary').click();
   await expect(page.locator('#publish-pickup-landmark')).toHaveValue('My meeting point');
   await expect(page.locator('#publish-dropoff-landmark')).toHaveValue('My dropoff');
 });
@@ -82,7 +82,7 @@ test('legacy deep links preserve parameters and root remembers the selected lang
 test('mobile language control and tabs use the correct route and active state', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/si/');
-  await page.locator('.mobile-top-bar button[title="தமிழ்"]').click();
+  await page.locator('.mobile-top-bar select').selectOption('ta-LK');
   await expect(page).toHaveURL('/ta/');
   await page.locator('.mobile-bottom-nav button').nth(1).click();
   await expect(page).toHaveURL('/ta/publish');

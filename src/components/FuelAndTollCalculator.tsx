@@ -132,7 +132,7 @@ export function FuelAndTollCalculator() {
           </div>
 
           {/* Grid of Fuel, Seats, and Frequency */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '14px' }}>
             {/* Fuel Type */}
             <div>
               <label htmlFor="calculator-fuel-select" style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("2. Fuel Type")}</label>
@@ -162,14 +162,14 @@ export function FuelAndTollCalculator() {
             {/* Empty Seats */}
             <div>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("3. Empty Seats Shared")}</span>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="calculator-segments" style={{ display: 'flex', gap: '6px' }}>
                 {[1, 2, 3].map((num) => {
                   const isSelected = emptySeats === num;
                   return (
                     <button
                       key={num}
                       type="button"
-                      onClick={() => handleSelectSeats(num)}
+                      onClick={() => handleSelectSeats(num)} aria-label={t(locale, 'calculator.seats', { count: num })}
                       style={{
                         flex: 1,
                         padding: '9px 6px',
@@ -183,7 +183,7 @@ export function FuelAndTollCalculator() {
                         textAlign: 'center',
                       }}
                     >
-                      {num} {num === 1 ? tr("Seat") : tr("Seats")}
+                      {num}
                     </button>
                   );
                 })}
@@ -193,11 +193,11 @@ export function FuelAndTollCalculator() {
             {/* Frequency */}
             <div>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("4. Trip Frequency")}</span>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="calculator-segments" style={{ display: 'flex', gap: '6px' }}>
                 {[
-                  { id: 'one_way', label: tr("1-Way") },
-                  { id: 'weekend_return', label: tr("Weekend") },
-                  { id: 'daily_commute', label: tr("Daily (20d)") },
+                  { id: 'one_way', label: t(locale, 'calculator.frequency.one') },
+                  { id: 'weekend_return', label: t(locale, 'calculator.frequency.return') },
+                  { id: 'daily_commute', label: t(locale, 'calculator.frequency.daily') },
                 ].map((item) => {
                   const isSelected = frequency === item.id;
                   return (
@@ -229,7 +229,7 @@ export function FuelAndTollCalculator() {
         </div>
 
         {/* 3 Live Impact Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '22px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '16px', marginBottom: '22px' }}>
           {/* Card 1: Solo vs Per-Seat Share */}
           <div
             style={{
@@ -274,7 +274,7 @@ export function FuelAndTollCalculator() {
                 {frequency === 'one_way' ? tr(" (1 trip)") : tr(" / month")}
               </span>
             </div>
-            <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>{tr("Regular commuter saves")}<strong>{formatLkr(impact.annualDriverSavingsLkr, uiLocale)} {tr("/ year")}</strong> {tr("by sharing")} {impact.seatsShared}{tr("empty seats.")}</div>
+            <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>{t(locale, 'calculator.yearSavings', { seats: impact.seatsShared, price: formatLkr(impact.annualDriverSavingsLkr, locale) })}</div>
           </div>
 
           {/* Card 3: Traffic & Green Impact */}
@@ -305,7 +305,7 @@ export function FuelAndTollCalculator() {
             {impact.corridor.name} ({impact.distanceKm} km · {impact.corridor.expresswayName})
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="calculator-actions" style={{ display: 'flex', gap: '10px' }}>
             <button
               type="button"
               className="btn-secondary"

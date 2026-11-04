@@ -2,7 +2,7 @@ import { DICTIONARY, type LocaleCode } from './i18n.ts';
 import messages from '../locales/ui.json' with { type: 'json' };
 
 export const UI_MESSAGES: Record<string, string[]> = messages;
-const localeIndex: Partial<Record<LocaleCode, number>> = { 'si-LK': 0, 'ta-LK': 1, 'ru-RU': 2 };
+const localeIndex: Partial<Record<LocaleCode, number>> = { 'si-LK': 0, 'ta-LK': 1 };
 const existingKeys = new Map(Object.entries(DICTIONARY['en-LK']).map(([key, value]) => [value, key]));
 const templates = Object.keys(UI_MESSAGES).filter(source => /\{\d+\}/.test(source)).map(source => ({
   source,

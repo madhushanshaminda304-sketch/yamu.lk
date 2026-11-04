@@ -53,7 +53,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   if (!isOpen) return null;
 
   const currentLocale = locale ?? uiLocale;
-  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
   const fromName = getHubDisplayName(fromHub, currentLocale) || booking.fromHubId;

@@ -6,7 +6,8 @@ export function localeFromPath(pathname: string): LocaleCode | null {
 }
 
 export function stripLanguagePrefix(pathname: string): string {
-  return localeFromPath(pathname) ? pathname.replace(/^\/[^/]+/, '') || '/' : pathname;
+  // Retired Russian links retain their destination when redirected to a supported language.
+  return localeFromPath(pathname) || /^\/ru(?:\/|$)/.test(pathname) ? pathname.replace(/^\/[^/]+/, '') || '/' : pathname;
 }
 
 /** Localize internal absolute paths, leaving relative and external destinations alone. */

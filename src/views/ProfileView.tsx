@@ -153,7 +153,7 @@ export function ProfileView({
         </div>
         <p style={{ fontSize: '13px', color: '#78350f', marginBottom: '12px', lineHeight: 1.4 }}>{tr("Super Drivers respond in under 3 hours, maintain a 4.7+ rating, a 2.8+ driving score, and have verified identity documents.")}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '8px', fontSize: '13px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: '8px', fontSize: '13px' }}>
           <div style={{ color: user.verifiedPhone && user.verifiedNic ? '#047857' : '#dc2626', fontWeight: 600 }}>
             {user.verifiedPhone && user.verifiedNic ? '✓' : '✗'}{tr("Verified NIC & +94 Phone")}</div>
           <div style={{ color: user.overallRating >= 4.7 ? '#047857' : '#dc2626', fontWeight: 600 }}>
@@ -195,7 +195,7 @@ export function ProfileView({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-choice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
               <label htmlFor="profile-nic" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Sri Lankan NIC (9-digit V/X or 12-digit)")}</label>
               <input
@@ -355,7 +355,7 @@ export function ProfileView({
 
         <form onSubmit={handleAddPlace} style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
           <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px' }}>{tr("Add a New Commute Place")}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '10px', marginBottom: '10px' }}>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>{tr("Category")}</label>
               <select
@@ -478,7 +478,7 @@ export function ProfileView({
         {(user.trustedContacts?.length ?? 0) < 2 ? (
           <form onSubmit={handleAddContact} style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px' }}>{tr("Add Trusted Contact")}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 130px), 1fr))', gap: '10px', marginBottom: '10px' }}>
               <div>
                 <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', display: 'block', marginBottom: '4px' }}>{tr("Name")}</label>
                 <input

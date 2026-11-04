@@ -145,7 +145,7 @@ export function MobileBottomNav({
           display: 'flex',
           justifyContent: 'space-around',
           alignItems: 'center',
-          height: '56px',
+          minHeight: '72px',
           maxWidth: '560px',
           margin: '0 auto',
           padding: '0 8px',
@@ -179,7 +179,7 @@ export function MobileBottomNav({
               type="button"
               className={`mobile-nav-item ${active ? 'active' : ''}`}
               onClick={() => handleTabPress(tab.path)}
-              aria-label={label}
+              aria-label={tab.id === 'requests' ? t(locale, 'nav.mobile.requests.full') : label}
               aria-current={active ? 'page' : undefined}
               style={{
                 display: 'flex',
@@ -234,12 +234,12 @@ export function MobileBottomNav({
               </div>
               <span
                 style={{
-                  fontSize: '12px',
+                  fontSize: '14px',
                   fontWeight: active ? 700 : 500,
                   marginTop: '3px',
                   letterSpacing: '-0.2px',
                   whiteSpace: 'normal',
-                  lineHeight: 1.3,
+                  lineHeight: 1.5,
                   textAlign: 'center',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

@@ -22,12 +22,12 @@ describe('Location Actions & Geolocation Integration', () => {
     }
 
     assert.equal(t('en-LK', 'location.use_my_location'), 'Use my location');
-    assert.equal(t('si-LK', 'location.use_my_location'), 'මගේ ස්ථානය ගන්න');
-    assert.equal(t('ta-LK', 'location.use_my_location'), 'எனது இருப்பிடம்');
+    assert.equal(t('si-LK', 'location.use_my_location'), 'මා අසල');
+    assert.equal(t('ta-LK', 'location.use_my_location'), 'என் அருகில்');
 
     assert.equal(t('en-LK', 'location.locating'), 'Locating nearest hub...');
-    assert.equal(t('si-LK', 'location.locating'), 'ළඟම මධ්‍යස්ථානය සොයමින්...');
-    assert.equal(t('ta-LK', 'location.locating'), 'அருகிலுள்ள நிலையத்தைத் தேடுகிறது...');
+    assert.equal(t('si-LK', 'location.locating'), 'ස්ථානය සොයමින්…');
+    assert.equal(t('ta-LK', 'location.locating'), 'இடத்தைத் தேடுகிறது…');
 
     assert.equal(t('en-LK', 'location.located'), 'Nearest hub located: ');
     assert.equal(t('si-LK', 'location.located'), 'ළඟම මධ්‍යස්ථානය: ');
