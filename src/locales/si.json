@@ -90,5 +90,10 @@
   "toast.alert_invalid_email": "කරුණාකර වලංගු විද්‍යුත් තැපැල් ලිපිනයක් ඇතුළත් කරන්න.",
   "toast.publish_success": "රයිඩ් එක සාර්ථකව පළ කරන ලදී!",
   "toast.request_created": "ආසන ඉල්ලීම සාර්ථකව පළ කරන ලදී!",
-  "toast.copied": "පිටපත් කරගන්නා ලදී!"
+  "toast.copied": "පිටපත් කරගන්නා ලදී!",
+  "nav.mobile.search": "සොයන්න",
+  "nav.mobile.publish": "පළ කරන්න",
+  "nav.mobile.requests": "ඉල්ලීම්",
+  "nav.mobile.rides": "ගමන්",
+  "nav.mobile.profile": "පැතිකඩ"
 }

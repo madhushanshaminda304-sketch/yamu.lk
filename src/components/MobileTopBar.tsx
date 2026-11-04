@@ -1,5 +1,6 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link, useLanguageChange } from '../components/LocalizedRouter.tsx';
 import { CaretLeft, UserCheck, SignIn, CheckCircle } from '@phosphor-icons/react';
 import { YamoIcon } from './YamoLogo.tsx';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -51,8 +52,10 @@ export function MobileTopBar({
   openAuthModal,
   title: propTitle,
 }: MobileTopBarProps = {}) {
+  const { tr, uiLocale } = useUiText();
   const location = useLocation();
   const navigate = useNavigate();
+  const changeLanguage = useLanguageChange();
   const locationPath = location.pathname;
 
   const fallbackStore = propStore?.getState?.() ?? null;
@@ -62,7 +65,7 @@ export function MobileTopBar({
   const user = state?.currentUser;
 
   const { title: resolvedTitle, isRoot } = resolveScreenTitle(locationPath, locale);
-  const displayTitle = propTitle ?? resolvedTitle;
+  const displayTitle = propTitle ?? tr(resolvedTitle);
 
   const handleBack = () => {
     triggerHaptic('selection');
@@ -74,6 +77,7 @@ export function MobileTopBar({
     const targetStore = propStore ?? defaultMarketplaceStore;
     if (targetStore?.setLocale) {
       targetStore.setLocale(newLocale);
+      changeLanguage(newLocale);
     }
   };
 
@@ -107,7 +111,7 @@ export function MobileTopBar({
             <Link
               to="/"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-              aria-label="Yamo Home"
+              aria-label={tr("Yamo Home")}
             >
               <YamoIcon size={28} />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
@@ -121,7 +125,7 @@ export function MobileTopBar({
               <button
                 type="button"
                 onClick={handleBack}
-                aria-label="Go Back"
+                aria-label={tr("Go Back")}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -162,7 +166,7 @@ export function MobileTopBar({
           <div
             className="mobile-lang-pill"
             role="group"
-            aria-label="Language Selector"
+            aria-label={tr("Language Selector")}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -182,7 +186,7 @@ export function MobileTopBar({
                   onClick={() => handleLanguageChange(code)}
                   style={{
                     padding: '3px 6px',
-                    fontSize: '10.5px',
+                    fontSize: '12px',
                     fontWeight: active ? 800 : 600,
                     borderRadius: '9999px',
                     background: active ? '#047857' : 'transparent',
@@ -192,6 +196,8 @@ export function MobileTopBar({
                     transition: 'background-color 0.15s ease, color 0.15s ease',
                   }}
                   title={meta.fullLabel}
+                  aria-label={meta.fullLabel}
+                  lang={meta.langCode}
                   aria-pressed={active}
                 >
                   {meta.label}
@@ -205,7 +211,7 @@ export function MobileTopBar({
             <Link
               to="/profile"
               onClick={() => triggerHaptic('selection')}
-              aria-label="User Profile"
+              aria-label={tr("User Profile")}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -252,7 +258,7 @@ export function MobileTopBar({
               }}
             >
               <SignIn size={14} weight="bold" />
-              <span>Sign In</span>
+              <span>{tr("Sign In")}</span>
             </button>
           )}
         </div>

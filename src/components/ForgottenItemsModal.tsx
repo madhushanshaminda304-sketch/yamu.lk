@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React, { useEffect } from 'react';
 import {
   Package,
@@ -11,7 +12,7 @@ import {
   CheckCircle,
 } from '@phosphor-icons/react';
 import { pushOverlayDismissHandler } from '../native/backButton.ts';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { deriveBoardingPin, buildForgottenItemRecoveryUrl } from '../domain/sharing.ts';
 import { CarPlateBadge } from './CarPlateBadge.tsx';
 import type { Ride } from '../domain/matching.ts';
@@ -32,6 +33,7 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
   booking,
   driver,
 }) => {
+  const { tr, uiLocale } = useUiText();
   useEffect(() => {
     if (!isOpen) return;
     const unregister = pushOverlayDismissHandler(() => {
@@ -45,8 +47,8 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
 
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
-  const fromName = fromHub?.name.en ?? booking.fromHubId;
-  const toName = toHub?.name.en ?? booking.toHubId;
+  const fromName = getHubDisplayName(fromHub, uiLocale) || booking.fromHubId;
+  const toName = getHubDisplayName(toHub, uiLocale) || booking.toHubId;
 
   const driverName = driver?.name || ride.driver.name;
   const driverPhone = driver?.phone || ride.driver.phone || '+94 77 123 4567';
@@ -85,15 +87,13 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
               <Package size={24} weight="duotone" className="text-amber-200" />
             </div>
             <div>
-              <h2 id="forgotten-items-title" className="font-bold text-lg text-white leading-tight">
-                Left an Item in the Car?
-              </h2>
-              <p className="text-xs text-amber-100/80">Direct Driver Lost & Found Recovery</p>
+              <h2 id="forgotten-items-title" className="font-bold text-lg text-white leading-tight">{tr("Left an Item in the Car?")}</h2>
+              <p className="text-xs text-amber-100/80">{tr("Direct Driver Lost & Found Recovery")}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label={tr("Close dialog")}
             className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={20} />
@@ -106,13 +106,12 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs text-slate-500 font-medium">Your Driver</div>
+                <div className="text-xs text-slate-500 font-medium">{tr("Your Driver")}</div>
                 <div className="font-bold text-base text-slate-900 flex items-center gap-1.5">
                   {driverName}
                   {ride.driver.isSuperDriver && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded">
-                      <Sparkle size={10} weight="fill" className="text-amber-600" /> Super Driver
-                    </span>
+                      <Sparkle size={10} weight="fill" className="text-amber-600" />{tr("Super Driver")}</span>
                   )}
                 </div>
               </div>
@@ -130,7 +129,7 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <IdentificationBadge size={14} className="text-slate-500 shrink-0" />
-                <span>PIN: #{boardingPin}</span>
+                <span>{tr("PIN: #")}{boardingPin}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle size={14} className="text-emerald-600 shrink-0" />
@@ -147,26 +146,23 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
               rel="noopener noreferrer"
               className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors text-center"
             >
-              <WhatsappLogo size={20} weight="fill" />
-              WhatsApp Driver About Left Item
-            </a>
+              <WhatsappLogo size={20} weight="fill" />{tr("WhatsApp Driver About Left Item")}</a>
 
             <a
               href={`tel:${driverPhone}`}
               className="w-full py-2.5 px-4 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-colors text-center"
             >
-              <PhoneCall size={16} />
-              Call Driver Directly ({driverPhone})
+              <PhoneCall size={16} />{tr("Call Driver Directly (")}{driverPhone})
             </a>
           </div>
 
           {/* Helpful Tips */}
           <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 space-y-1">
-            <div className="font-semibold text-amber-950">Sri Lanka Recovery Advice:</div>
+            <div className="font-semibold text-amber-950">{tr("Sri Lanka Recovery Advice:")}</div>
             <ul className="list-disc list-inside space-y-0.5 text-amber-900/90 pl-0.5">
-              <li>Drivers check their backseats between journeys; give them time to respond safely.</li>
-              <li>When collecting, meet at a public multimodal hub or station.</li>
-              <li>Consider offering reasonable fuel reimbursement if the driver delivers it to you.</li>
+              <li>{tr("Drivers check their backseats between journeys; give them time to respond safely.")}</li>
+              <li>{tr("When collecting, meet at a public multimodal hub or station.")}</li>
+              <li>{tr("Consider offering reasonable fuel reimbursement if the driver delivers it to you.")}</li>
             </ul>
           </div>
         </div>
@@ -176,9 +172,7 @@ export const ForgottenItemsModal: React.FC<ForgottenItemsModalProps> = ({
           <button
             onClick={onClose}
             className="w-full py-2 px-4 rounded-xl text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors"
-          >
-            Close
-          </button>
+          >{tr("Close")}</button>
         </div>
       </div>
     </div>

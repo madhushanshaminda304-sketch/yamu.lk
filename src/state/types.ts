@@ -71,6 +71,19 @@ export interface AppNotification {
   title: string;
   body: string;
   createdAt: string;
+  copy?: {
+    title: string;
+    body: string;
+    values?: Record<string, string | number>;
+    bodyValues?: Record<string, string | number>;
+    fromHubId?: string;
+    toHubId?: string;
+    date?: string;
+    amount?: number;
+    settlement?: string;
+    statusTitle?: string;
+    journeyStatus?: string;
+  };
 }
 
 export interface UserProfile {

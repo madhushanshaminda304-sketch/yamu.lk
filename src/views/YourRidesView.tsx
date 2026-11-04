@@ -1,5 +1,6 @@
+import { useUiText } from '../components/useUiText.ts';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedRouter.tsx';
 import {
   Car,
   ChatCircleText,
@@ -11,7 +12,7 @@ import {
   Package,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { formatLkr, formatColomboDate } from '../domain/i18n.ts';
 import type { MarketplaceStore, MarketplaceState, BookingRecord } from '../state/store.ts';
 import { type Ride, deduplicateRides } from '../domain/matching.ts';
@@ -29,6 +30,7 @@ export function YourRidesView({
   store: MarketplaceStore;
   openAuthModal?: (onSuccess?: () => void) => void;
 }) {
+  const { tr, uiLocale } = useUiText();
   const [tab, setTab] = useState<'passenger' | 'driver'>('passenger');
   const [activePass, setActivePass] = useState<{ ride: Ride; booking: BookingRecord } | null>(null);
   const [lostItemRide, setLostItemRide] = useState<{ ride: Ride; booking: BookingRecord } | null>(null);
@@ -52,20 +54,14 @@ export function YourRidesView({
         <div className="auth-icon-badge" style={{ marginBottom: '16px' }}>
           <Car size={28} color="var(--bbc-blue)" weight="fill" />
         </div>
-        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-          Sign In to View Your Rides
-        </h2>
-        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
-          Access your confirmed bookings, pending ride requests, and coordinate with co-travellers in real-time.
-        </p>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Sign In to View Your Rides")}</h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>{tr("Access your confirmed bookings, pending ride requests, and coordinate with co-travellers in real-time.")}</p>
         <button
           type="button"
           className="btn-primary"
           onClick={() => openAuthModal?.()}
           style={{ padding: '14px 32px', fontSize: '16px' }}
-        >
-          Sign In with Mobile OTP
-        </button>
+        >{tr("Sign In with Mobile OTP")}</button>
       </div>
     );
   }
@@ -83,9 +79,9 @@ export function YourRidesView({
     const res = store.sendMessage(activeChatBookingId, chatInput);
     if (!res.allowed) {
       setChatWarning(res.warningMessage || 'Message blocked for safety.');
-      toast.error(res.warningMessage || 'Message blocked: external links and advance payments are prohibited.');
+      toast.error(tr(res.warningMessage || tr("Message blocked: external links and advance payments are prohibited.")));
     } else {
-      toast.success('Message sent');
+      toast.success(tr("Message sent"));
       setChatInput('');
     }
   };
@@ -110,7 +106,7 @@ export function YourRidesView({
       drivingSkill,
       comment: ratingComment,
     });
-    toast.success('Rating submitted! It remains hidden until the other party rates or after 14 days.');
+    toast.success(tr("Rating submitted! It remains hidden until the other party rates or after 14 days."));
     setActiveRatingBookingId(null);
   };
 
@@ -118,21 +114,19 @@ export function YourRidesView({
     try {
       store.respondToBooking(bookingId, accept);
       if (accept) {
-        toast.success(`Accepted booking request from ${passengerName}!`);
+        toast.success(tr("Accepted booking request from {0}!", { "0": passengerName }));
       } else {
-        toast.info(`Declined booking request from ${passengerName}.`);
+        toast.info(tr("Declined booking request from {0}.", { "0": passengerName }));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Action failed.');
+      toast.error(tr(err instanceof Error ? err.message : tr("Action failed.")));
     }
   };
 
   return (
     <div className="shell" style={{ padding: '20px 0 88px' }}>
       <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: 'clamp(22px, 6vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', marginBottom: '14px' }}>
-          Your Rides & Bookings
-        </h1>
+        <h1 style={{ fontSize: 'clamp(22px, 6vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', marginBottom: '14px' }}>{tr("Your Rides & Bookings")}</h1>
         <div className="segmented-tab-strip" role="tablist">
           <button
             type="button"
@@ -143,8 +137,7 @@ export function YourRidesView({
               triggerHaptic('selection');
               setTab('passenger');
             }}
-          >
-            As Passenger ({myBookings.length})
+          >{tr("As Passenger (")}{myBookings.length})
           </button>
           <button
             type="button"
@@ -155,8 +148,7 @@ export function YourRidesView({
               triggerHaptic('selection');
               setTab('driver');
             }}
-          >
-            As Driver ({myRides.length})
+          >{tr("As Driver (")}{myRides.length})
           </button>
         </div>
       </div>
@@ -166,19 +158,15 @@ export function YourRidesView({
           {myBookings.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '64px 20px', background: 'var(--bbc-surface-subtle)', borderRadius: 'var(--radius-md)' }}>
               <Car size={48} color="var(--bbc-text-secondary)" weight="duotone" />
-              <h3 style={{ fontSize: '18px', fontWeight: 800, marginTop: '16px', color: 'var(--bbc-navy)' }}>
-                No passenger bookings yet
-              </h3>
-              <p style={{ color: 'var(--bbc-text-secondary)', margin: '8px 0 20px' }}>
-                Search for an upcoming trip across Sri Lanka and reserve a seat.
-              </p>
-              <Link to="/search" className="btn-primary">Find a ride</Link>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, marginTop: '16px', color: 'var(--bbc-navy)' }}>{tr("No passenger bookings yet")}</h3>
+              <p style={{ color: 'var(--bbc-text-secondary)', margin: '8px 0 20px' }}>{tr("Search for an upcoming trip across Sri Lanka and reserve a seat.")}</p>
+              <Link to="/search" className="btn-primary">{tr("Find a ride")}</Link>
             </div>
           ) : (
             myBookings.map((bk) => {
               const ride = state.rides.find((r) => r.id === bk.rideId);
-              const fromName = getHubById(bk.fromHubId)?.name.en || bk.fromHubId;
-              const toName = getHubById(bk.toHubId)?.name.en || bk.toHubId;
+              const fromName = getHubDisplayName(getHubById(bk.fromHubId), uiLocale) || bk.fromHubId;
+              const toName = getHubDisplayName(getHubById(bk.toHubId), uiLocale) || bk.toHubId;
               const visibleRatings = store.getVisibleRatingsForBooking(bk.id);
               const driverPhoneDigits = (ride?.driver.phone || '+94772345678').replace(/\D/g, '');
 
@@ -187,23 +175,20 @@ export function YourRidesView({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                     <div>
                       <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
-                        {ride ? formatColomboDate(ride.departureAt) : 'Upcoming'}
+                        {ride ? formatColomboDate(ride.departureAt, uiLocale) : tr("Upcoming")}
                       </span>
                       <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', marginTop: '2px' }}>
                         {fromName} → {toName}
                       </h3>
                       <div style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
-                        {bk.seats} seats · Total {formatLkr(bk.totalPriceLkr)} · Settle via {bk.settlementMethod === 'lankaqr' ? 'LankaQR' : 'Cash (LKR)'}
+                        {bk.seats} {tr("seats · Total")} {formatLkr(bk.totalPriceLkr, uiLocale)} {tr("· Settle via")} {bk.settlementMethod === 'lankaqr' ? 'LankaQR' : tr("Cash (LKR)")}
                       </div>
                       {bk.isBookingForOther && (
-                        <div style={{ fontSize: '12px', background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>
-                          👤 Booked for: <strong>{bk.passengerName}</strong> ({bk.passengerPhone || 'No phone'})
+                        <div style={{ fontSize: '12px', background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>{tr("👤 Booked for:")}<strong>{bk.passengerName}</strong> ({bk.passengerPhone || tr("No phone")})
                         </div>
                       )}
                       {ride?.journeyStatus === 'departed' && (
-                        <div style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
-                          🟢 Driver is en route! Keep your 4-digit Boarding PIN ready.
-                        </div>
+                        <div style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>{tr("🟢 Driver is en route! Keep your 4-digit Boarding PIN ready.")}</div>
                       )}
                     </div>
                     <span style={{
@@ -215,7 +200,7 @@ export function YourRidesView({
                       background: bk.status === 'accepted' ? 'var(--bbc-green-bg)' : bk.status === 'pending' ? 'var(--bbc-amber-bg)' : 'var(--bbc-red-bg)',
                       color: bk.status === 'accepted' ? 'var(--bbc-green)' : bk.status === 'pending' ? 'var(--bbc-amber)' : 'var(--bbc-red)',
                     }}>
-                      {bk.status}
+                      {tr(bk.status)}
                     </span>
                   </div>
 
@@ -227,7 +212,7 @@ export function YourRidesView({
                         onClick={() => setActiveChatBookingId(bk.id)}
                       >
                         <ChatCircleText size={16} />
-                        <span>Chat & Anti-Scam Guard</span>
+                        <span>{tr("Chat & Anti-Scam Guard")}</span>
                       </button>
 
                       {bk.status === 'accepted' && ride && (
@@ -239,7 +224,7 @@ export function YourRidesView({
                             onClick={() => setActivePass({ ride, booking: bk })}
                           >
                             <Ticket size={16} weight="bold" />
-                            <span>Digital Ride Pass</span>
+                            <span>{tr("Digital Ride Pass")}</span>
                           </button>
 
                           <a
@@ -253,7 +238,7 @@ export function YourRidesView({
                             rel="noreferrer"
                             className="btn-secondary btn-sm"
                             style={{ color: '#2e7d32' }}
-                            aria-label="Contact driver via WhatsApp"
+                            aria-label={tr("Contact driver via WhatsApp")}
                           >
                             <WhatsappLogo size={16} />
                             <span>WhatsApp</span>
@@ -262,10 +247,10 @@ export function YourRidesView({
                           <a
                             href={`tel:${ride.driver.phone || '+94772345678'}`}
                             className="btn-secondary btn-sm"
-                            aria-label="Direct phone call to driver"
+                            aria-label={tr("Direct phone call to driver")}
                           >
                             <Phone size={16} />
-                            <span>Call</span>
+                            <span>{tr("Call")}</span>
                           </a>
                         </>
                       )}
@@ -280,7 +265,7 @@ export function YourRidesView({
                             onClick={() => openRatingModal(bk.id, ride.driverId, ride.driver.name)}
                           >
                             <Star size={16} color="#f57f17" weight="fill" />
-                            <span>Rate Driver</span>
+                            <span>{tr("Rate Driver")}</span>
                           </button>
 
                           <button
@@ -288,10 +273,10 @@ export function YourRidesView({
                             className="btn-secondary btn-sm"
                             onClick={() => setLostItemRide({ ride, booking: bk })}
                             style={{ color: '#b45309', border: '1px solid #fde68a', background: '#fffbeb' }}
-                            title="Lost an item in the car? Contact driver to recover"
+                            title={tr("Lost an item in the car? Contact driver to recover")}
                           >
                             <Package size={16} />
-                            <span>Left item in car?</span>
+                            <span>{tr("Left item in car?")}</span>
                           </button>
                         </>
                       )}
@@ -303,18 +288,16 @@ export function YourRidesView({
                           style={{ color: 'var(--bbc-red)' }}
                           onClick={() => {
                             store.cancelBooking(bk.id);
-                            toast.info('Booking cancelled.');
+                            toast.info(tr("Booking cancelled."));
                           }}
-                        >
-                          Cancel
-                        </button>
+                        >{tr("Cancel")}</button>
                       )}
                     </div>
                   </div>
 
                   {visibleRatings.length > 0 && (
                     <div style={{ marginTop: '14px', background: '#f9fbfb', padding: '12px', borderRadius: '8px', fontSize: '13px' }}>
-                      <strong>Revealed Review:</strong> {visibleRatings[0].stars}★ — "{visibleRatings[0].comment}"
+                      <strong>{tr("Revealed Review:")}</strong> {visibleRatings[0].stars}★ — "{visibleRatings[0].comment}"
                     </div>
                   )}
                 </div>
@@ -329,18 +312,14 @@ export function YourRidesView({
           {myRides.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '64px 20px', background: 'var(--bbc-surface-subtle)', borderRadius: 'var(--radius-md)' }}>
               <Car size={48} color="var(--bbc-text-secondary)" weight="duotone" />
-              <h3 style={{ fontSize: '18px', fontWeight: 800, marginTop: '16px', color: 'var(--bbc-navy)' }}>
-                No published rides yet
-              </h3>
-              <p style={{ color: 'var(--bbc-text-secondary)', margin: '8px 0 20px' }}>
-                Driving somewhere in Sri Lanka? Offer your empty car seats and share fuel & toll costs.
-              </p>
-              <Link to="/publish" className="btn-primary">Offer a ride</Link>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, marginTop: '16px', color: 'var(--bbc-navy)' }}>{tr("No published rides yet")}</h3>
+              <p style={{ color: 'var(--bbc-text-secondary)', margin: '8px 0 20px' }}>{tr("Driving somewhere in Sri Lanka? Offer your empty car seats and share fuel & toll costs.")}</p>
+              <Link to="/publish" className="btn-primary">{tr("Offer a ride")}</Link>
             </div>
           ) : (
             myRides.map((ride) => {
-              const fromName = getHubById(ride.originHubId)?.name.en || ride.originHubId;
-              const toName = getHubById(ride.destinationHubId)?.name.en || ride.destinationHubId;
+              const fromName = getHubDisplayName(getHubById(ride.originHubId), uiLocale) || ride.originHubId;
+              const toName = getHubDisplayName(getHubById(ride.destinationHubId), uiLocale) || ride.destinationHubId;
               const rideRequests = state.bookings.filter((b) => b.rideId === ride.id);
 
               return (
@@ -348,29 +327,25 @@ export function YourRidesView({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
-                        {formatColomboDate(ride.departureAt)} · {ride.corridorName}
+                        {formatColomboDate(ride.departureAt, uiLocale)} · {ride.corridorName}
                       </span>
                       <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', marginTop: '2px' }}>
                         {fromName} → {toName}
                       </h3>
                       <div style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginTop: '4px' }}>
-                        {ride.totalSeats} seats offered · {formatLkr(ride.fullPriceLkr)} full price · {ride.approvalMode === 'instant' ? 'Instant Booking' : 'Manual Request'}
+                        {ride.totalSeats} {tr("seats offered ·")} {formatLkr(ride.fullPriceLkr, uiLocale)} {tr("full price ·")} {ride.approvalMode === 'instant' ? tr("Instant Booking") : tr("Manual Request")}
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         {ride.journeyStatus === 'departed' && (
-                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>
-                            🟢 EN ROUTE
-                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>{tr("🟢 EN ROUTE")}</span>
                         )}
                         {ride.journeyStatus === 'completed' && (
-                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '9999px' }}>
-                            🏁 COMPLETED
-                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '9999px' }}>{tr("🏁 COMPLETED")}</span>
                         )}
                         <span style={{ fontSize: '12px', fontWeight: 700, background: '#e1f5fe', color: '#0288d1', padding: '4px 10px', borderRadius: '9999px' }}>
-                          {ride.status.toUpperCase()}
+                          {tr(ride.status)}
                         </span>
                       </div>
 
@@ -385,14 +360,12 @@ export function YourRidesView({
                                 triggerHaptic('success');
                                 const res = store.updateRideJourneyStatus(ride.id, 'departed');
                                 if (res.success) {
-                                  toast.success('Journey Started! Passengers notified that you are en route.');
+                                  toast.success(tr("Journey Started! Passengers notified that you are en route."));
                                 } else {
-                                  toast.error(res.error || 'Failed to start journey.');
+                                  toast.error(tr(res.error || tr("Failed to start journey.")));
                                 }
                               }}
-                            >
-                              🚀 Start Journey
-                            </button>
+                            >{tr("🚀 Start Journey")}</button>
                           ) : (
                             <button
                               type="button"
@@ -402,14 +375,12 @@ export function YourRidesView({
                                 triggerHaptic('selection');
                                 const res = store.updateRideJourneyStatus(ride.id, 'completed');
                                 if (res.success) {
-                                  toast.success('Trip completed! Thank you for driving safely.');
+                                  toast.success(tr("Trip completed! Thank you for driving safely."));
                                 } else {
-                                  toast.error(res.error || 'Failed to complete trip.');
+                                  toast.error(tr(res.error || tr("Failed to complete trip.")));
                                 }
                               }}
-                            >
-                              🏁 Complete Trip
-                            </button>
+                            >{tr("🏁 Complete Trip")}</button>
                           )}
                         </div>
                       )}
@@ -418,11 +389,10 @@ export function YourRidesView({
 
                   {/* Passenger Requests List */}
                   <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px', marginTop: '16px' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px' }}>
-                      Passenger Requests ({rideRequests.length})
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px' }}>{tr("Passenger Requests (")}{rideRequests.length})
                     </h4>
                     {rideRequests.length === 0 ? (
-                      <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>No passenger requests yet for this ride.</p>
+                      <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>{tr("No passenger requests yet for this ride.")}</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {rideRequests.map((req) => (
@@ -430,11 +400,10 @@ export function YourRidesView({
                             <div>
                               <strong>{req.passengerName}</strong>
                               {req.isBookingForOther && req.bookerName && (
-                                <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: '4px', marginLeft: '6px' }}>
-                                  Booked by {req.bookerName}
+                                <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: '4px', marginLeft: '6px' }}>{tr("Booked by")}{req.bookerName}
                                 </span>
                               )}
-                              {' '}— {req.seats} seats ({getHubById(req.fromHubId)?.name.en} → {getHubById(req.toHubId)?.name.en}) · {formatLkr(req.totalPriceLkr)}
+                              {' '}— {req.seats} {tr("seats (")}{getHubDisplayName(getHubById(req.fromHubId), uiLocale)} → {getHubDisplayName(getHubById(req.toHubId), uiLocale)}) · {formatLkr(req.totalPriceLkr, uiLocale)}
                               {req.passengerPhone && (
                                 <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
                                   📞 {req.passengerPhone}
@@ -443,7 +412,7 @@ export function YourRidesView({
                               {req.message && <div style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>"{req.message}"</div>}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>{req.status}</span>
+                              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>{tr(req.status)}</span>
                               {req.status === 'pending' && (
                                 <>
                                   <button
@@ -451,17 +420,13 @@ export function YourRidesView({
                                     className="btn-primary btn-sm"
                                     style={{ padding: '4px 10px', fontSize: '12px' }}
                                     onClick={() => handleDriverResponse(req.id, true, req.passengerName)}
-                                  >
-                                    Accept
-                                  </button>
+                                  >{tr("Accept")}</button>
                                   <button
                                     type="button"
                                     className="btn-secondary btn-sm"
                                     style={{ padding: '4px 10px', fontSize: '12px' }}
                                     onClick={() => handleDriverResponse(req.id, false, req.passengerName)}
-                                  >
-                                    Decline
-                                  </button>
+                                  >{tr("Decline")}</button>
                                 </>
                               )}
                               <button
@@ -469,18 +434,14 @@ export function YourRidesView({
                                 className="btn-secondary btn-sm"
                                 style={{ padding: '4px 10px', fontSize: '12px' }}
                                 onClick={() => setActiveChatBookingId(req.id)}
-                              >
-                                Chat
-                              </button>
+                              >{tr("Chat")}</button>
                               {req.status === 'accepted' && (
                                 <button
                                   type="button"
                                   className="btn-secondary btn-sm"
                                   style={{ padding: '4px 10px', fontSize: '12px' }}
                                   onClick={() => openRatingModal(req.id, req.passengerId, req.passengerName)}
-                                >
-                                  Rate
-                                </button>
+                                >{tr("Rate")}</button>
                               )}
                             </div>
                           </div>
@@ -501,26 +462,19 @@ export function YourRidesView({
           <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '24px', maxWidth: '520px', width: '100%', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--bbc-border)', paddingBottom: '12px', marginBottom: '14px' }}>
               <div>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-                  Ride Coordination Chat
-                </h3>
-                <span style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)' }}>
-                  Anti-scam link protection active
-                </span>
+                <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Ride Coordination Chat")}</h3>
+                <span style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)' }}>{tr("Anti-scam link protection active")}</span>
               </div>
-              <button type="button" onClick={() => setActiveChatBookingId(null)} aria-label="Close chat"><X size={20} /></button>
+              <button type="button" onClick={() => setActiveChatBookingId(null)} aria-label={tr("Close chat")}><X size={20} /></button>
             </div>
 
             <div style={{ background: '#fff8e1', border: '1px solid #ffe082', borderRadius: '6px', padding: '8px 12px', fontSize: '12px', color: '#795548', marginBottom: '12px' }}>
-              <strong>Stay Safe:</strong> External payment links and advance transfer requests are blocked. Settle in person via Cash or LankaQR.
-            </div>
+              <strong>{tr("Stay Safe:")}</strong>{tr("External payment links and advance transfer requests are blocked. Settle in person via Cash or LankaQR.")}</div>
 
             {/* Message list */}
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 0', minHeight: '160px' }}>
               {state.messages.filter((m) => m.bookingId === activeChatBookingId).length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--bbc-text-secondary)', fontSize: '13px', margin: 'auto' }}>
-                  No messages yet. Send a hello to coordinate!
-                </div>
+                <div style={{ textAlign: 'center', color: 'var(--bbc-text-secondary)', fontSize: '13px', margin: 'auto' }}>{tr("No messages yet. Send a hello to coordinate!")}</div>
               ) : (
                 state.messages
                   .filter((m) => m.bookingId === activeChatBookingId)
@@ -549,7 +503,7 @@ export function YourRidesView({
 
             {chatWarning && (
               <div style={{ background: '#ffebee', color: '#c62828', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', marginBottom: '8px' }}>
-                {chatWarning}
+                {tr(chatWarning)}
               </div>
             )}
 
@@ -576,7 +530,7 @@ export function YourRidesView({
                     triggerHaptic('selection');
                     if (activeChatBookingId) {
                       store.sendMessage(activeChatBookingId, chip);
-                      toast.success(`Sent: "${chip}"`);
+                      toast.success(tr(`Sent: "${chip}"`));
                     }
                   }}
                   style={{
@@ -600,13 +554,13 @@ export function YourRidesView({
             <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
               <input
                 type="text"
-                placeholder="Type a message (e.g. See you at Fort main entrance)"
+                placeholder={tr("Type a message (e.g. See you at Fort main entrance)")}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '14px' }}
-                aria-label="Type message"
+                aria-label={tr("Type message")}
               />
-              <button type="submit" className="btn-primary btn-sm">Send</button>
+              <button type="submit" className="btn-primary btn-sm">{tr("Send")}</button>
             </form>
           </div>
         </div>
@@ -617,19 +571,16 @@ export function YourRidesView({
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 71, 82, 0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '28px', maxWidth: '460px', width: '100%', boxShadow: 'var(--shadow-lg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-                Rate {ratingTargetName || 'Travel Partner'}
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Rate")}{ratingTargetName || tr("Travel Partner")}
               </h3>
-              <button type="button" onClick={() => setActiveRatingBookingId(null)} aria-label="Close rating"><X size={20} /></button>
+              <button type="button" onClick={() => setActiveRatingBookingId(null)} aria-label={tr("Close rating")}><X size={20} /></button>
             </div>
 
-            <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', marginBottom: '16px' }}>
-              Yamo uses <strong>Double-Blind Ratings</strong>: your rating remains hidden until the other party submits theirs or 14 days pass.
-            </p>
+            <p style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)', marginBottom: '16px' }}>{tr("Yamo uses")}<strong>{tr("Double-Blind Ratings")}</strong>{tr(": your rating remains hidden until the other party submits theirs or 14 days pass.")}</p>
 
             <form onSubmit={handleRatingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Overall Rating</label>
+                <label style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Overall Rating")}</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -637,7 +588,7 @@ export function YourRidesView({
                       type="button"
                       onClick={() => setRatingStars(star)}
                       style={{ fontSize: '24px', color: star <= ratingStars ? '#f57f17' : '#c2cbd0' }}
-                      aria-label={`${star} star`}
+                      aria-label={tr("{0} star", { "0": star })}
                     >
                       ★
                     </button>
@@ -646,28 +597,26 @@ export function YourRidesView({
               </div>
 
               <div>
-                <label htmlFor="driving-skill-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
-                  Driving / Travel Behaviour
-                </label>
+                <label htmlFor="driving-skill-select" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Driving / Travel Behaviour")}</label>
                 <select
                   id="driving-skill-select"
                   value={drivingSkill}
                   onChange={(e) => setDrivingSkill(e.target.value as 'poor' | 'average' | 'excellent')}
                   style={{ width: '100%', padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '14px' }}
                 >
-                  <option value="excellent">Excellent · Smooth & Safe</option>
-                  <option value="average">Good · Standard Driving</option>
-                  <option value="poor">Needs Improvement</option>
+                  <option value="excellent">{tr("Excellent · Smooth & Safe")}</option>
+                  <option value="average">{tr("Good · Standard Driving")}</option>
+                  <option value="poor">{tr("Needs Improvement")}</option>
                 </select>
               </div>
 
               <div>
-                <label htmlFor="rating-comment-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Review Comment</label>
+                <label htmlFor="rating-comment-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Review Comment")}</label>
                 <textarea
                   id="rating-comment-input"
                   rows={3}
                   required
-                  placeholder="Share details about punctuality, friendliness, and safe driving along Sri Lankan roads..."
+                  placeholder={tr("Share details about punctuality, friendliness, and safe driving along Sri Lankan roads...")}
                   value={ratingComment}
                   onChange={(e) => setRatingComment(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '14px', fontFamily: 'inherit' }}
@@ -675,12 +624,8 @@ export function YourRidesView({
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-                <button type="button" className="btn-secondary btn-sm" onClick={() => setActiveRatingBookingId(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary btn-sm">
-                  Submit Rating
-                </button>
+                <button type="button" className="btn-secondary btn-sm" onClick={() => setActiveRatingBookingId(null)}>{tr("Cancel")}</button>
+                <button type="submit" className="btn-primary btn-sm">{tr("Submit Rating")}</button>
               </div>
             </form>
           </div>

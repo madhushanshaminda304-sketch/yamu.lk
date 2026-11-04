@@ -1,3 +1,4 @@
+import { stripLanguagePrefix } from '../domain/languageRoutes.ts';
 /**
  * Native Hardware Back Button Handler for Android with web fallback.
  * Prioritizes:
@@ -61,7 +62,8 @@ export function registerBackButtonHandler(
 
     // 2. Check if currently at root route ('/' or empty)
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-    const isAtRoot = currentPath === '/' || currentPath === '';
+    const unprefixedPath = stripLanguagePrefix(currentPath);
+    const isAtRoot = unprefixedPath === '/' || unprefixedPath === '';
 
     if (!isAtRoot) {
       // Navigate back to previous screen

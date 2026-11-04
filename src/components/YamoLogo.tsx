@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
 
 export function YamoIcon({ size = 32 }: { size?: number }) {
@@ -46,6 +47,7 @@ export function YamoBrand({
   size?: number;
   showBadge?: boolean;
 }) {
+  const { tr, uiLocale } = useUiText();
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
       <YamoIcon size={size} />
@@ -66,9 +68,7 @@ export function YamoBrand({
               letterSpacing: '0.5px',
               marginLeft: '4px',
             }}
-          >
-            Sri Lanka
-          </span>
+          >{tr("Sri Lanka")}</span>
         )}
       </div>
     </div>

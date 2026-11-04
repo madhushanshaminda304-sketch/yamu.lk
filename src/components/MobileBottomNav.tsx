@@ -1,5 +1,6 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from '../components/LocalizedRouter.tsx';
 import {
   MagnifyingGlass,
   PlusCircle,
@@ -81,6 +82,7 @@ export function MobileBottomNav({
   currentPath: propCurrentPath,
   onTabChange,
 }: MobileBottomNavProps = {}) {
+  const { tr, uiLocale } = useUiText();
   const location = useLocation();
   const navigate = useNavigate();
   const activePath = propCurrentPath ?? location.pathname;
@@ -125,7 +127,7 @@ export function MobileBottomNav({
     <nav
       className="mobile-bottom-nav md:hidden"
       role="navigation"
-      aria-label="Mobile Navigation"
+      aria-label={tr("Mobile Navigation")}
       style={{
         position: 'fixed',
         bottom: 0,
@@ -160,7 +162,7 @@ export function MobileBottomNav({
           }
 
           const IconComponent = tab.icon;
-          const label = t(locale, tab.labelKey) !== tab.labelKey ? t(locale, tab.labelKey) : tab.defaultLabel;
+          const label = t(locale, `nav.mobile.${tab.id}`);
 
           let badgeCount = 0;
           if (tab.id === 'rides') {
@@ -185,6 +187,7 @@ export function MobileBottomNav({
                 alignItems: 'center',
                 justifyContent: 'center',
                 flex: 1,
+                minWidth: 0,
                 minHeight: '48px',
                 padding: '4px 2px',
                 background: 'none',
@@ -204,7 +207,7 @@ export function MobileBottomNav({
                 {badgeCount > 0 && (
                   <span
                     className="mobile-nav-badge"
-                    aria-label={`${badgeCount} new items`}
+                    aria-label={tr("{0} new items", { "0": badgeCount })}
                     style={{
                       position: 'absolute',
                       top: '-4px',
@@ -231,14 +234,16 @@ export function MobileBottomNav({
               </div>
               <span
                 style={{
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: active ? 700 : 500,
                   marginTop: '3px',
                   letterSpacing: '-0.2px',
-                  whiteSpace: 'nowrap',
+                  whiteSpace: 'normal',
+                  lineHeight: 1.3,
+                  textAlign: 'center',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: '68px',
+                  maxWidth: '100%',
                 }}
               >
                 {label}

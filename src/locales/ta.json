@@ -90,5 +90,10 @@
   "toast.alert_invalid_email": "செல்லுபடியாகும் மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
   "toast.publish_success": "பயணம் வெற்றிகரமாக பகிரப்பட்டது!",
   "toast.request_created": "இருக்கை கோரிக்கை வெற்றிகரமாக பதிவிடப்பட்டது!",
-  "toast.copied": "கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது!"
+  "toast.copied": "கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது!",
+  "nav.mobile.search": "தேடல்",
+  "nav.mobile.publish": "வழங்கு",
+  "nav.mobile.requests": "கோரிக்கை",
+  "nav.mobile.rides": "பயணங்கள்",
+  "nav.mobile.profile": "கணக்கு"
 }

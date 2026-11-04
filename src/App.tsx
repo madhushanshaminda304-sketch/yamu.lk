@@ -1,5 +1,7 @@
+import { useUiText } from './components/useUiText.ts';
 import React, { useSyncExternalStore, useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { Link, useNavigate, useLanguageChange } from './components/LocalizedRouter.tsx';
 import {
   MagnifyingGlass,
   PlusCircle,
@@ -13,7 +15,7 @@ import { Toaster, toast } from 'sonner';
 
 import { t, LOCALE_META, SUPPORTED_LOCALES } from './domain/i18n.ts';
 import { computeUnreadMessagesCount } from './domain/inbox.ts';
-import { createMarketplaceStore } from './state/store.ts';
+import { defaultMarketplaceStore } from './state/store.ts';
 import { initRemoteSync } from './state/supabaseSync.ts';
 import { AuthModal } from './components/AuthModal.tsx';
 import { YamoBrand } from './components/YamoLogo.tsx';
@@ -23,6 +25,8 @@ import { registerBackButtonHandler } from './native/backButton.ts';
 import { setAppStatusBar } from './native/statusBar.ts';
 
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
+import { LanguageMetadata } from './components/LanguageMetadata.tsx';
+import { NotFound } from './components/NotFound.tsx';
 import { HomeView } from './views/HomeView.tsx';
 import { SearchView } from './views/SearchView.tsx';
 import { RideDetailView } from './views/RideDetailView.tsx';
@@ -32,11 +36,13 @@ import { InboxView } from './views/InboxView.tsx';
 import { ProfileView } from './views/ProfileView.tsx';
 
 // Singleton persistent store
-const store = createMarketplaceStore();
+const store = defaultMarketplaceStore;
 
 export default function App() {
+  const { tr, uiLocale } = useUiText();
   const navigate = useNavigate();
-  const state = useSyncExternalStore(store.subscribe, store.getState);
+  const changeLanguage = useLanguageChange();
+  const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
   const locale = state.locale;
   const user = state.currentUser;
 
@@ -84,6 +90,7 @@ export default function App() {
 
   return (
     <div className="app-root">
+      <LanguageMetadata />
       {/* Sonner Toaster: Mounted once at application root with mobile bottom nav offset */}
       <Toaster richColors position="top-right" closeButton mobileOffset={{ bottom: 76 }} />
 
@@ -100,7 +107,7 @@ export default function App() {
       {/* Desktop Site Header: hidden on mobile viewports */}
       <header className="site-header hidden md:block">
         <div className="shell header-inner">
-          <Link to="/" style={{ textDecoration: 'none' }} aria-label="Yamo Home">
+          <Link to="/" style={{ textDecoration: 'none' }} aria-label={tr("Yamo Home")}>
             <YamoBrand />
           </Link>
 
@@ -162,11 +169,11 @@ export default function App() {
                 }}
               >
                 <SignIn size={18} weight="bold" />
-                <span>Sign In</span>
+                <span>{tr("Sign In")}</span>
               </button>
             )}
 
-            <div className="lang-switch" role="group" aria-label="Language Switcher">
+            <div className="lang-switch" role="group" aria-label={tr("Language Switcher")}>
               {SUPPORTED_LOCALES.map((code) => {
                 const meta = LOCALE_META[code];
                 const active = locale === code;
@@ -175,8 +182,10 @@ export default function App() {
                     key={code}
                     type="button"
                     className={`lang-btn ${active ? 'active' : ''}`}
-                    onClick={() => store.setLocale(code)}
+                    onClick={() => changeLanguage(code)}
                     title={meta.fullLabel}
+                    aria-label={meta.fullLabel}
+                    lang={meta.langCode}
                     aria-pressed={active}
                   >
                     {meta.label}
@@ -199,6 +208,7 @@ export default function App() {
             <Route path="/your-rides" element={<YourRidesView state={state} store={store} openAuthModal={openAuthModal} />} />
             <Route path="/inbox" element={<InboxView state={state} store={store} openAuthModal={openAuthModal} />} />
             <Route path="/profile" element={<ProfileView state={state} store={store} openAuthModal={openAuthModal} />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </ErrorBoundary>
       </main>
@@ -214,32 +224,30 @@ export default function App() {
               <div style={{ fontSize: '24px', fontWeight: 900, color: '#f59e0b', marginBottom: '12px' }}>
                 yamo<span style={{ color: '#ffffff' }}>.lk</span>
               </div>
-              <p style={{ color: '#d1fae5', fontSize: '14px', lineHeight: 1.6 }}>
-                Sri Lanka’s trusted intercity carpooling network. Share travel costs fairly on Southern Expressway (E01), Central Corridor (E04), and A9.
-              </p>
+              <p style={{ color: '#d1fae5', fontSize: '14px', lineHeight: 1.6 }}>{tr("Sri Lanka’s trusted intercity carpooling network. Share travel costs fairly on Southern Expressway (E01), Central Corridor (E04), and A9.")}</p>
             </div>
             <div>
-              <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>Top Corridors</h4>
+              <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>{tr("Top Corridors")}</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#a7f3d0' }}>
-                <li><Link to="/search?from=colombo&to=kandy">Colombo ↔ Kandy (A1 / E04)</Link></li>
-                <li><Link to="/search?from=makumbura&to=galle">Makumbura ↔ Galle (E01)</Link></li>
-                <li><Link to="/search?from=colombo&to=matara">Colombo ↔ Matara (E01)</Link></li>
-                <li><Link to="/search?from=colombo&to=jaffna">Colombo ↔ Jaffna (A9)</Link></li>
+                <li><Link to="/search?from=colombo&to=kandy">{tr("Colombo ↔ Kandy (A1 / E04)")}</Link></li>
+                <li><Link to="/search?from=makumbura&to=galle">{tr("Makumbura ↔ Galle (E01)")}</Link></li>
+                <li><Link to="/search?from=colombo&to=matara">{tr("Colombo ↔ Matara (E01)")}</Link></li>
+                <li><Link to="/search?from=colombo&to=jaffna">{tr("Colombo ↔ Jaffna (A9)")}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>Trust & Safety</h4>
+              <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>{tr("Trust & Safety")}</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#a7f3d0' }}>
-                <li>✓ Sri Lankan NIC & Driving Licence Verification</li>
-                <li>✓ Super Driver Criteria & Rating System</li>
-                <li>✓ Onboard Cash / LankaQR (Zero online payment)</li>
-                <li>✓ Anti-Scam Phishing Protection</li>
+                <li>{tr("✓ Sri Lankan NIC & Driving Licence Verification")}</li>
+                <li>{tr("✓ Super Driver Criteria & Rating System")}</li>
+                <li>{tr("✓ Onboard Cash / LankaQR (Zero online payment)")}</li>
+                <li>{tr("✓ Anti-Scam Phishing Protection")}</li>
               </ul>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', fontSize: '13px', color: '#a7f3d0', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <span>© {new Date().getFullYear()} Yamo.lk Carpooling. All rights reserved.</span>
-            <span>Made for Sri Lanka · LKR Cost-Sharing Marketplace</span>
+            <span>© {new Date().getFullYear()} {tr("Yamo.lk Carpooling. All rights reserved.")}</span>
+            <span>{tr("Made for Sri Lanka · LKR Cost-Sharing Marketplace")}</span>
           </div>
         </div>
       </footer>

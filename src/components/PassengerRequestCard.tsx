@@ -1,5 +1,6 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../components/LocalizedRouter.tsx';
 import {
   Users,
   CheckCircle,
@@ -11,6 +12,7 @@ import {
   CarSimple,
 } from '@phosphor-icons/react';
 import type { PassengerRideRequest } from '../domain/passengerRequests.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { formatLkr, formatColomboDate } from '../domain/i18n.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 
@@ -20,6 +22,7 @@ interface PassengerRequestCardProps {
 }
 
 export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestCardProps) {
+  const { tr, uiLocale } = useUiText();
   const navigate = useNavigate();
 
   const handleOfferSeat = () => {
@@ -94,20 +97,20 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
                     alignItems: 'center',
                     gap: '3px',
                   }}
-                  title="National Identity Card Verified"
+                  title={tr("National Identity Card Verified")}
                 >
                   <CheckCircle size={12} weight="fill" />
-                  <span>NIC Verified</span>
+                  <span>{tr("NIC Verified")}</span>
                 </span>
               )}
             </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Clock size={13} />
               <span>
-                {formatColomboDate(`${request.date}T12:00:00+05:30`)} at {request.time}
+                {formatColomboDate(`${request.date}T12:00:00+05:30`, uiLocale)} {tr("at")} {request.time}
               </span>
               {request.isCommute && (
-                <span style={{ color: '#0284c7', fontWeight: 700 }}>• Weekday Commute</span>
+                <span style={{ color: '#0284c7', fontWeight: 700 }}>{tr("• Weekday Commute")}</span>
               )}
             </div>
           </div>
@@ -129,7 +132,7 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
             }}
           >
             <Users size={14} weight="bold" />
-            <span>{request.seatsNeeded} {request.seatsNeeded === 1 ? 'Seat Needed' : 'Seats Needed'}</span>
+            <span>{request.seatsNeeded} {request.seatsNeeded === 1 ? tr("Seat Needed") : tr("Seats Needed")}</span>
           </span>
           {isMatched ? (
             <span
@@ -141,9 +144,7 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
                 padding: '4px 8px',
                 borderRadius: '8px',
               }}
-            >
-              ✓ Seat Offered
-            </span>
+            >{tr("✓ Seat Offered")}</span>
           ) : (
             <span
               style={{
@@ -154,9 +155,7 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
                 padding: '4px 8px',
                 borderRadius: '8px',
               }}
-            >
-              ⚡ Looking for Seat
-            </span>
+            >{tr("⚡ Looking for Seat")}</span>
           )}
         </div>
       </div>
@@ -174,15 +173,15 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14.5px', fontWeight: 700, color: 'var(--bbc-navy)' }}>
-          <span>{request.originName}</span>
+          <span>{getHubDisplayName(getHubById(request.originHubId), uiLocale) || request.originName}</span>
           <ArrowRight size={16} color="#047857" weight="bold" />
-          <span>{request.destinationName}</span>
+          <span>{getHubDisplayName(getHubById(request.destinationHubId), uiLocale) || request.destinationName}</span>
         </div>
 
         {request.pickupLandmark && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#475569' }}>
             <MapPin size={13} color="#047857" weight="bold" />
-            <span>Pickup: <strong>{request.pickupLandmark}</strong></span>
+            <span>{tr("Pickup:")} <strong>{request.pickupLandmark}</strong></span>
           </div>
         )}
       </div>
@@ -207,12 +206,10 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
         }}
       >
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-            Willing to Split
-          </div>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>{tr("Willing to Split")}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
             <span style={{ fontSize: '18px', fontWeight: 800, color: '#047857' }}>
-              {formatLkr(request.targetContributionLkr)}
+              {formatLkr(request.targetContributionLkr, uiLocale)}
             </span>
             <span
               style={{
@@ -235,7 +232,7 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
               ) : (
                 <>
                   <Money size={12} weight="bold" />
-                  <span>Cash</span>
+                  <span>{tr("Cash")}</span>
                 </>
               )}
             </span>
@@ -263,7 +260,7 @@ export function PassengerRequestCard({ request, onOfferSeat }: PassengerRequestC
           }}
         >
           <CarSimple size={16} weight="bold" />
-          <span>{isMatched ? 'Seat Already Offered' : 'Offer Your Seat to This Passenger'}</span>
+          <span>{isMatched ? tr("Seat Already Offered") : tr("Offer Your Seat to This Passenger")}</span>
         </button>
       </div>
     </article>

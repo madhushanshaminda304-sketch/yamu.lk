@@ -1,3 +1,5 @@
+import { localeFromPath, preferredLocale } from '../domain/languageRoutes.ts';
+import { localizeNotification } from '../domain/notifications.ts';
 import { useSyncExternalStore } from 'react';
 import { getHubById } from '../domain/corridors.ts';
 import { type TollPolicy } from '../domain/pricing.ts';
@@ -71,14 +73,10 @@ export type {
 export function createInitialState(): MarketplaceState {
   const tomorrow = getColomboDateOffset(1);
   const auth = loadPersistedAuth();
-  let initialLocale: LocaleCode = 'en-LK';
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      initialLocale = getValidLocale(window.localStorage.getItem('yamo_locale'));
-    } catch {
-      // localStorage may fail in restricted sandboxes
-    }
-  }
+  let savedLocale: string | null = null;
+  try { savedLocale = typeof window === 'undefined' ? null : window.localStorage.getItem('yamo_locale'); } catch { /* unavailable storage */ }
+  const initialLocale = (typeof window !== 'undefined' ? localeFromPath(window.location.pathname) : null)
+    ?? preferredLocale(savedLocale, typeof navigator === 'undefined' ? [] : navigator.languages);
   if (typeof document !== 'undefined') {
     document.documentElement.lang = initialLocale.slice(0, 2);
   }
@@ -96,6 +94,7 @@ export function createInitialState(): MarketplaceState {
       id: 'notif-welcome',
       title: 'Welcome to Yamo (Sri Lanka)',
       body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.',
+      copy: { title: 'Welcome to Yamo (Sri Lanka)', body: 'Your Sri Lankan NIC and +94 mobile number are verified. You hold Super Driver status.' },
       createdAt: new Date().toISOString(),
     }],
     passengerRequests: [...SEEDED_PASSENGER_REQUESTS],
@@ -105,9 +104,11 @@ export function createInitialState(): MarketplaceState {
 
 export function createMarketplaceStore(initialState?: MarketplaceState) {
   let state: MarketplaceState = initialState ?? createInitialState();
+  state = { ...state, notifications: state.notifications.map(notification => localizeNotification(notification, state.locale)) };
   const listeners = new Set<() => void>();
 
   const notify = () => {
+    state = { ...state, notifications: state.notifications.map(notification => localizeNotification(notification, state.locale)) };
     for (const listener of listeners) {
       listener();
     }
@@ -131,7 +132,7 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 
     setLocale(locale: LocaleCode): void {
       const valid = getValidLocale(locale);
-      state = { ...state, locale: valid };
+      state = { ...state, locale: valid, notifications: state.notifications.map(notification => localizeNotification(notification, valid)) };
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
           window.localStorage.setItem('yamo_locale', valid);
@@ -176,6 +177,12 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
               id: `notif-alert-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
               title: `Ride Alert Matched: ${fromName} → ${toName}`,
               body: `A new ride with ${newRide.driver.name} on ${input.date} matches your alert (${alert.email}).`,
+              copy: {
+                title: 'Ride Alert Matched: {0} → {1}',
+                body: 'A new ride with {0} on {1} matches your alert ({2}).',
+                fromHubId: alert.fromHubId, toHubId: alert.toHubId, date: input.date,
+                bodyValues: { 0: newRide.driver.name, 1: input.date, 2: alert.email },
+              },
               createdAt: new Date().toISOString(),
             });
           }
@@ -271,6 +278,16 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 
       const newNotif: AppNotification = {
         id: `notif-bk-${Date.now()}`,
+        copy: {
+          title: isInstant ? 'Instant Booking Confirmed: {0} → {1}' : 'Request Sent: {0} → {1}',
+          body: isInstant ? '{0} seat(s) reserved with {1}. Settle {2} onboard via {3}.' : 'Awaiting approval from {0} (typical response < {1}h).',
+          fromHubId: input.fromHubId, toHubId: input.toHubId,
+          ...(isInstant ? {
+            amount: booking.totalPriceLkr,
+            settlement: input.settlementMethod === 'lankaqr' ? 'LankaQR' : 'Cash (LKR)',
+            bodyValues: { 0: input.seats, 1: ride.driver.name },
+          } : { bodyValues: { 0: ride.driver.name, 1: ride.driver.responseHours } }),
+        },
         title: isInstant
           ? `Instant Booking Confirmed: ${fromName} → ${toName}`
           : `Request Sent: ${fromName} → ${toName}`,
@@ -365,6 +382,12 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
 
       const newNotif: AppNotification = {
         id: `notif-js-${Date.now()}`,
+        copy: {
+          title: '{0}: {1}', values: { 1: ride.corridorName }, statusTitle,
+          body: status === 'departed' ? 'Driver {0} is now en route. Boarding passes have been activated.' : 'Ride on {0} is now marked {1}.',
+          bodyValues: { 0: status === 'departed' ? ride.driver.name : ride.corridorName },
+          ...(status === 'departed' ? {} : { journeyStatus: status }),
+        },
         title: `${statusTitle}: ${ride.corridorName}`,
         body:
           status === 'departed'
@@ -739,6 +762,7 @@ export function useMarketplaceStore<T = MarketplaceState>(
 ): T {
   const state = useSyncExternalStore(
     defaultMarketplaceStore.subscribe,
+    defaultMarketplaceStore.getState,
     defaultMarketplaceStore.getState
   );
   return selector ? selector(state) : (state as unknown as T);

@@ -1,5 +1,6 @@
+import { useUiText } from './useUiText.ts';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../components/LocalizedRouter.tsx';
 import {
   GasPump,
   Coins,
@@ -23,6 +24,7 @@ import { useMarketplaceStore } from '../state/store.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 
 export function FuelAndTollCalculator() {
+  const { tr, uiLocale } = useUiText();
   const navigate = useNavigate();
   const locale = useMarketplaceStore((s) => s.locale);
   const tomorrow = getColomboDateOffset(1);
@@ -76,21 +78,17 @@ export function FuelAndTollCalculator() {
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', padding: '4px 12px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '8px' }}>
               <GasPump size={16} weight="fill" color="#047857" />
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Live Sri Lanka Fuel & Toll Math
-              </span>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{tr("Live Sri Lanka Fuel & Toll Math")}</span>
             </div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#064e3b', margin: '4px 0 6px', letterSpacing: '-0.02em' }}>
               {t(locale, 'calculator.title')}
             </h2>
-            <p style={{ color: '#475569', fontSize: '14px', margin: 0, maxWidth: '640px' }}>
-              Official November 2026 retail fuel rates (Petrol 92: LKR 424/L, Auto Diesel: LKR 397/L) + gazetted RDA expressway point-to-point tolls. Calculate per-seat savings in real time.
-            </p>
+            <p style={{ color: '#475569', fontSize: '14px', margin: 0, maxWidth: '640px' }}>{tr("Official November 2026 retail fuel rates (Petrol 92: LKR 424/L, Auto Diesel: LKR 397/L) + gazetted RDA expressway point-to-point tolls. Calculate per-seat savings in real time.")}</p>
           </div>
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', color: '#64748b' }}>
             <ShieldCheck size={16} weight="fill" color="#047857" />
-            <span>Non-profit carpooling cap</span>
+            <span>{tr("Non-profit carpooling cap")}</span>
           </div>
         </div>
 
@@ -98,9 +96,7 @@ export function FuelAndTollCalculator() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '28px' }}>
           {/* Corridor Selection Pills */}
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
-              1. Choose Highway Corridor
-            </label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>{tr("1. Choose Highway Corridor")}</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {CALCULATOR_CORRIDORS.map((c) => {
                 const isSelected = c.id === selectedCorridorId;
@@ -139,9 +135,7 @@ export function FuelAndTollCalculator() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
             {/* Fuel Type */}
             <div>
-              <label htmlFor="calculator-fuel-select" style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                2. Fuel Type
-              </label>
+              <label htmlFor="calculator-fuel-select" style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("2. Fuel Type")}</label>
               <select
                 id="calculator-fuel-select"
                 value={selectedFuelType}
@@ -157,19 +151,17 @@ export function FuelAndTollCalculator() {
                   color: '#0f172a',
                 }}
               >
-                <option value="petrol92">Petrol 92 — LKR 424 / L</option>
-                <option value="petrol95">Petrol 95 — LKR 490 / L</option>
-                <option value="autoDiesel">Auto Diesel — LKR 397 / L</option>
-                <option value="superDiesel">Super Diesel — LKR 543 / L</option>
-                <option value="hybrid">Hybrid / EV — ~22 km/L equivalent</option>
+                <option value="petrol92">{tr("Petrol 92 — LKR 424 / L")}</option>
+                <option value="petrol95">{tr("Petrol 95 — LKR 490 / L")}</option>
+                <option value="autoDiesel">{tr("Auto Diesel — LKR 397 / L")}</option>
+                <option value="superDiesel">{tr("Super Diesel — LKR 543 / L")}</option>
+                <option value="hybrid">{tr("Hybrid / EV — ~22 km/L equivalent")}</option>
               </select>
             </div>
 
             {/* Empty Seats */}
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                3. Empty Seats Shared
-              </span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("3. Empty Seats Shared")}</span>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {[1, 2, 3].map((num) => {
                   const isSelected = emptySeats === num;
@@ -191,7 +183,7 @@ export function FuelAndTollCalculator() {
                         textAlign: 'center',
                       }}
                     >
-                      {num} {num === 1 ? 'Seat' : 'Seats'}
+                      {num} {num === 1 ? tr("Seat") : tr("Seats")}
                     </button>
                   );
                 })}
@@ -200,14 +192,12 @@ export function FuelAndTollCalculator() {
 
             {/* Frequency */}
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                4. Trip Frequency
-              </span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>{tr("4. Trip Frequency")}</span>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {[
-                  { id: 'one_way', label: '1-Way' },
-                  { id: 'weekend_return', label: 'Weekend' },
-                  { id: 'daily_commute', label: 'Daily (20d)' },
+                  { id: 'one_way', label: tr("1-Way") },
+                  { id: 'weekend_return', label: tr("Weekend") },
+                  { id: 'daily_commute', label: tr("Daily (20d)") },
                 ].map((item) => {
                   const isSelected = frequency === item.id;
                   return (
@@ -229,7 +219,7 @@ export function FuelAndTollCalculator() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {item.label}
+                      {tr(item.label)}
                     </button>
                   );
                 })}
@@ -251,19 +241,16 @@ export function FuelAndTollCalculator() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Fair Cost-Split / Seat
-              </span>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '2px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>
-                Save {impact.savingsPercent}%
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{tr("Fair Cost-Split / Seat")}</span>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '2px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0' }}>{tr("Save")}{impact.savingsPercent}%
               </span>
             </div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#064e3b', marginBottom: '4px' }}>
-              {formatLkr(impact.perSeatShareLkr)}
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}> / seat</span>
+              {formatLkr(impact.perSeatShareLkr, uiLocale)}
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}> {tr("/ seat")}</span>
             </div>
             <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-              <strong>Solo Drive:</strong> {formatLkr(impact.soloCostLkr)} ({formatLkr(impact.fuelCostLkr)} fuel + {impact.tollLkr > 0 ? `${formatLkr(impact.tollLkr)} toll` : 'toll-free'})
+              <strong>{tr("Solo Drive:")}</strong> {formatLkr(impact.soloCostLkr, uiLocale)} ({formatLkr(impact.fuelCostLkr, uiLocale)} {tr("fuel +")} {impact.tollLkr > 0 ? tr("{0} toll", { "0": formatLkr(impact.tollLkr, uiLocale) }) : 'toll-free'})
             </div>
           </div>
 
@@ -278,20 +265,16 @@ export function FuelAndTollCalculator() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Driver Monthly Fuel Saved
-              </span>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{tr("Driver Monthly Fuel Saved")}</span>
               <TrendUp size={16} weight="bold" color="#0284c7" />
             </div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#0369a1', marginBottom: '4px' }}>
-              {formatLkr(impact.monthlyDriverSavingsLkr)}
+              {formatLkr(impact.monthlyDriverSavingsLkr, uiLocale)}
               <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>
-                {frequency === 'one_way' ? ' (1 trip)' : ' / month'}
+                {frequency === 'one_way' ? tr(" (1 trip)") : tr(" / month")}
               </span>
             </div>
-            <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-              Regular commuter saves <strong>{formatLkr(impact.annualDriverSavingsLkr)} / year</strong> by sharing {impact.seatsShared} empty seats.
-            </div>
+            <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>{tr("Regular commuter saves")}<strong>{formatLkr(impact.annualDriverSavingsLkr, uiLocale)} {tr("/ year")}</strong> {tr("by sharing")} {impact.seatsShared}{tr("empty seats.")}</div>
           </div>
 
           {/* Card 3: Traffic & Green Impact */}
@@ -305,18 +288,14 @@ export function FuelAndTollCalculator() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Highway Bottleneck Impact
-              </span>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{tr("Highway Bottleneck Impact")}</span>
               <Leaf size={16} weight="fill" color="#16a34a" />
             </div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#92400e', marginBottom: '4px' }}>
-              {impact.carsRemoved} Cars Off
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}> expressway</span>
+              {impact.carsRemoved}{tr("Cars Off")}<span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}> {tr("expressway")}</span>
             </div>
             <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-              <strong>{impact.monthlyFuelLitresSaved} Litres</strong> imported fuel saved • <strong>{impact.monthlyCo2KgSaved} kg CO₂</strong> cut monthly.
-            </div>
+              <strong>{impact.monthlyFuelLitresSaved} {tr("Litres")}</strong> {tr("imported fuel saved •")} <strong>{impact.monthlyCo2KgSaved} {tr("kg CO₂")}</strong>{tr("cut monthly.")}</div>
           </div>
         </div>
 
@@ -335,9 +314,7 @@ export function FuelAndTollCalculator() {
                 navigate(`/search?from=${impact.corridor.originHubId}&to=${impact.corridor.destinationHubId}&date=${tomorrow}`);
               }}
               style={{ padding: '8px 16px', fontSize: '13px' }}
-            >
-              Find Rides on this Route →
-            </button>
+            >{tr("Find Rides on this Route →")}</button>
             <button
               type="button"
               className="btn-primary"
@@ -346,9 +323,7 @@ export function FuelAndTollCalculator() {
                 navigate('/publish');
               }}
               style={{ padding: '8px 16px', fontSize: '13px' }}
-            >
-              Offer a Seat & Split Costs
-            </button>
+            >{tr("Offer a Seat & Split Costs")}</button>
           </div>
         </div>
       </div>

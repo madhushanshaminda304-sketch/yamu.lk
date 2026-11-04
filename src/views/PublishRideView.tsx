@@ -1,8 +1,10 @@
+import { useUiText } from '../components/useUiText.ts';
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from '../components/LocalizedRouter.tsx';
 import { Sparkle, CheckCircle, Crosshair } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS, getHubById, findRouteOptions, resolveHubKey } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById, findRouteOptions, resolveHubKey, getHubDisplayName } from '../domain/corridors.ts';
 import { calculateRecommendedLkr, getContributionBounds, getPriceBand, stepContributionLkr, type TollPolicy } from '../domain/pricing.ts';
 import type { Ride, ApprovalMode, VehicleCategory, LuggageSize } from '../domain/matching.ts';
 import { formatLkr, getColomboDateOffset, t } from '../domain/i18n.ts';
@@ -21,6 +23,7 @@ export function PublishRideView({
   store: MarketplaceStore;
   openAuthModal?: (onSuccess?: () => void) => void;
 }) {
+  const { tr, uiLocale } = useUiText();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialFrom = searchParams.get('from') || searchParams.get('origin');
@@ -53,7 +56,7 @@ export function PublishRideView({
       await triggerHaptic('success');
       const langKey = (state.locale || 'en').slice(0, 2) as 'en' | 'si' | 'ta';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
-      toast.success(`${t(state.locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+      toast.success(tr(`${t(state.locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`));
     } catch {
       toast.error(t(state.locale, 'location.denied'));
     } finally {
@@ -134,7 +137,7 @@ export function PublishRideView({
     try {
       const resolvedCorridor = selectedCorridorId || activeRoute?.corridorId || routeOptions[0]?.corridorId;
       if (!resolvedCorridor) {
-        toast.error('Please select a valid highway corridor before publishing.');
+        toast.error(tr("Please select a valid highway corridor before publishing."));
         return;
       }
       const newRide = store.publishRide({
@@ -181,7 +184,7 @@ export function PublishRideView({
       setPublishedRide(newRide);
       toast.success(t(state.locale, 'toast.publish_success'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to publish ride.');
+      toast.error(tr(err instanceof Error ? err.message : tr("Failed to publish ride.")));
     }
   };
 
@@ -191,20 +194,14 @@ export function PublishRideView({
         <div className="auth-icon-badge" style={{ marginBottom: '16px' }}>
           <Sparkle size={28} color="var(--bbc-blue)" weight="fill" />
         </div>
-        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-          Sign In to Publish a Ride
-        </h2>
-        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>
-          To ensure passenger trust and road safety, all drivers must verify their Sri Lankan mobile number before offering seats.
-        </p>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Sign In to Publish a Ride")}</h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px', maxWidth: '480px', margin: '8px auto 28px' }}>{tr("To ensure passenger trust and road safety, all drivers must verify their Sri Lankan mobile number before offering seats.")}</p>
         <button
           type="button"
           className="btn-primary"
           onClick={() => openAuthModal?.()}
           style={{ padding: '14px 32px', fontSize: '16px' }}
-        >
-          Verify Mobile & Publish
-        </button>
+        >{tr("Verify Mobile & Publish")}</button>
       </div>
     );
   }
@@ -213,19 +210,11 @@ export function PublishRideView({
     return (
       <div className="shell-narrow" style={{ padding: '64px 0', textAlign: 'center' }}>
         <CheckCircle size={64} color="var(--bbc-green)" weight="fill" style={{ margin: '0 auto 16px' }} />
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-          Your ride is live!
-        </h2>
-        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '16px', maxWidth: '480px', margin: '8px auto 24px' }}>
-          Passengers along the corridor can now book seats. Any matching Ride Alerts have been notified.
-        </p>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Your ride is live!")}</h2>
+        <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '16px', maxWidth: '480px', margin: '8px auto 24px' }}>{tr("Passengers along the corridor can now book seats. Any matching Ride Alerts have been notified.")}</p>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <button type="button" className="btn-primary" onClick={() => navigate(`/rides/${publishedRide.id}`)}>
-            View Your Ride
-          </button>
-          <button type="button" className="btn-secondary" onClick={() => navigate('/rides')}>
-            Manage in Your Rides
-          </button>
+          <button type="button" className="btn-primary" onClick={() => navigate(`/rides/${publishedRide.id}`)}>{tr("View Your Ride")}</button>
+          <button type="button" className="btn-secondary" onClick={() => navigate('/rides')}>{tr("Manage in Your Rides")}</button>
         </div>
       </div>
     );
@@ -240,8 +229,8 @@ export function PublishRideView({
         aria-valuenow={step}
         aria-valuemin={1}
         aria-valuemax={6}
-        aria-label="Publish ride progress"
-        aria-valuetext={`Step ${step} of 6`}
+        aria-label={tr("Publish ride progress")}
+        aria-valuetext={tr("Step {0} of 6", { "0": step })}
       >
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
@@ -258,11 +247,9 @@ export function PublishRideView({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-          Publish a Ride (Step {step} of 6)
-        </h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{tr('Publish a Ride (Step {0} of 6)', { 0: step })}</h1>
         <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: '#ecfdf5', padding: '3px 10px', borderRadius: '9999px' }}>
-          {['', '1. Where & Landmarks', '2. Route & Toll Policy', '3. Date & Return Ride', '4. Seats & Vehicle', '5. LKR Contribution', '6. Approval & Review'][step]}
+          {['', tr("1. Where & Landmarks"), tr("2. Route & Toll Policy"), tr("3. Date & Return Ride"), tr("4. Seats & Vehicle"), tr("5. LKR Contribution"), tr("6. Approval & Review")][step]}
         </span>
       </div>
 
@@ -285,12 +272,10 @@ export function PublishRideView({
                 }}
               >
                 <CheckCircle size={18} weight="fill" />
-                <span>Offering seat to passenger request. Origin, destination, date, and time pre-filled!</span>
+                <span>{tr("Offering seat to passenger request. Origin, destination, date, and time pre-filled!")}</span>
               </div>
             )}
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              Where are you leaving from and going to?
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Where are you leaving from and going to?")}</h2>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label htmlFor="publish-origin-select" style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>
@@ -338,18 +323,18 @@ export function PublishRideView({
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
-                      {hubName} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {hubName} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
                     </option>
                   );
                 })}
               </select>
             </div>
             <div>
-              <label htmlFor="publish-pickup-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Pickup Landmark Meeting Point</label>
+              <label htmlFor="publish-pickup-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Pickup Landmark Meeting Point")}</label>
               <input
                 id="publish-pickup-landmark"
                 type="text"
-                placeholder="e.g. Fort Railway Station front entrance"
+                placeholder={tr("e.g. Fort Railway Station front entrance")}
                 value={pickupLandmark}
                 onChange={(e) => setPickupLandmark(e.target.value)}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
@@ -377,18 +362,18 @@ export function PublishRideView({
                   const hubName = h.name[langKey] || h.name.en;
                   return (
                     <option key={h.id} value={h.id}>
-                      {hubName} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {hubName} {h.isExpresswayInterchange ? tr("⚡ (MMC/Exit)") : ''}
                     </option>
                   );
                 })}
               </select>
             </div>
             <div>
-              <label htmlFor="publish-dropoff-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Drop-off Landmark</label>
+              <label htmlFor="publish-dropoff-landmark" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Drop-off Landmark")}</label>
               <input
                 id="publish-dropoff-landmark"
                 type="text"
-                placeholder="e.g. Galle Fort Clock Tower / Main Gate"
+                placeholder={tr("e.g. Galle Fort Clock Tower / Main Gate")}
                 value={dropoffLandmark}
                 onChange={(e) => setDropoffLandmark(e.target.value)}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
@@ -400,31 +385,23 @@ export function PublishRideView({
               disabled={originHubId === destinationHubId}
               onClick={() => {
                 if (originHubId === destinationHubId) {
-                  toast.error('Origin and Destination cannot be the same hub.');
+                  toast.error(tr("Origin and Destination cannot be the same hub."));
                   return;
                 }
                 setStep(2);
               }}
-            >
-              Continue to Route Selection →
-            </button>
+            >{tr("Continue to Route Selection →")}</button>
           </div>
         )}
 
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              Choose your Sri Lankan Highway Corridor & Toll Policy
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Choose your Sri Lankan Highway Corridor & Toll Policy")}</h2>
 
             {routeOptions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '32px 16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--bbc-border)' }}>
-                <p style={{ color: 'var(--bbc-navy)', fontWeight: 700, margin: '0 0 12px' }}>
-                  No pre-configured corridors found between these locations.
-                </p>
-                <button type="button" className="btn-secondary" onClick={() => setStep(1)}>
-                  ← Change Origin or Destination
-                </button>
+                <p style={{ color: 'var(--bbc-navy)', fontWeight: 700, margin: '0 0 12px' }}>{tr("No pre-configured corridors found between these locations.")}</p>
+                <button type="button" className="btn-secondary" onClick={() => setStep(1)}>{tr("← Change Origin or Destination")}</button>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -456,11 +433,11 @@ export function PublishRideView({
                         <strong style={{ fontSize: '15px', color: 'var(--bbc-navy)' }}>{opt.corridorName}</strong>
                         <div style={{ fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>
                           {opt.distanceKm} km · ~{Math.round(opt.durationMinutes / 60)}h {opt.durationMinutes % 60}m
-                          {opt.hasTolls ? ' · Expressway tolls apply' : ' · Toll-free route'}
+                          {opt.hasTolls ? tr(" · Expressway tolls apply") : tr(" · Toll-free route")}
                         </div>
                       </div>
                     </div>
-                    {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>Expressway</span>}
+                    {opt.hasTolls && <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px' }}>{tr("Expressway")}</span>}
                   </label>
                 ))}
               </div>
@@ -476,20 +453,20 @@ export function PublishRideView({
             )}
             {activeRoute?.hasTolls && (
               <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
-                <span style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', display: 'block' }}>Expressway Toll Policy</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', display: 'block' }}>{tr("Expressway Toll Policy")}</span>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', border: `1px solid ${tollPolicy === 'included' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: '8px', cursor: 'pointer', background: tollPolicy === 'included' ? '#f0f9ff' : 'transparent' }}>
                     <input type="radio" name="tollPolicy" checked={tollPolicy === 'included'} onChange={() => setTollPolicy('included')} />
                     <div>
-                      <strong style={{ fontSize: '13px' }}>Included in Contribution</strong>
-                      <div style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>Driver covers highway toll ticket</div>
+                      <strong style={{ fontSize: '13px' }}>{tr("Included in Contribution")}</strong>
+                      <div style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>{tr("Driver covers highway toll ticket")}</div>
                     </div>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', border: `1px solid ${tollPolicy === 'split_at_gate' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: '8px', cursor: 'pointer', background: tollPolicy === 'split_at_gate' ? '#f0f9ff' : 'transparent' }}>
                     <input type="radio" name="tollPolicy" checked={tollPolicy === 'split_at_gate'} onChange={() => setTollPolicy('split_at_gate')} />
                     <div>
-                      <strong style={{ fontSize: '13px' }}>Split at Toll Gate</strong>
-                      <div style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>Toll divided by riders onboard</div>
+                      <strong style={{ fontSize: '13px' }}>{tr("Split at Toll Gate")}</strong>
+                      <div style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>{tr("Toll divided by riders onboard")}</div>
                     </div>
                   </label>
                 </div>
@@ -498,7 +475,7 @@ export function PublishRideView({
 
             {(activeRoute?.intermediateHubs?.length ?? 0) > 0 && (
               <div style={{ borderTop: '1px solid var(--bbc-border)', paddingTop: '16px' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>Declared Stopovers (Get more passengers)</h4>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{tr("Declared Stopovers (Get more passengers)")}</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {(activeRoute?.intermediateHubs ?? []).map((hubId) => {
                     const hub = getHubById(hubId);
@@ -534,35 +511,29 @@ export function PublishRideView({
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer', background: '#fff3e0', padding: '12px', borderRadius: '8px' }}>
               <input type="checkbox" checked={boostEnabled} onChange={(e) => setBoostEnabled(e.target.checked)} />
               <div>
-                <strong>Enable Boost partial-leg matching</strong>
-                <div style={{ fontSize: '12px', color: '#e65100' }}>
-                  Automatically allow passengers along your highway corridor to book empty segments.
-                </div>
+                <strong>{tr("Enable Boost partial-leg matching")}</strong>
+                <div style={{ fontSize: '12px', color: '#e65100' }}>{tr("Automatically allow passengers along your highway corridor to book empty segments.")}</div>
               </div>
             </label>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
+              <button type="button" className="btn-secondary" onClick={() => setStep(1)}>{tr("← Back")}</button>
               <button
                 type="button"
                 className="btn-primary"
                 style={{ flex: 1 }}
                 disabled={routeOptions.length === 0 || !activeRoute}
                 onClick={() => setStep(3)}
-              >
-                Continue to Timing →
-              </button>
+              >{tr("Continue to Timing →")}</button>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              When are you driving?
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("When are you driving?")}</h2>
             <div>
-              <label htmlFor="publish-date-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Outbound Travel Date</label>
+              <label htmlFor="publish-date-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Outbound Travel Date")}</label>
               <input
                 id="publish-date-input"
                 type="date"
@@ -579,7 +550,7 @@ export function PublishRideView({
               />
             </div>
             <div>
-              <label htmlFor="publish-time-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Departure Time (Colombo Time)</label>
+              <label htmlFor="publish-time-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Departure Time (Colombo Time)")}</label>
               <input
                 id="publish-time-input"
                 type="time"
@@ -599,7 +570,7 @@ export function PublishRideView({
               {hasReturnRide && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--bbc-surface-subtle)', padding: '16px', borderRadius: '8px' }}>
                   <div>
-                    <label htmlFor="return-date-input" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Return Date</label>
+                    <label htmlFor="return-date-input" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>{tr("Return Date")}</label>
                     <input
                       id="return-date-input"
                       type="date"
@@ -610,7 +581,7 @@ export function PublishRideView({
                     />
                   </div>
                   <div>
-                    <label htmlFor="return-time-input" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Return Time</label>
+                    <label htmlFor="return-time-input" style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>{tr("Return Time")}</label>
                     <input
                       id="return-time-input"
                       type="time"
@@ -624,20 +595,18 @@ export function PublishRideView({
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(4)}>Continue to Seats & Vehicle →</button>
+              <button type="button" className="btn-secondary" onClick={() => setStep(2)}>{tr("← Back")}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(4)}>{tr("Continue to Seats & Vehicle →")}</button>
             </div>
           </div>
         )}
 
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              Seats & Comfort Preferences
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Seats & Comfort Preferences")}</h2>
 
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Number of Passengers you can take</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Number of Passengers you can take")}</span>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <button key={n} type="button" onClick={() => setSeats(n)} style={{ width: '44px', height: '44px', borderRadius: '9999px', fontWeight: 800, border: `2px solid ${seats === n ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, background: seats === n ? 'var(--bbc-blue)' : '#ffffff', color: seats === n ? '#ffffff' : 'var(--bbc-navy)' }}>
@@ -648,29 +617,29 @@ export function PublishRideView({
             </div>
 
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Vehicle Class</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Vehicle Class")}</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {[
-                  { id: 'car', label: 'Car / Sedan', icon: '🚗' },
-                  { id: 'suv', label: 'Comfort SUV', icon: '🚙' },
-                  { id: 'van', label: 'Spacious Van', icon: '🚐' },
+                  { id: 'car', label: tr("Car / Sedan"), icon: '🚗' },
+                  { id: 'suv', label: tr("Comfort SUV"), icon: '🚙' },
+                  { id: 'van', label: tr("Spacious Van"), icon: '🚐' },
                 ].map((tier) => (
                   <button key={tier.id} type="button" onClick={() => setVehicleCategory(tier.id as VehicleCategory)} style={{ padding: '8px 4px', borderRadius: '8px', border: `2px solid ${vehicleCategory === tier.id ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, background: vehicleCategory === tier.id ? '#f0f9ff' : '#ffffff', cursor: 'pointer', textAlign: 'center' }}>
                     <span style={{ fontSize: '16px', display: 'block' }}>{tier.icon}</span>
-                    <strong style={{ fontSize: '11px', display: 'block', color: 'var(--bbc-navy)' }}>{tier.label}</strong>
+                    <strong style={{ fontSize: '11px', display: 'block', color: 'var(--bbc-navy)' }}>{tr(tier.label)}</strong>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label htmlFor="publish-vehicle-model" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Vehicle Make & Model</label>
+              <label htmlFor="publish-vehicle-model" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Vehicle Make & Model")}</label>
               <input
                 id="publish-vehicle-model"
                 type="text"
                 value={vehicleModel}
                 onChange={(e) => setVehicleModel(e.target.value)}
-                placeholder="e.g. Toyota Aqua · Silver"
+                placeholder={tr("e.g. Toyota Aqua · Silver")}
                 style={{ width: '100%', padding: '12px', border: '1px solid var(--bbc-border)', borderRadius: '8px', fontSize: '15px' }}
               />
             </div>
@@ -678,31 +647,31 @@ export function PublishRideView({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={acGuaranteed} onChange={(e) => setAcGuaranteed(e.target.checked)} />
-                <span>Air Conditioning (AC)</span>
+                <span>{tr("Air Conditioning (AC)")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={maxTwoInBack} onChange={(e) => setMaxTwoInBack(e.target.checked)} />
-                <span>Max 2 in the back</span>
+                <span>{tr("Max 2 in the back")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={womenOnly} onChange={(e) => setWomenOnly(e.target.checked)} />
-                <span>Women Only Ride</span>
+                <span>{tr("Women Only Ride")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={quietRide} onChange={(e) => setQuietRide(e.target.checked)} />
-                <span>🔇 Quiet Commute</span>
+                <span>{tr("🔇 Quiet Commute")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={childSeatAvailable} onChange={(e) => setChildSeatAvailable(e.target.checked)} />
-                <span>💺 Child Safety Seat</span>
+                <span>{tr("💺 Child Safety Seat")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={wheelchairAccessible} onChange={(e) => setWheelchairAccessible(e.target.checked)} />
-                <span>♿ Wheelchair / Assist</span>
+                <span>{tr("♿ Wheelchair / Assist")}</span>
               </label>
               <label className="filter-option" style={{ padding: '10px', border: '1px solid var(--bbc-border)', borderRadius: '8px' }}>
                 <input type="checkbox" checked={airportFlightTransfer} onChange={(e) => setAirportFlightTransfer(e.target.checked)} />
-                <span>✈️ Airport Terminal Drop</span>
+                <span>{tr("✈️ Airport Terminal Drop")}</span>
               </label>
             </div>
 
@@ -734,7 +703,7 @@ export function PublishRideView({
                     >
                       <span style={{ fontSize: '20px', display: 'block', marginBottom: '2px' }}>{opt.icon}</span>
                       <strong style={{ fontSize: '12px', display: 'block', color: 'var(--bbc-navy)' }}>{opt.label}</strong>
-                      <span style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>{opt.desc}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--bbc-text-secondary)' }}>{tr(opt.desc)}</span>
                     </button>
                   );
                 })}
@@ -742,9 +711,7 @@ export function PublishRideView({
             </div>
 
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
-                📍 Pickup Precision & Highway Policy
-              </span>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>{tr("📍 Pickup Precision & Highway Policy")}</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <button
                   type="button"
@@ -758,8 +725,8 @@ export function PublishRideView({
                     textAlign: 'left',
                   }}
                 >
-                  <strong style={{ fontSize: '12.5px', color: '#047857', display: 'block' }}>⚡ Interchange / MMC (Zero Detour)</strong>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Quick boarding at highway exit slip road or MMC terminal.</span>
+                  <strong style={{ fontSize: '12.5px', color: '#047857', display: 'block' }}>{tr("⚡ Interchange / MMC (Zero Detour)")}</strong>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>{tr("Quick boarding at highway exit slip road or MMC terminal.")}</span>
                 </button>
                 <button
                   type="button"
@@ -773,16 +740,14 @@ export function PublishRideView({
                     textAlign: 'left',
                   }}
                 >
-                  <strong style={{ fontSize: '12.5px', color: 'var(--bbc-navy)', display: 'block' }}>📍 Town Center Pickup</strong>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Up to 1–2 km flexible town detour for rider convenience.</span>
+                  <strong style={{ fontSize: '12.5px', color: 'var(--bbc-navy)', display: 'block' }}>{tr("📍 Town Center Pickup")}</strong>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>{tr("Up to 1–2 km flexible town detour for rider convenience.")}</span>
                 </button>
               </div>
             </div>
 
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>
-                💳 Onboard Settlement Methods Accepted
-              </span>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px', color: 'var(--bbc-navy)' }}>{tr("💳 Onboard Settlement Methods Accepted")}</span>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                   <input
@@ -796,7 +761,7 @@ export function PublishRideView({
                       }
                     }}
                   />
-                  <span>LankaQR Instant Scan</span>
+                  <span>{tr("LankaQR Instant Scan")}</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                   <input
@@ -810,31 +775,26 @@ export function PublishRideView({
                       }
                     }}
                   />
-                  <span>Cash Handover (LKR)</span>
+                  <span>{tr("Cash Handover (LKR)")}</span>
                 </label>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(3)}>← Back</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(5)}>Continue to Pricing →</button>
+              <button type="button" className="btn-secondary" onClick={() => setStep(3)}>{tr("← Back")}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(5)}>{tr("Continue to Pricing →")}</button>
             </div>
           </div>
         )}
 
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              Set Passenger Cost-Sharing Contribution (LKR)
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Set Passenger Cost-Sharing Contribution (LKR)")}</h2>
 
-            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '14px' }}>
-              Yamo is a cost-sharing platform, not a commercial taxi. We recommend a fair rate based on distance (~LKR 20/km) and highway tolls to prevent unlawful commercial profiting.
-            </p>
+            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '14px' }}>{tr("Yamo is a cost-sharing platform, not a commercial taxi. We recommend a fair rate based on distance (~LKR 20/km) and highway tolls to prevent unlawful commercial profiting.")}</p>
 
             <div style={{ background: 'var(--bbc-surface-subtle)', border: '1px solid var(--bbc-border)', borderRadius: 'var(--radius-md)', padding: '24px', textAlign: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--bbc-text-secondary)' }}>
-                Recommended Price: {formatLkr(recPrice)} (Max: {formatLkr(bounds.maxLkr)})
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--bbc-text-secondary)' }}>{tr("Recommended Price:")}{formatLkr(recPrice, uiLocale)} {tr("(Max:")} {formatLkr(bounds.maxLkr, uiLocale)})
               </span>
 
               <div style={{ margin: '16px auto', width: 'fit-content' }}>
@@ -844,17 +804,17 @@ export function PublishRideView({
                     className="stepper-btn"
                     disabled={priceLkr <= bounds.minLkr}
                     onClick={() => setPriceLkr(stepContributionLkr(priceLkr, -1, bounds))}
-                    aria-label="Decrease price"
+                    aria-label={tr("Decrease price")}
                   >
                     –
                   </button>
-                  <span className="stepper-val">{formatLkr(priceLkr)}</span>
+                  <span className="stepper-val">{formatLkr(priceLkr, uiLocale)}</span>
                   <button
                     type="button"
                     className="stepper-btn"
                     disabled={priceLkr >= bounds.maxLkr}
                     onClick={() => setPriceLkr(stepContributionLkr(priceLkr, 1, bounds))}
-                    aria-label="Increase price"
+                    aria-label={tr("Increase price")}
                   >
                     +
                   </button>
@@ -862,54 +822,47 @@ export function PublishRideView({
               </div>
 
               <span className={`price-band-badge ${getPriceBand(priceLkr, recPrice)}`}>
-                {getPriceBand(priceLkr, recPrice) === 'green' && 'Great Price · Fills Seats Fast'}
-                {getPriceBand(priceLkr, recPrice) === 'amber' && 'Moderate Contribution'}
-                {getPriceBand(priceLkr, recPrice) === 'red' && 'Near Cost-Sharing Cap'}
+                {getPriceBand(priceLkr, recPrice) === 'green' && tr("Great Price · Fills Seats Fast")}
+                {getPriceBand(priceLkr, recPrice) === 'amber' && tr("Moderate Contribution")}
+                {getPriceBand(priceLkr, recPrice) === 'red' && tr("Near Cost-Sharing Cap")}
               </span>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(4)}>← Back</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(6)}>Continue to Review →</button>
+              <button type="button" className="btn-secondary" onClick={() => setStep(4)}>{tr("← Back")}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => setStep(6)}>{tr("Continue to Review →")}</button>
             </div>
           </div>
         )}
 
         {step === 6 && (
           <form onSubmit={handlePublish} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>
-              Approval Mode & Notes
-            </h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)' }}>{tr("Approval Mode & Notes")}</h2>
 
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px' }}>
-                Can passengers book instantly?
-              </span>
+              <span style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '8px' }}>{tr("Can passengers book instantly?")}</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <label style={{ padding: '14px', border: `2px solid ${approvalMode === 'instant' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: approvalMode === 'instant' ? '#f0f9ff' : 'transparent' }}>
                   <input type="radio" name="approval" checked={approvalMode === 'instant'} onChange={() => setApprovalMode('instant')} />
                   <div style={{ marginTop: '6px' }}>
                     <strong style={{ color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Sparkle size={16} weight="fill" color="var(--bbc-blue)" /> Instant Booking
-                    </strong>
-                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>Passengers book instantly.</p>
+                      <Sparkle size={16} weight="fill" color="var(--bbc-blue)" />{tr("Instant Booking")}</strong>
+                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>{tr("Passengers book instantly.")}</p>
                   </div>
                 </label>
 
                 <label style={{ padding: '14px', border: `2px solid ${approvalMode === 'manual' ? 'var(--bbc-blue)' : 'var(--bbc-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: approvalMode === 'manual' ? '#f0f9ff' : 'transparent' }}>
                   <input type="radio" name="approval" checked={approvalMode === 'manual'} onChange={() => setApprovalMode('manual')} />
                   <div style={{ marginTop: '6px' }}>
-                    <strong style={{ color: 'var(--bbc-navy)' }}>Manual Request</strong>
-                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>Review each request before accepting.</p>
+                    <strong style={{ color: 'var(--bbc-navy)' }}>{tr("Manual Request")}</strong>
+                    <p style={{ fontSize: '12px', color: 'var(--bbc-text-secondary)', marginTop: '2px' }}>{tr("Review each request before accepting.")}</p>
                   </div>
                 </label>
               </div>
             </div>
 
             <div>
-              <label htmlFor="publish-notes-textarea" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
-                Notes for Passengers
-              </label>
+              <label htmlFor="publish-notes-textarea" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Notes for Passengers")}</label>
               <textarea
                 id="publish-notes-textarea"
                 rows={3}
@@ -920,15 +873,13 @@ export function PublishRideView({
             </div>
 
             <div style={{ background: '#f4f6f8', padding: '16px', borderRadius: '8px', fontSize: '13px', color: 'var(--bbc-text-secondary)' }}>
-              <strong>Summary:</strong> {getHubById(originHubId)?.name.en} → {getHubById(destinationHubId)?.name.en} on {date} at {departureTime} · {seats} seats at {formatLkr(priceLkr)} per seat ({approvalMode === 'instant' ? 'Instant Booking' : 'Manual Request'}).
-              {hasReturnRide && ` · Includes return ride on ${returnDate} at ${returnTime}.`}
+              <strong>{tr("Summary:")}</strong> {getHubDisplayName(getHubById(originHubId), uiLocale)} → {getHubDisplayName(getHubById(destinationHubId), uiLocale)} {tr("on")} {date} {tr("at")} {departureTime} · {seats} {tr("seats at")} {formatLkr(priceLkr, uiLocale)} {tr("per seat (")}{approvalMode === 'instant' ? tr("Instant Booking") : tr("Manual Request")}).
+              {hasReturnRide && tr(" · Includes return ride on {0} at {1}.", { "0": returnDate, "1": returnTime })}
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(5)}>← Back</button>
-              <button type="submit" className="btn-primary" style={{ flex: 1, padding: '16px' }}>
-                Publish Your Ride
-              </button>
+              <button type="button" className="btn-secondary" onClick={() => setStep(5)}>{tr("← Back")}</button>
+              <button type="submit" className="btn-primary" style={{ flex: 1, padding: '16px' }}>{tr("Publish Your Ride")}</button>
             </div>
           </form>
         )}

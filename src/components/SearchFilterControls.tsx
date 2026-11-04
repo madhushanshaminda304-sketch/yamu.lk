@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
 import {
   Sparkle,
@@ -92,6 +93,7 @@ export function SearchFilterControls({
   locale,
   namePrefix = 'filter',
 }: SearchFilterControlsProps) {
+  const { tr, uiLocale } = useUiText(locale);
   return (
     <>
       <div className="filter-block">
@@ -103,32 +105,26 @@ export function SearchFilterControls({
               name={`${namePrefix}SortBy`}
               checked={sortBy === 'departure'}
               onChange={() => setSortBy('departure')}
-            />
-            Earliest departure
-          </label>
+            />{tr("Earliest departure")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}SortBy`}
               checked={sortBy === 'price'}
               onChange={() => setSortBy('price')}
-            />
-            Lowest price
-          </label>
+            />{tr("Lowest price")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}SortBy`}
               checked={sortBy === 'duration'}
               onChange={() => setSortBy('duration')}
-            />
-            Shortest ride
-          </label>
+            />{tr("Shortest ride")}</label>
         </div>
       </div>
 
       <div className="filter-block">
-        <h3>Departure time</h3>
+        <h3>{tr("Departure time")}</h3>
         <div className="filter-options">
           <label>
             <input
@@ -136,50 +132,40 @@ export function SearchFilterControls({
               name={`${namePrefix}TimeWindow`}
               checked={timeWindow === 'all'}
               onChange={() => setTimeWindow('all')}
-            />
-            Any time
-          </label>
+            />{tr("Any time")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}TimeWindow`}
               checked={timeWindow === 'before_6'}
               onChange={() => setTimeWindow('before_6')}
-            />
-            Early (Before 06:00)
-          </label>
+            />{tr("Early (Before 06:00)")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}TimeWindow`}
               checked={timeWindow === 'morning_6_12'}
               onChange={() => setTimeWindow('morning_6_12')}
-            />
-            Morning (06:00 – 12:00)
-          </label>
+            />{tr("Morning (06:00 – 12:00)")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}TimeWindow`}
               checked={timeWindow === 'afternoon_12_18'}
               onChange={() => setTimeWindow('afternoon_12_18')}
-            />
-            Afternoon (12:00 – 18:00)
-          </label>
+            />{tr("Afternoon (12:00 – 18:00)")}</label>
           <label>
             <input
               type="radio"
               name={`${namePrefix}TimeWindow`}
               checked={timeWindow === 'evening_after_18'}
               onChange={() => setTimeWindow('evening_after_18')}
-            />
-            Evening (After 18:00)
-          </label>
+            />{tr("Evening (After 18:00)")}</label>
         </div>
       </div>
 
       <div className="filter-block">
-        <h3>Max Price: {formatLkr(maxPrice)}</h3>
+        <h3>{tr("Max Price:")} {formatLkr(maxPrice, uiLocale)}</h3>
         <input
           type="range"
           min={500}
@@ -188,12 +174,12 @@ export function SearchFilterControls({
           value={maxPrice}
           onChange={(e) => setMaxPrice(Number(e.target.value))}
           style={{ width: '100%', accentColor: 'var(--yamo-emerald, #047857)' }}
-          aria-label="Maximum contribution price"
+          aria-label={tr("Maximum contribution price")}
         />
       </div>
 
       <div className="filter-block">
-        <h3>Trust & Booking Mode</h3>
+        <h3>{tr("Trust & Booking Mode")}</h3>
         <div className="filter-options">
           <label>
             <input
@@ -226,7 +212,7 @@ export function SearchFilterControls({
       </div>
 
       <div className="filter-block">
-        <h3>Vehicle & Comfort</h3>
+        <h3>{tr("Vehicle & Comfort")}</h3>
         <div className="filter-options">
           <label>
             <input
@@ -271,9 +257,7 @@ export function SearchFilterControls({
                 checked={quietRideOnly || false}
                 onChange={(e) => setQuietRideOnly(e.target.checked)}
               />
-              <span style={{ fontSize: '15px' }}>🔇</span>
-              Quiet Commute
-            </label>
+              <span style={{ fontSize: '15px' }}>🔇</span>{tr("Quiet Commute")}</label>
           )}
           {setChildSeatOnly && (
             <label>
@@ -282,9 +266,7 @@ export function SearchFilterControls({
                 checked={childSeatOnly || false}
                 onChange={(e) => setChildSeatOnly(e.target.checked)}
               />
-              <span style={{ fontSize: '15px' }}>💺</span>
-              Child Safety Seat
-            </label>
+              <span style={{ fontSize: '15px' }}>💺</span>{tr("Child Safety Seat")}</label>
           )}
           {setWheelchairOnly && (
             <label>
@@ -293,9 +275,7 @@ export function SearchFilterControls({
                 checked={wheelchairOnly || false}
                 onChange={(e) => setWheelchairOnly(e.target.checked)}
               />
-              <span style={{ fontSize: '15px' }}>♿</span>
-              Wheelchair / Assistance
-            </label>
+              <span style={{ fontSize: '15px' }}>♿</span>{tr("Wheelchair / Assistance")}</label>
           )}
           {setAirportOnly && (
             <label>
@@ -304,9 +284,7 @@ export function SearchFilterControls({
                 checked={airportOnly || false}
                 onChange={(e) => setAirportOnly(e.target.checked)}
               />
-              <span style={{ fontSize: '15px' }}>✈️</span>
-              Airport / BIA Transit
-            </label>
+              <span style={{ fontSize: '15px' }}>✈️</span>{tr("Airport / BIA Transit")}</label>
           )}
         </div>
       </div>
@@ -324,7 +302,7 @@ export function SearchFilterControls({
                 onChange={(e) => setPickupPrecision(e.target.value as 'all' | 'interchange_only' | 'town_center')}
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
-                <option value="all">Any Pickup Location</option>
+                <option value="all">{tr("Any Pickup Location")}</option>
                 <option value="interchange_only">{t(locale, 'filter.interchange_only')}</option>
                 <option value="town_center">{t(locale, 'filter.town_center')}</option>
               </select>
@@ -341,7 +319,7 @@ export function SearchFilterControls({
                 onChange={(e) => setLuggageSpace(e.target.value as 'all' | 'backpack_only' | 'large_suitcase')}
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
-                <option value="all">Any Luggage Size</option>
+                <option value="all">{tr("Any Luggage Size")}</option>
                 <option value="backpack_only">{t(locale, 'luggage.backpack')}</option>
                 <option value="large_suitcase">{t(locale, 'filter.large_suitcase')}</option>
               </select>
@@ -358,7 +336,7 @@ export function SearchFilterControls({
                 onChange={(e) => setSettlementPreference(e.target.value as 'all' | 'lankaqr' | 'cash_lkr')}
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
               >
-                <option value="all">Any Settlement Method</option>
+                <option value="all">{tr("Any Settlement Method")}</option>
                 <option value="lankaqr">{t(locale, 'filter.lankaqr')}</option>
                 <option value="cash_lkr">{t(locale, 'settlement.cash')}</option>
               </select>

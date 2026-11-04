@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
 import { formatSriLankanPlate } from '../domain/carPlate.ts';
 
@@ -14,6 +15,7 @@ export const CarPlateBadge: React.FC<CarPlateBadgeProps> = ({
   size = 'sm',
   className = '',
 }) => {
+  const { tr, uiLocale } = useUiText();
   const info = formatSriLankanPlate(plate);
   const displayReg = isMasked
     ? (info.isValidFormat ? info.masked.replace(`${info.province} `, '') : '••••')
@@ -33,7 +35,7 @@ export const CarPlateBadge: React.FC<CarPlateBadgeProps> = ({
           : 'text-[13px] h-7 px-2 gap-1.5'
       } ${className}`}
       title={info.full}
-      aria-label={`Vehicle plate ${isMasked ? info.masked : info.full}`}
+      aria-label={tr("Vehicle plate {0}", { "0": isMasked ? info.masked : info.full })}
     >
       {/* Province code badge */}
       <span

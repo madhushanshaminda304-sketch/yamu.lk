@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React from 'react';
 import { X, CheckCircle, WarningCircle, ShieldCheck, QrCode, Money, Car, Bus, Users } from '@phosphor-icons/react';
 import { formatLkr, t } from '../domain/i18n.ts';
@@ -22,6 +23,7 @@ export function CompareAlternativesModal({
   corridorCode = 'Expressway',
   hasTolls = true,
 }: CompareAlternativesModalProps) {
+  const { tr, uiLocale } = useUiText();
   const locale = useMarketplaceStore((s) => s.locale);
   if (!isOpen) return null;
 
@@ -67,7 +69,7 @@ export function CompareAlternativesModal({
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '6px' }}>
-              <span>🇱🇰 SRI LANKA TRAVEL COMPARISON</span>
+              <span>{tr("🇱🇰 SRI LANKA TRAVEL COMPARISON")}</span>
             </div>
             <h2 id="compare-modal-title" style={{ fontSize: '22px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
               {t(locale, 'compare.title')}
@@ -79,7 +81,7 @@ export function CompareAlternativesModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
             style={{
               background: '#f1f5f9',
               border: 'none',
@@ -117,22 +119,22 @@ export function CompareAlternativesModal({
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: '#dc2626' }}>
-                ~{formatLkr(estimatedSoloCostLkr)}
+                ~{formatLkr(estimatedSoloCostLkr, uiLocale)}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>100% fuel + full toll</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>{tr("100% fuel + full toll")}</div>
             </div>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '12px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#dc2626" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Highest travel expense</span>
+                <span>{tr("Highest travel expense")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#dc2626" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Heavy fuel burning</span>
+                <span>{tr("Heavy fuel burning")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#dc2626" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Solo driving fatigue</span>
+                <span>{tr("Solo driving fatigue")}</span>
               </li>
             </ul>
           </div>
@@ -155,22 +157,22 @@ export function CompareAlternativesModal({
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706' }}>
-                ~{formatLkr(estimatedBusPriceLkr)}
+                ~{formatLkr(estimatedBusPriceLkr, uiLocale)}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Standard public transit</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>{tr("Standard public transit")}</div>
             </div>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '12px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#d97706" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Long terminal queues</span>
+                <span>{tr("Long terminal queues")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#d97706" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Terminal-to-terminal only</span>
+                <span>{tr("Terminal-to-terminal only")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <WarningCircle size={14} color="#d97706" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>No exit interchange drop</span>
+                <span>{tr("No exit interchange drop")}</span>
               </li>
             </ul>
           </div>
@@ -194,22 +196,22 @@ export function CompareAlternativesModal({
             </div>
             <div>
               <div style={{ fontSize: '20px', fontWeight: 900, color: '#047857' }}>
-                {formatLkr(yamoPriceLkr)}
+                {formatLkr(yamoPriceLkr, uiLocale)}
               </div>
-              <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 700 }}>Save ~67% vs solo drive</div>
+              <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 700 }}>{tr("Save ~67% vs solo drive")}</div>
             </div>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '12px', color: '#065f46', display: 'flex', flexDirection: 'column', gap: '6px', fontWeight: 600 }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <CheckCircle size={14} color="#047857" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>No queues • Reserved seat</span>
+                <span>{tr("No queues • Reserved seat")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <CheckCircle size={14} color="#047857" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>AC comfort & Super Driver</span>
+                <span>{tr("AC comfort & Super Driver")}</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <CheckCircle size={14} color="#047857" weight="fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>Interchange exit pickup</span>
+                <span>{tr("Interchange exit pickup")}</span>
               </li>
             </ul>
           </div>
@@ -232,17 +234,16 @@ export function CompareAlternativesModal({
             <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#92400e', marginBottom: '4px' }}>
               {t(locale, 'compare.antiscam')}
             </div>
-            <p style={{ fontSize: '12.5px', color: '#78350f', margin: 0, lineHeight: 1.5 }}>
-              Never click links sent in chat to make advance bank transfers. Always settle your cost-share directly inside the car upon departure using <strong>Cash (LKR)</strong> or <strong>LankaQR Instant Scan</strong>.
+            <p style={{ fontSize: '12.5px', color: '#78350f', margin: 0, lineHeight: 1.5 }}>{tr("Never click links sent in chat to make advance bank transfers. Always settle your cost-share directly inside the car upon departure using")}<strong>{tr("Cash (LKR)")}</strong> {tr("or")} <strong>{tr("LankaQR Instant Scan")}</strong>.
             </p>
             <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '3px 8px', borderRadius: '4px', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <QrCode size={13} weight="bold" />
-                <span>LankaQR Accepted</span>
+                <span>{tr("LankaQR Accepted")}</span>
               </span>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', background: '#ffffff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <Money size={13} weight="bold" />
-                <span>Cash LKR Accepted</span>
+                <span>{tr("Cash LKR Accepted")}</span>
               </span>
             </div>
           </div>
@@ -263,9 +264,7 @@ export function CompareAlternativesModal({
             fontSize: '14px',
             cursor: 'pointer',
           }}
-        >
-          Got it
-        </button>
+        >{tr("Got it")}</button>
       </div>
     </div>
   );

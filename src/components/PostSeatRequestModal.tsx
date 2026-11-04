@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React, { useState } from 'react';
 import { X, CheckCircle, Handbag, QrCode, Money } from '@phosphor-icons/react';
 import { ALL_HUBS, getHubDisplayName } from '../domain/corridors.ts';
@@ -39,6 +40,7 @@ export function PostSeatRequestModal({
   initialDate,
   locale = 'en-LK',
 }: PostSeatRequestModalProps) {
+  const { tr, uiLocale } = useUiText();
   const tomorrow = getColomboDateOffset(1);
   const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
 
@@ -59,15 +61,15 @@ export function PostSeatRequestModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!passengerName.trim()) {
-      toast.error('Please enter your name.');
+      toast.error(tr("Please enter your name."));
       return;
     }
     if (!passengerPhone.trim()) {
-      toast.error('Please enter your mobile phone number.');
+      toast.error(tr("Please enter your mobile phone number."));
       return;
     }
     if (fromHubId === toHubId) {
-      toast.error('Pickup origin and destination cannot be the same hub.');
+      toast.error(tr("Pickup origin and destination cannot be the same hub."));
       return;
     }
 
@@ -94,7 +96,7 @@ export function PostSeatRequestModal({
     });
 
     triggerHaptic('success');
-    toast.success('Your seat request has been posted! Drivers on this corridor will be notified.');
+    toast.success(tr("Your seat request has been posted! Drivers on this corridor will be notified."));
     onClose();
   };
 
@@ -134,17 +136,13 @@ export function PostSeatRequestModal({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <h2 id="request-modal-title" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-              🙋‍♂️ Post a Seat Request
-            </h2>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>
-              Fill in your trip details in 15 seconds. Drivers offering rides will reach out!
-            </p>
+            <h2 id="request-modal-title" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{tr("🙋‍♂️ Post a Seat Request")}</h2>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>{tr("Fill in your trip details in 15 seconds. Drivers offering rides will reach out!")}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
             style={{
               background: '#f1f5f9',
               border: 'none',
@@ -165,22 +163,18 @@ export function PostSeatRequestModal({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Your Name
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Your Name")}</label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Kasun Fernando"
+                placeholder={tr("e.g. Kasun Fernando")}
                 value={passengerName}
                 onChange={(e) => setPassengerName(e.target.value)}
                 style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Mobile Number
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Mobile Number")}</label>
               <input
                 type="tel"
                 required
@@ -194,9 +188,7 @@ export function PostSeatRequestModal({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Pickup Origin
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Pickup Origin")}</label>
               <select
                 value={fromHubId}
                 onChange={(e) => setFromHubId(e.target.value)}
@@ -210,9 +202,7 @@ export function PostSeatRequestModal({
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Destination
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Destination")}</label>
               <select
                 value={toHubId}
                 onChange={(e) => setToHubId(e.target.value)}
@@ -229,9 +219,7 @@ export function PostSeatRequestModal({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Travel Date
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Travel Date")}</label>
               <input
                 type="date"
                 min={getColomboDateOffset(0)}
@@ -242,9 +230,7 @@ export function PostSeatRequestModal({
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Preferred Time
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Preferred Time")}</label>
               <input
                 type="time"
                 value={time}
@@ -257,9 +243,7 @@ export function PostSeatRequestModal({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Seats Needed
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Seats Needed")}</label>
               <select
                 value={seatsNeeded}
                 onChange={(e) => setSeatsNeeded(Number(e.target.value))}
@@ -267,15 +251,13 @@ export function PostSeatRequestModal({
               >
                 {[1, 2, 3, 4].map((n) => (
                   <option key={n} value={n}>
-                    {n} {n === 1 ? 'Passenger (1 seat)' : 'Passengers'}
+                    {n} {n === 1 ? tr("Passenger (1 seat)") : tr("Passengers")}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Contribution per Seat (LKR)
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Contribution per Seat (LKR)")}</label>
               <input
                 type="number"
                 min={200}
@@ -289,9 +271,7 @@ export function PostSeatRequestModal({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
-              Settlement Preference
-            </label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>{tr("Settlement Preference")}</label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
@@ -313,7 +293,7 @@ export function PostSeatRequestModal({
                 }}
               >
                 <QrCode size={16} weight="bold" />
-                <span>LankaQR Scan</span>
+                <span>{tr("LankaQR Scan")}</span>
               </button>
               <button
                 type="button"
@@ -335,18 +315,16 @@ export function PostSeatRequestModal({
                 }}
               >
                 <Money size={16} weight="bold" />
-                <span>Cash Handover</span>
+                <span>{tr("Cash Handover")}</span>
               </button>
             </div>
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-              Convenient Pickup Landmark
-            </label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Convenient Pickup Landmark")}</label>
             <input
               type="text"
-              placeholder="e.g. Makumbura MMC Gate 1, Kadawatha Interchange"
+              placeholder={tr("e.g. Makumbura MMC Gate 1, Kadawatha Interchange")}
               value={pickupLandmark}
               onChange={(e) => setPickupLandmark(e.target.value)}
               style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -354,12 +332,10 @@ export function PostSeatRequestModal({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-              Special Notes (Optional)
-            </label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>{tr("Special Notes (Optional)")}</label>
             <input
               type="text"
-              placeholder="e.g. Traveling with laptop backpack only, flexible by 15 mins"
+              placeholder={tr("e.g. Traveling with laptop backpack only, flexible by 15 mins")}
               value={specialNotes}
               onChange={(e) => setSpecialNotes(e.target.value)}
               style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -381,9 +357,7 @@ export function PostSeatRequestModal({
                 fontSize: '14px',
                 cursor: 'pointer',
               }}
-            >
-              Cancel
-            </button>
+            >{tr("Cancel")}</button>
             <button
               type="submit"
               style={{
@@ -398,9 +372,7 @@ export function PostSeatRequestModal({
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)',
               }}
-            >
-              Post Seat Request
-            </button>
+            >{tr("Post Seat Request")}</button>
           </div>
         </form>
       </div>

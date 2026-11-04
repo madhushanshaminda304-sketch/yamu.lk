@@ -1,3 +1,7 @@
+import { defaultMarketplaceStore } from '../state/store.ts';
+import { uiText } from '../domain/uiText.ts';
+import { localizedPath } from '../domain/languageRoutes.ts';
+import { useUiText } from './useUiText.ts';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
@@ -32,10 +36,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   handleReset = (): void => {
     this.setState({ hasError: false, error: null, errorInfo: null });
-    window.location.href = '/';
+    window.location.href = localizedPath('/', defaultMarketplaceStore.getState().locale);
   };
 
   render(): ReactNode {
+    const uiLocale = defaultMarketplaceStore.getState().locale;
+    const tr = (source: string) => uiText(uiLocale, source);
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
@@ -92,9 +98,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 marginBottom: '10px',
                 letterSpacing: '-0.02em',
               }}
-            >
-              Something went wrong loading this screen
-            </h2>
+            >{tr("Something went wrong loading this screen")}</h2>
 
             <p
               style={{
@@ -103,9 +107,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 color: '#475569',
                 marginBottom: '24px',
               }}
-            >
-              Yamo encountered an unexpected error while preparing this journey. Your account and booking data remain safe.
-            </p>
+            >{tr("Yamo encountered an unexpected error while preparing this journey. Your account and booking data remain safe.")}</p>
 
             <button
               type="button"
@@ -132,7 +134,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 e.currentTarget.style.background = '#174D3A';
               }}
             >
-              <span>← Return to Yamo Home</span>
+              <span>{tr("← Return to Yamo Home")}</span>
             </button>
 
             {this.state.error && (
@@ -148,9 +150,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   color: '#64748b',
                 }}
               >
-                <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#334155' }}>
-                  Technical error details
-                </summary>
+                <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#334155' }}>{tr("Technical error details")}</summary>
                 <pre
                   style={{
                     marginTop: '8px',

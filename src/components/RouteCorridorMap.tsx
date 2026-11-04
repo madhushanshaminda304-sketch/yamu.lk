@@ -1,6 +1,7 @@
+import { useUiText } from './useUiText.ts';
 import React, { useMemo, useState } from 'react';
 import type { Ride, RideStop } from '../domain/matching.ts';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { extractRouteMapWaypoints } from '../domain/routeMapGeometry.ts';
 import { LeafletRouteMap } from './LeafletRouteMap.tsx';
 
@@ -25,6 +26,7 @@ export function RouteCorridorMap({
   userRole = 'passenger',
   enableLiveTracking = true,
 }: RouteCorridorMapProps) {
+  const { tr, uiLocale } = useUiText();
   const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
   const stops = ride.stops;
 
@@ -73,8 +75,7 @@ export function RouteCorridorMap({
             {ride.corridorName}
           </span>
           <span style={{ fontSize: '12px', fontWeight: 600, color: '#047857' }}>
-            • {stops[stops.length - 1].kmFromOrigin} km total
-          </span>
+            • {stops[stops.length - 1].kmFromOrigin}{tr("km total")}</span>
         </div>
 
         {/* Mode Toggle: Live Taxi Map vs Stop Timeline */}
@@ -86,7 +87,7 @@ export function RouteCorridorMap({
             borderRadius: '8px',
           }}
           role="tablist"
-          aria-label="Route visualization mode"
+          aria-label={tr("Route visualization mode")}
         >
           <button
             type="button"
@@ -104,9 +105,7 @@ export function RouteCorridorMap({
               cursor: 'pointer',
               boxShadow: viewMode === 'map' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
             }}
-          >
-            🗺️ Live Taxi Map
-          </button>
+          >{tr("🗺️ Live Taxi Map")}</button>
           <button
             type="button"
             role="tab"
@@ -123,9 +122,7 @@ export function RouteCorridorMap({
               cursor: 'pointer',
               boxShadow: viewMode === 'timeline' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
             }}
-          >
-            📏 Stop Timeline
-          </button>
+          >{tr("📏 Stop Timeline")}</button>
         </div>
       </div>
 
@@ -182,7 +179,7 @@ export function RouteCorridorMap({
           >
             {stops.map((stop: RideStop, idx: number) => {
               const hub = getHubById(stop.hubId);
-              const hubName = hub?.name[langKey] || hub?.name.en || stop.hubId;
+              const hubName = hub?.name[langKey] || getHubDisplayName(hub, uiLocale) || stop.hubId;
               const isOrigin = idx === 0;
               const isDest = idx === stops.length - 1;
               const isFrom = stop.hubId === selectedFromHubId;

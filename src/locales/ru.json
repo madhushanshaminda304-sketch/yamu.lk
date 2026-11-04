@@ -90,5 +90,10 @@
   "toast.alert_invalid_email": "Пожалуйста, введите корректный адрес электронной почты.",
   "toast.publish_success": "Поездка успешно опубликована!",
   "toast.request_created": "Запрос на место успешно опубликован!",
-  "toast.copied": "Скопировано в буфер обмена!"
+  "toast.copied": "Скопировано в буфер обмена!",
+  "nav.mobile.search": "Поиск",
+  "nav.mobile.publish": "Предложить",
+  "nav.mobile.requests": "Запросы",
+  "nav.mobile.rides": "Поездки",
+  "nav.mobile.profile": "Профиль"
 }

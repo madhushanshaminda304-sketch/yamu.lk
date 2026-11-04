@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node --experimental-strip-types scripts/prerender.mjs",
     "preview": "npm run build && wrangler dev",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:browser": "playwright test",
+    "check:i18n": "node scripts/audit-language.mjs",
     "cap:sync": "npm run build && npx cap sync android",
     "cap:build": "npm run build && npx cap copy android",
     "deploy": "npm run build && wrangler deploy"
@@ -32,6 +34,7 @@
     "@capacitor/android": "^7.6.10",
     "@capacitor/cli": "^7.6.10",
     "@cloudflare/vite-plugin": "^1.66.0",
+    "@playwright/test": "^1.64.1",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.8",

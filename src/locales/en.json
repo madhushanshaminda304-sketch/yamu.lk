@@ -90,5 +90,10 @@
   "toast.alert_invalid_email": "Please enter a valid email address.",
   "toast.publish_success": "Ride published successfully!",
   "toast.request_created": "Seat request posted successfully!",
-  "toast.copied": "Copied to clipboard!"
+  "toast.copied": "Copied to clipboard!",
+  "nav.mobile.search": "Search",
+  "nav.mobile.publish": "Offer",
+  "nav.mobile.requests": "Requests",
+  "nav.mobile.rides": "Rides",
+  "nav.mobile.profile": "Profile"
 }
