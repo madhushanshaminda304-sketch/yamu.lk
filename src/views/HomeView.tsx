@@ -1,5 +1,6 @@
+import { useUiText } from '../components/useUiText.ts';
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '../components/LocalizedRouter.tsx';
 import {
   MagnifyingGlass,
   ArrowsLeftRight,
@@ -24,6 +25,7 @@ import { COMMUTE_CORRIDORS } from '../domain/passengerRequests.ts';
 import { PassengerRequestCard } from '../components/PassengerRequestCard.tsx';
 
 export function HomeView({ state }: { state: MarketplaceState }) {
+  const { tr, uiLocale } = useUiText();
   const navigate = useNavigate();
   const locale = state.locale;
   const tomorrow = getColomboDateOffset(1);
@@ -51,9 +53,9 @@ export function HomeView({ state }: { state: MarketplaceState }) {
       const nearest = findNearestHub(coords, ALL_HUBS);
       setFromHubId(nearest.hub.id);
       await triggerHaptic('success');
-      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
-      toast.success(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+      toast.success(tr(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`));
     } catch {
       toast.error(t(locale, 'location.denied'));
     } finally {
@@ -76,8 +78,8 @@ export function HomeView({ state }: { state: MarketplaceState }) {
     <div>
       <section className="hero-section">
         <div className="shell hero-content">
-          <h1 className="hero-title">{t(locale, 'hero.title')}</h1>
-          <p className="hero-subtitle">{t(locale, 'hero.subtitle')}</p>
+          <h1 className="hero-title">{t(locale, 'home.hero.heading')}</h1>
+          <p className="hero-subtitle">{t(locale, 'home.hero.description')}</p>
         </div>
 
         <div className="shell">
@@ -114,13 +116,13 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-from-select" value={fromHubId} onChange={(e) => setFromHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {getHubDisplayName(h, locale)}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <button type="button" className="swap-btn" onClick={handleSwap} aria-label="Swap Route Departure and Destination">
+              <button type="button" className="swap-btn" onClick={handleSwap} aria-label={tr("Swap Route Departure and Destination")}>
                 <ArrowsLeftRight size={18} weight="bold" />
               </button>
 
@@ -129,7 +131,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-to-select" value={toHubId} onChange={(e) => setToHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {getHubDisplayName(h, locale)}
                     </option>
                   ))}
                 </select>
@@ -152,7 +154,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-seats-select" value={seats} onChange={(e) => setSeats(Number(e.target.value))}>
                   {[1, 2, 3, 4, 5, 6].map((n) => (
                     <option key={n} value={n}>
-                      {n} {n === 1 ? 'Passenger' : 'Passengers'}
+                      {n} {n === 1 ? tr("Passenger") : tr("Passengers")}
                     </option>
                   ))}
                 </select>
@@ -205,12 +207,10 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <span>{t(locale, 'commute.toggle')}</span>
               </button>
 
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                Quick Hubs:
-              </span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{t(locale, 'home.shortcuts.label')}</span>
               {savedPlaces.map((place) => {
                 const hub = getHubById(place.hubId);
-                const hubName = hub?.name.en ?? place.hubId;
+                const hubName = getHubDisplayName(hub, uiLocale) || place.hubId;
                 const isSelected = toHubId === place.hubId;
                 return (
                   <button
@@ -222,7 +222,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                         setFromHubId(place.hubId === 'colombo' ? 'makumbura' : 'colombo');
                       }
                       setToHubId(place.hubId);
-                      toast.success(`Destination set to ${place.title} (${hubName})`);
+                      toast.success(tr("Destination set to {0} ({1})", { "0": place.title, "1": hubName }));
                     }}
                     style={{
                       display: 'inline-flex',
@@ -245,7 +245,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                      place.label === 'work' ? <Briefcase size={13} weight={isSelected ? 'fill' : 'bold'} /> :
                      place.label === 'university' ? <GraduationCap size={13} weight={isSelected ? 'fill' : 'bold'} /> :
                      <MapPin size={13} weight={isSelected ? 'fill' : 'bold'} />}
-                    <span>{place.title}</span>
+                    <span>{['Home', 'Work', 'Campus'].includes(place.title) || place.id.startsWith('def-') ? t(locale, 'home.shortcuts.' + place.label) : place.title}</span>
                   </button>
                 );
               })}
@@ -266,15 +266,11 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🔁</span>
-                    <span>Daily Office & Campus Commute Pass (Mon–Fri)</span>
+                    <span>{tr("Daily Office & Campus Commute Pass (Mon–Fri)")}</span>
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#065f46', background: '#d1fae5', padding: '2px 8px', borderRadius: '4px' }}>
-                    Save up to LKR 14,000/week
-                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#065f46', background: '#d1fae5', padding: '2px 8px', borderRadius: '4px' }}>{tr("Save up to LKR 14,000/week")}</span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#334155' }}>
-                  Split fuel & tolls 5 days/week on high-congestion corridors with verified regular carpoolers:
-                </div>
+                <div style={{ fontSize: '12px', color: '#334155' }}>{tr("Split fuel & tolls 5 days/week on high-congestion corridors with verified regular carpoolers:")}</div>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
                   {COMMUTE_CORRIDORS.map((c) => {
                     const isCorridorActive = fromHubId === c.originHubId && toHubId === c.destinationHubId;
@@ -286,7 +282,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                           triggerHaptic('selection');
                           setFromHubId(c.originHubId);
                           setToHubId(c.destinationHubId);
-                          toast.success(`Commute route set: ${c.title}`);
+                          toast.success(tr("Commute route set: {0}", { "0": c.title }));
                         }}
                         style={{
                           padding: '8px 12px',
@@ -318,7 +314,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           <div className="scam-banner">
             <ShieldCheck size={26} color="#d84315" weight="fill" />
             <span>
-              <strong>Sri Lanka Anti-Scam Protection:</strong> {t(locale, 'scam.banner')}
+              <strong>{tr("Sri Lanka Anti-Scam Protection:")}</strong> {t(locale, 'scam.banner')}
             </span>
           </div>
         </div>
@@ -358,72 +354,62 @@ export function HomeView({ state }: { state: MarketplaceState }) {
       <section className="shell corridors-section">
         <div className="section-header">
           <div>
-            <h2>Popular Sri Lankan Carpool Corridors</h2>
-            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>
-              Explore frequently travelled routes with verified drivers and cost-sharing rates.
-            </p>
+            <h2>{t(locale, 'home.corridors.title')}</h2>
+            <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '15px' }}>{t(locale, 'home.corridors.description')}</p>
           </div>
         </div>
 
         <div className="corridor-grid">
           <Link to={`/search?from=colombo&to=kandy&date=${tomorrow}`} className="corridor-card">
             <div className="corridor-route">
-              <span>Colombo</span>
+              <span>{tr("Colombo")}</span>
               <ArrowRight size={18} />
-              <span>Kandy</span>
+              <span>{tr("Kandy")}</span>
             </div>
             <div className="corridor-meta">
-              <span>via A1 / Central E04</span>
-              <span className="corridor-price">from LKR 1,850</span>
+              <span>{tr("via A1 / Central E04")}</span>
+              <span className="corridor-price">{tr("from LKR 1,850")}</span>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              Includes E04 Toll (LKR 300) + Fuel Split • Save 67% vs Solo Drive
-            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{tr("Includes E04 Toll (LKR 300) + Fuel Split • Save 67% vs Solo Drive")}</div>
           </Link>
 
           <Link to={`/search?from=makumbura&to=galle&date=${tomorrow}`} className="corridor-card">
             <div className="corridor-route">
-              <span>Makumbura MMC</span>
+              <span>{tr("Makumbura MMC")}</span>
               <ArrowRight size={18} />
-              <span>Galle</span>
+              <span>{tr("Galle")}</span>
             </div>
             <div className="corridor-meta">
-              <span>via E01 Expressway</span>
-              <span className="corridor-price">from LKR 1,750</span>
+              <span>{tr("via E01 Expressway")}</span>
+              <span className="corridor-price">{tr("from LKR 1,750")}</span>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              Includes E01 Toll (LKR 500) + Fuel Split • Save 67% vs Solo Drive
-            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{tr("Includes E01 Toll (LKR 500) + Fuel Split • Save 67% vs Solo Drive")}</div>
           </Link>
 
           <Link to={`/search?from=colombo&to=matara&date=${tomorrow}`} className="corridor-card">
             <div className="corridor-route">
-              <span>Colombo</span>
+              <span>{tr("Colombo")}</span>
               <ArrowRight size={18} />
-              <span>Matara</span>
+              <span>{tr("Matara")}</span>
             </div>
             <div className="corridor-meta">
-              <span>via E01 Tolls</span>
-              <span className="corridor-price">from LKR 2,400</span>
+              <span>{tr("via E01 Tolls")}</span>
+              <span className="corridor-price">{tr("from LKR 2,400")}</span>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              Includes E01 Toll (LKR 650) + Fuel Split • Save 67% vs Solo Drive
-            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{tr("Includes E01 Toll (LKR 650) + Fuel Split • Save 67% vs Solo Drive")}</div>
           </Link>
 
           <Link to={`/search?from=colombo&to=jaffna&date=${tomorrow}`} className="corridor-card">
             <div className="corridor-route">
-              <span>Colombo</span>
+              <span>{tr("Colombo")}</span>
               <ArrowRight size={18} />
-              <span>Jaffna</span>
+              <span>{tr("Jaffna")}</span>
             </div>
             <div className="corridor-meta">
-              <span>via Katunayake & A9</span>
-              <span className="corridor-price">from LKR 7,500</span>
+              <span>{tr("via Katunayake & A9")}</span>
+              <span className="corridor-price">{tr("from LKR 7,500")}</span>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              Includes E03 Toll (LKR 350) + A9 Fuel Split • Save 72% vs Solo Drive
-            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: '#047857', background: 'rgba(236, 253, 245, 0.9)', padding: '4px 9px', borderRadius: '6px', border: '1px solid #d1fae5', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{tr("Includes E03 Toll (LKR 350) + A9 Fuel Split • Save 72% vs Solo Drive")}</div>
           </Link>
         </div>
       </section>
@@ -434,14 +420,12 @@ export function HomeView({ state }: { state: MarketplaceState }) {
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #a7f3d0', marginBottom: '6px' }}>
               <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
-              <span>• Two-Way Marketplace</span>
+
             </div>
             <h2 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
               {t(locale, 'requests.subtitle')}
             </h2>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0' }}>
-              Driving these corridors with empty seats? Offer a ride to verified passengers and split your fuel + expressway tolls.
-            </p>
+            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0' }}>{tr("Driving these corridors with empty seats? Offer a ride to verified passengers and split your fuel + expressway tolls.")}</p>
           </div>
 
           <Link
@@ -461,12 +445,12 @@ export function HomeView({ state }: { state: MarketplaceState }) {
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
           >
-            <span>View All Passenger Requests ({state.passengerRequests?.length || 0})</span>
+            <span>{tr("View All Passenger Requests (")}{state.passengerRequests?.length || 0})</span>
             <ArrowRight size={15} weight="bold" />
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '16px' }}>
           {(state.passengerRequests || []).slice(0, 3).map((req) => (
             <PassengerRequestCard key={req.id} request={req} />
           ))}

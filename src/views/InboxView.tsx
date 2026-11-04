@@ -1,5 +1,6 @@
+import { useUiText } from '../components/useUiText.ts';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedRouter.tsx';
 import {
   ChatCircleDots,
   Car,
@@ -32,6 +33,7 @@ export interface InboxViewProps {
 }
 
 export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
+  const { tr, uiLocale } = useUiText();
   const currentUser = state.currentUser;
   const locale = state.locale;
 
@@ -59,23 +61,17 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
         >
           <ChatCircleDots size={36} weight="duotone" />
         </div>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#002B36', marginBottom: '8px' }}>
-          Sign In to Access Your Inbox
-        </h2>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#002B36', marginBottom: '8px' }}>{tr("Sign In to Access Your Inbox")}</h2>
         <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '12px', fontWeight: 600 }}>
           පණිවිඩ සඳහා පිවිසෙන්න · செய்திகளுக்கு உள்நுழையவும்
         </div>
-        <p style={{ color: '#4b5563', fontSize: '15px', maxWidth: '440px', margin: '0 auto 28px', lineHeight: 1.5 }}>
-          Coordinate departure hubs, pickup landmarks, and travel timing safely with verified co-travellers across Sri Lanka.
-        </p>
+        <p style={{ color: '#4b5563', fontSize: '15px', maxWidth: '440px', margin: '0 auto 28px', lineHeight: 1.5 }}>{tr("Coordinate departure hubs, pickup landmarks, and travel timing safely with verified co-travellers across Sri Lanka.")}</p>
         <button
           type="button"
           className="btn-primary"
           onClick={() => openAuthModal?.()}
           style={{ padding: '14px 32px', fontSize: '16px' }}
-        >
-          Sign In with Mobile OTP
-        </button>
+        >{tr("Sign In with Mobile OTP")}</button>
       </div>
     );
   }
@@ -87,7 +83,8 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
     state.bookings,
     currentUser.name,
     state.lastReadAtByBooking,
-    currentUser.id
+    currentUser.id,
+    locale
   );
 
   const totalUnread = threads.reduce((acc, t) => acc + t.unreadCount, 0);
@@ -118,11 +115,11 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
     if (!res.allowed) {
       setChatWarning(res.warningMessage || 'Message blocked for safety.');
       toast.error(
-        res.warningMessage ||
-          'Message blocked: external payment links and advance transfer requests are prohibited.'
+        tr(res.warningMessage ||
+          tr("Message blocked: external payment links and advance transfer requests are prohibited."))
       );
     } else {
-      toast.success('Message sent');
+      toast.success(tr("Message sent"));
       setChatInput('');
       // Re-mark read so own messages don't count as unread
       store.markConversationRead(activeBookingId);
@@ -146,7 +143,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                 gap: '8px',
               }}
             >
-              <span>Inbox</span>
+              <span>{tr("Inbox")}</span>
               {totalUnread > 0 && (
                 <span
                   style={{
@@ -162,7 +159,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                     borderRadius: '9999px',
                     padding: '0 6px',
                   }}
-                  aria-label={`${totalUnread} unread messages`}
+                  aria-label={tr("{0} unread messages", { "0": totalUnread })}
                 >
                   {totalUnread}
                 </span>
@@ -210,9 +207,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
           >
             <ChatCircleDots size={40} weight="duotone" />
           </div>
-          <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#002B36', margin: '0 0 8px' }}>
-            No messages yet
-          </h3>
+          <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#002B36', margin: '0 0 8px' }}>{tr("No messages yet")}</h3>
           <p
             style={{
               color: '#64748b',
@@ -221,9 +216,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
               maxWidth: '420px',
               margin: '0 auto 24px',
             }}
-          >
-            No messages yet. Chat with drivers or passengers once you book or offer a ride.
-          </p>
+          >{tr("No messages yet. Chat with drivers or passengers once you book or offer a ride.")}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <Link
               to="/search"
@@ -238,7 +231,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
               }}
             >
               <MagnifyingGlass size={18} weight="bold" />
-              <span>Search Rides</span>
+              <span>{tr("Search Rides")}</span>
             </Link>
             <Link
               to="/publish"
@@ -253,7 +246,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
               }}
             >
               <PlusCircle size={18} weight="bold" />
-              <span>Offer a Ride</span>
+              <span>{tr("Offer a Ride")}</span>
             </Link>
           </div>
         </div>
@@ -262,7 +255,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {threads.map((thread) => {
             const hasUnread = thread.unreadCount > 0;
-            const timeAgo = formatRelativeTime(thread.lastSentAt);
+            const timeAgo = formatRelativeTime(thread.lastSentAt, uiLocale);
 
             return (
               <div
@@ -321,7 +314,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                   </div>
 
                   <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-                    {thread.departureDate ? formatColomboDate(thread.departureDate) : ''}
+                    {thread.departureDate ? formatColomboDate(thread.departureDate, uiLocale) : ''}
                   </div>
                 </div>
 
@@ -357,7 +350,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                         color: thread.counterpartRole === 'driver' ? '#0369a1' : '#4b5563',
                       }}
                     >
-                      {thread.counterpartRole === 'driver' ? 'Driver' : 'Passenger'}
+                      {thread.counterpartRole === 'driver' ? tr("Driver") : tr("Passenger")}
                     </span>
 
                     {/* Super Driver / Verified Badge */}
@@ -376,7 +369,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                         }}
                       >
                         <Star size={12} weight="fill" color="#f59e0b" />
-                        <span>Super Driver</span>
+                        <span>{tr("Super Driver")}</span>
                       </span>
                     )}
 
@@ -392,7 +385,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                         }}
                       >
                         <CheckCircle size={13} weight="fill" />
-                        <span>Verified</span>
+                        <span>{tr("Verified")}</span>
                       </span>
                     )}
                   </div>
@@ -422,7 +415,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                       flex: 1,
                     }}
                   >
-                    {thread.lastMessage || 'Tap to start conversation'}
+                    {thread.lastMessage || tr("Tap to start conversation")}
                   </div>
 
                   {hasUnread && (
@@ -435,7 +428,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                         boxShadow: '0 0 0 2px #dcfce7',
                         flexShrink: 0,
                       }}
-                      aria-label="Unread conversation indicator"
+                      aria-label={tr("Unread conversation indicator")}
                     />
                   )}
                 </div>
@@ -500,7 +493,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                       color: activeThread.counterpartRole === 'driver' ? '#0369a1' : '#4b5563',
                     }}
                   >
-                    {activeThread.counterpartRole === 'driver' ? 'Driver' : 'Passenger'}
+                    {activeThread.counterpartRole === 'driver' ? tr("Driver") : tr("Passenger")}
                   </span>
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
@@ -537,8 +530,8 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                       color: '#ffffff',
                       textDecoration: 'none',
                     }}
-                    title="Coordinate via WhatsApp"
-                    aria-label="WhatsApp coordination"
+                    title={tr("Coordinate via WhatsApp")}
+                    aria-label={tr("WhatsApp coordination")}
                   >
                     <WhatsappLogo size={18} weight="fill" />
                   </a>
@@ -559,8 +552,8 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                       color: '#ffffff',
                       textDecoration: 'none',
                     }}
-                    title="Call directly"
-                    aria-label="Call directly"
+                    title={tr("Call directly")}
+                    aria-label={tr("Call directly")}
                   >
                     <Phone size={18} weight="bold" />
                   </a>
@@ -570,7 +563,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                 <button
                   type="button"
                   onClick={handleCloseChat}
-                  aria-label="Close chat"
+                  aria-label={tr("Close chat")}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -599,9 +592,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
             >
               <ShieldCheck size={18} weight="fill" color="#d97706" style={{ flexShrink: 0 }} />
               <div>
-                <strong>Stay Safe:</strong> External payment links and advance transfer requests are
-                strictly blocked. Settle in person via Cash or LankaQR.
-              </div>
+                <strong>{tr("Stay Safe:")}</strong>{tr("External payment links and advance transfer requests are strictly blocked. Settle in person via Cash or LankaQR.")}</div>
             </div>
 
             {/* Scrollable Message History */}
@@ -626,15 +617,13 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                     fontSize: '13px',
                     margin: 'auto',
                   }}
-                >
-                  No messages yet. Send a quick note to coordinate pickup location!
-                </div>
+                >{tr("No messages yet. Send a quick note to coordinate pickup location!")}</div>
               ) : (
                 state.messages
                   .filter((m) => m.bookingId === activeBookingId)
                   .map((msg) => {
                     const isMe = msg.senderId === currentUser.id;
-                    const time = formatRelativeTime(msg.createdAt || (msg as any).sentAt);
+                    const time = formatRelativeTime(msg.createdAt || (msg as any).sentAt, uiLocale);
                     const messageBody = msg.text || (msg as any).body || '';
                     return (
                       <div
@@ -670,7 +659,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                             padding: '0 4px',
                           }}
                         >
-                          {isMe ? 'You' : msg.senderName} · {time}
+                          {isMe ? tr("You") : msg.senderName} · {time}
                         </div>
                       </div>
                     );
@@ -690,7 +679,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                   fontWeight: 600,
                 }}
               >
-                {chatWarning}
+                {tr(chatWarning)}
               </div>
             )}
 
@@ -707,7 +696,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
             >
               <input
                 type="text"
-                placeholder="Type a message (e.g. See you at Makumbura MMC bay)"
+                placeholder={tr("Type a message (e.g. See you at Makumbura MMC bay)")}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 style={{
@@ -718,7 +707,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                   fontSize: '14px',
                   outline: 'none',
                 }}
-                aria-label="Type message"
+                aria-label={tr("Type message")}
               />
               <button
                 type="submit"
@@ -732,7 +721,7 @@ export function InboxView({ state, store, openAuthModal }: InboxViewProps) {
                 }}
               >
                 <PaperPlaneTilt size={16} weight="bold" />
-                <span>Send</span>
+                <span>{tr("Send")}</span>
               </button>
             </form>
           </div>

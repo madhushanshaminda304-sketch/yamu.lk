@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React, { useState } from 'react';
 import {
   X,
@@ -46,12 +47,13 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   currentUser,
   locale,
 }) => {
+  const { tr, uiLocale } = useUiText(locale);
   const [showSafetyCenter, setShowSafetyCenter] = useState(false);
   const [showLiveMap, setShowLiveMap] = useState(true);
   if (!isOpen) return null;
 
-  const currentLocale = locale ?? 'en-LK';
-  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+  const currentLocale = locale ?? uiLocale;
+  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
   const fromName = getHubDisplayName(fromHub, currentLocale) || booking.fromHubId;
@@ -93,11 +95,11 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   const handleShare = async () => {
     const res = await shareTripDetails(safetyText);
     if (res.method === 'clipboard' && res.success) {
-      toast.success('Trip safety details copied to clipboard!', {
-        description: 'You can paste it into WhatsApp, SMS, or Telegram to share with family.',
+      toast.success(tr('Trip safety details copied to clipboard!'), {
+        description: tr("You can paste it into WhatsApp, SMS, or Telegram to share with family."),
       });
     } else if (res.method === 'native' && res.success) {
-      toast.success('Shared trip details successfully!');
+      toast.success(tr('Shared trip details successfully!'));
     }
   };
 
@@ -121,11 +123,11 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <YamoIcon size={24} />
-              <span className="font-bold text-lg tracking-wide">Yamo {t(currentLocale, 'ridepass.title')}</span>
+              <span className="font-bold text-lg tracking-wide">{tr("Yamo")} {t(currentLocale, 'ridepass.title')}</span>
             </div>
             <button
               onClick={onClose}
-              aria-label="Close pass"
+              aria-label={tr("Close pass")}
               className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition"
             >
               <X size={20} weight="bold" />
@@ -146,7 +148,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           {/* Offline Ready Badge */}
           <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-100 text-xs font-medium border border-emerald-300/30">
             <CheckCircle size={14} weight="fill" className="text-emerald-300" />
-            <span>Saved on device · Accessible offline without mobile data</span>
+            <span>{tr("Saved on device · Accessible offline without mobile data")}</span>
           </div>
         </div>
 
@@ -160,23 +162,20 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </span>
-                <span className="text-xs font-extrabold text-emerald-900">
-                  DRIVER IS EN ROUTE
-                </span>
+                <span className="text-xs font-extrabold text-emerald-900">{tr("DRIVER IS EN ROUTE")}</span>
               </div>
-              <span className="text-xs font-semibold text-emerald-700">Trip Active</span>
+              <span className="text-xs font-semibold text-emerald-700">{tr("Trip Active")}</span>
             </div>
           )}
 
           {/* Guest Booking Info */}
           {booking.isBookingForOther && (
             <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3 text-xs">
-              <span className="font-bold text-amber-900 block mb-0.5">👤 Guest Passenger Booking</span>
+              <span className="font-bold text-amber-900 block mb-0.5">{tr("👤 Guest Passenger Booking")}</span>
               <div className="text-amber-800">
-                <strong>{booking.passengerName}</strong> ({booking.passengerPhone || 'No phone'})
+                <strong>{booking.passengerName}</strong> ({booking.passengerPhone || tr("No phone")})
                 {booking.bookerName && (
-                  <span className="block text-amber-700 text-[11px] mt-0.5">
-                    Reserved by account holder: {booking.bookerName}
+                  <span className="block text-amber-700 text-[11px] mt-0.5">{tr("Reserved by account holder:")}{booking.bookerName}
                   </span>
                 )}
               </div>
@@ -199,13 +198,13 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           {/* Trip Summary Details */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <span className="text-gray-500 text-xs block">Departure</span>
-              <span className="font-semibold text-gray-900">{ride.departureDate} at {formattedTime}</span>
+              <span className="text-gray-500 text-xs block">{tr("Departure")}</span>
+              <span className="font-semibold text-gray-900">{ride.departureDate} {tr("at")} {formattedTime}</span>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <span className="text-gray-500 text-xs block">Seats & Fare</span>
+              <span className="text-gray-500 text-xs block">{tr("Seats & Fare")}</span>
               <span className="font-semibold text-gray-900">
-                {booking.seats} seat(s) · {formatLkr(booking.totalPriceLkr)}
+                {booking.seats} {tr("seat(s) ·")} {formatLkr(booking.totalPriceLkr, uiLocale)}
               </span>
             </div>
           </div>
@@ -215,9 +214,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <span className="text-xs font-semibold text-sky-800 uppercase tracking-wide block flex items-center gap-1">
-                  <MapPin size={14} weight="fill" className="text-sky-600" />
-                  Pickup Point
-                </span>
+                  <MapPin size={14} weight="fill" className="text-sky-600" />{tr("Pickup Point")}</span>
                 <p className="font-bold text-gray-900 mt-0.5 text-sm">{landmark}</p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -226,7 +223,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
                   onClick={() => setShowLiveMap((prev) => !prev)}
                   className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition"
                 >
-                  <span>{showLiveMap ? '🗺️ Hide Map' : '🗺️ Live Radar'}</span>
+                  <span>{showLiveMap ? tr("🗺️ Hide Map") : tr("🗺️ Live Radar")}</span>
                 </button>
                 <a
                   href={mapsUrl}
@@ -235,7 +232,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
                   className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition"
                 >
                   <MapPin size={14} weight="bold" />
-                  <span>Maps Pin</span>
+                  <span>{tr("Maps Pin")}</span>
                 </a>
               </div>
             </div>
@@ -257,14 +254,13 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
           {/* Driver Information Card */}
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
             <span className="text-xs uppercase font-semibold text-gray-500 tracking-wider block mb-2">
-              {t(currentLocale, 'ridepass.driver')} & Vehicle Information
-            </span>
+              {t(currentLocale, 'ridepass.driver')}{tr("& Vehicle Information")}</span>
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-gray-900">{effectiveDriver.name}</span>
                   {effectiveDriver.verifiedPhone && (
-                    <span title="Verified Driver">
+                    <span title={tr("Verified Driver")}>
                       <ShieldCheck size={16} weight="fill" className="text-emerald-600" />
                     </span>
                   )}
@@ -291,7 +287,7 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-white text-xs font-medium transition shadow-sm"
                 >
                   <Phone size={14} weight="bold" />
-                  <span>Call</span>
+                  <span>{tr("Call")}</span>
                 </a>
               </div>
             </div>
@@ -299,11 +295,9 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
 
           {/* Settle Onboard Note */}
           <div className="p-3 bg-emerald-50/60 border border-emerald-200/60 rounded-xl flex items-center justify-between text-xs text-emerald-900">
-            <span>
-              Payment: <strong>{formatLkr(booking.totalPriceLkr)}</strong> via{' '}
-              {booking.settlementMethod === 'lankaqr' ? 'LankaQR' : 'Cash Onboard'} directly to driver.
-            </span>
-            <span className="text-emerald-700 font-semibold uppercase">No Advance Fee</span>
+            <span>{tr("Payment:")}<strong>{formatLkr(booking.totalPriceLkr, uiLocale)}</strong> {tr("via")}{' '}
+              {booking.settlementMethod === 'lankaqr' ? 'LankaQR' : tr("Cash Onboard")}{tr("directly to driver.")}</span>
+            <span className="text-emerald-700 font-semibold uppercase">{tr("No Advance Fee")}</span>
           </div>
         </div>
 
@@ -313,10 +307,10 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
             type="button"
             onClick={() => setShowSafetyCenter(true)}
             className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-800 font-semibold text-xs transition shrink-0"
-            title="Open Safety Center & Sri Lanka Hotlines"
+            title={tr("Open Safety Center & Sri Lanka Hotlines")}
           >
             <ShieldCheck size={18} weight="fill" className="text-rose-600" />
-            <span>Safety Center</span>
+            <span>{tr("Safety Center")}</span>
           </button>
 
           <a

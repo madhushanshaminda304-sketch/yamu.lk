@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React, { useEffect } from 'react';
 import {
   ShieldCheck,
@@ -13,7 +14,7 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { pushOverlayDismissHandler } from '../native/backButton.ts';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import {
   buildEmergencySosText,
   deriveBoardingPin,
@@ -40,6 +41,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
   currentUser,
   driver,
 }) => {
+  const { tr, uiLocale } = useUiText();
   useEffect(() => {
     if (!isOpen) return;
     const unregister = pushOverlayDismissHandler(() => {
@@ -53,8 +55,8 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
 
   const fromHub = booking ? getHubById(booking.fromHubId) : null;
   const toHub = booking ? getHubById(booking.toHubId) : null;
-  const fromName = fromHub?.name.en ?? booking?.fromHubId ?? 'Origin';
-  const toName = toHub?.name.en ?? booking?.toHubId ?? 'Destination';
+  const fromName = getHubDisplayName(fromHub, uiLocale) || booking?.fromHubId || tr('Pickup Origin');
+  const toName = getHubDisplayName(toHub, uiLocale) || booking?.toHubId || tr('Destination');
 
   const passengerName = currentUser?.name || 'Passenger';
   const driverName = driver?.name || ride?.driver.name || 'Driver';
@@ -77,11 +79,11 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
   const handleGeneralShare = async () => {
     const res = await shareTripDetails(sosText);
     if (res.method === 'clipboard' && res.success) {
-      toast.success('Emergency SOS alert copied to clipboard', {
-        description: 'Paste into WhatsApp or SMS to send to family/friends immediately.',
+      toast.success(tr('Emergency SOS alert copied to clipboard'), {
+        description: tr("Paste into WhatsApp or SMS to send to family/friends immediately."),
       });
     } else if (res.method === 'native' && res.success) {
-      toast.success('Emergency SOS broadcast shared');
+      toast.success(tr('Emergency SOS broadcast shared'));
     }
   };
 
@@ -106,15 +108,13 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
               <ShieldCheck size={26} weight="duotone" className="text-emerald-300" />
             </div>
             <div>
-              <h2 id="safety-center-title" className="font-bold text-lg text-white leading-tight">
-                Safety Center
-              </h2>
-              <p className="text-xs text-emerald-200/80">Sri Lanka 24/7 Hotlines & Trusted SOS</p>
+              <h2 id="safety-center-title" className="font-bold text-lg text-white leading-tight">{tr("Safety Center")}</h2>
+              <p className="text-xs text-emerald-200/80">{tr("Sri Lanka 24/7 Hotlines & Trusted SOS")}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close Safety Center"
+            aria-label={tr("Close Safety Center")}
             className="p-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={20} />
@@ -126,9 +126,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
           {/* Emergency Hotlines Card */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5 flex items-center gap-1.5">
-              <Siren size={15} className="text-rose-600" />
-              National Emergency Hotlines (Toll-Free)
-            </h3>
+              <Siren size={15} className="text-rose-600" />{tr("National Emergency Hotlines (Toll-Free)")}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <a
                 href="tel:119"
@@ -139,8 +137,8 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
                     119
                   </div>
                   <div className="text-left sm:text-center">
-                    <span className="text-xs font-bold text-rose-950 block">Police</span>
-                    <span className="text-[10px] text-rose-700 block">Emergency</span>
+                    <span className="text-xs font-bold text-rose-950 block">{tr("Police")}</span>
+                    <span className="text-[10px] text-rose-700 block">{tr("Emergency")}</span>
                   </div>
                 </div>
                 <PhoneCall size={18} className="text-rose-600 sm:mt-1" />
@@ -155,8 +153,8 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
                     1990
                   </div>
                   <div className="text-left sm:text-center">
-                    <span className="text-xs font-bold text-emerald-950 block">Suwa Seriya</span>
-                    <span className="text-[10px] text-emerald-700 block">Ambulance</span>
+                    <span className="text-xs font-bold text-emerald-950 block">{tr("Suwa Seriya")}</span>
+                    <span className="text-[10px] text-emerald-700 block">{tr("Ambulance")}</span>
                   </div>
                 </div>
                 <FirstAid size={18} className="text-emerald-600 sm:mt-1" />
@@ -171,8 +169,8 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
                     1969
                   </div>
                   <div className="text-left sm:text-center">
-                    <span className="text-xs font-bold text-sky-950 block">Expressway</span>
-                    <span className="text-[10px] text-sky-700 block">Police Patrol</span>
+                    <span className="text-xs font-bold text-sky-950 block">{tr("Expressway")}</span>
+                    <span className="text-[10px] text-sky-700 block">{tr("Police Patrol")}</span>
                   </div>
                 </div>
                 <Car size={18} className="text-sky-600 sm:mt-1" />
@@ -183,9 +181,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
           {/* Trusted Contacts SOS Dispatch */}
           <div className="border-t border-slate-100 pt-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-              <WhatsappLogo size={15} className="text-emerald-600" />
-              Instant WhatsApp SOS to Trusted Contacts
-            </h3>
+              <WhatsappLogo size={15} className="text-emerald-600" />{tr("Instant WhatsApp SOS to Trusted Contacts")}</h3>
 
             {trustedContacts.length > 0 ? (
               <div className="space-y-2">
@@ -207,7 +203,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
                         <a
                           href={`tel:${contact.phone}`}
                           className="p-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
-                          title={`Call ${contact.name}`}
+                          title={tr("Call {0}", { "0": contact.name })}
                         >
                           <PhoneCall size={16} />
                         </a>
@@ -217,9 +213,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
                         >
-                          <WhatsappLogo size={16} weight="fill" />
-                          Send SOS
-                        </a>
+                          <WhatsappLogo size={16} weight="fill" />{tr("Send SOS")}</a>
                       </div>
                     </div>
                   );
@@ -229,10 +223,8 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
               <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/70 text-xs text-amber-900 flex items-start gap-2.5">
                 <WarningCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-semibold">No emergency contacts saved yet</p>
-                  <p className="mt-0.5 text-amber-800">
-                    Add family members or close friends in your Profile to dispatch 1-tap WhatsApp alerts with vehicle details and live tracking.
-                  </p>
+                  <p className="font-semibold">{tr("No emergency contacts saved yet")}</p>
+                  <p className="mt-0.5 text-amber-800">{tr("Add family members or close friends in your Profile to dispatch 1-tap WhatsApp alerts with vehicle details and live tracking.")}</p>
                 </div>
               </div>
             )}
@@ -241,33 +233,29 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
               onClick={handleGeneralShare}
               className="mt-2.5 w-full py-2.5 px-4 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
             >
-              <ShareNetwork size={16} />
-              Share Trip & SOS Alert to Any App / Clipboard
-            </button>
+              <ShareNetwork size={16} />{tr("Share Trip & SOS Alert to Any App / Clipboard")}</button>
           </div>
 
           {/* Safety Verification Checklist */}
           <div className="border-t border-slate-100 pt-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-              <CheckCircle size={15} className="text-emerald-600" />
-              Onboard Commuter Safety Checklist
-            </h3>
+              <CheckCircle size={15} className="text-emerald-600" />{tr("Onboard Commuter Safety Checklist")}</h3>
             <ul className="text-xs space-y-2 text-slate-600">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-700">1. Verify Plate:</span>
-                <span>Check vehicle number plate matches booking pass registration ({vehiclePlate}).</span>
+                <span className="font-bold text-emerald-700">{tr("1. Verify Plate:")}</span>
+                <span>{tr("Check vehicle number plate matches booking pass registration (")}{vehiclePlate}).</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-700">2. Match Identity:</span>
-                <span>Ensure driver is {driverName} with verified Sri Lankan NIC.</span>
+                <span className="font-bold text-emerald-700">{tr("2. Match Identity:")}</span>
+                <span>{tr("Ensure driver is")} {driverName} {tr("with verified Sri Lankan NIC.")}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-700">3. Boarding PIN:</span>
-                <span>Confirm your 4-digit PIN (#{boardingPin}) with the driver before moving.</span>
+                <span className="font-bold text-emerald-700">{tr("3. Boarding PIN:")}</span>
+                <span>{tr("Confirm your 4-digit PIN (#")}{boardingPin}{tr(") with the driver before moving.")}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-700">4. Private Cost-Sharing:</span>
-                <span>Fare is strictly capped for shared fuel & tolls. Never pay commercial taxi rates.</span>
+                <span className="font-bold text-emerald-700">{tr("4. Private Cost-Sharing:")}</span>
+                <span>{tr("Fare is strictly capped for shared fuel & tolls. Never pay commercial taxi rates.")}</span>
               </li>
             </ul>
           </div>
@@ -278,9 +266,7 @@ export const SafetyCenterModal: React.FC<SafetyCenterModalProps> = ({
           <button
             onClick={onClose}
             className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors"
-          >
-            Close Safety Center
-          </button>
+          >{tr("Close Safety Center")}</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
+import { useUiText } from '../components/useUiText.ts';
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from '../components/LocalizedRouter.tsx';
 import {
   ArrowRight,
   ArrowsLeftRight,
@@ -37,6 +39,7 @@ export function SearchView({
   state: MarketplaceState;
   store: MarketplaceStore;
 }) {
+  const { tr, uiLocale } = useUiText();
   const [params, setSearchParams] = useSearchParams();
   const locale = state.locale;
 
@@ -84,7 +87,7 @@ export function SearchView({
       await triggerHaptic('success');
       const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
-      toast.success(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
+      toast.success(tr(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`));
     } catch {
       toast.error(t(locale, 'location.denied'));
     } finally {
@@ -249,7 +252,7 @@ export function SearchView({
   );
 
   const firstResultStops = results[0]?.ride.stops;
-  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
   const searchMapWaypoints = useMemo(
     () =>
       firstResultStops
@@ -283,8 +286,8 @@ export function SearchView({
             <ArrowRight size={20} color="var(--yamo-emerald)" />
             <span>{getHubDisplayName(toHub, locale)}</span>
           </h1>
-          <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '13.5px', marginTop: '4px' }}>
-            {formatColomboDate(`${date}T12:00:00+05:30`)} · {seats} {seats === 1 ? 'Passenger' : 'Passengers'} · <strong style={{ color: 'var(--yamo-emerald)' }}>{results.length} rides available</strong>
+          <p data-testid="search-summary" style={{ color: 'var(--bbc-text-secondary)', fontSize: '13.5px', marginTop: '4px' }}>
+            <span>{formatColomboDate(`${date}T12:00:00+05:30`, uiLocale)}</span><span>{t(locale, 'search.summary.passengers', { count: seats })}</span><strong>{t(locale, 'search.summary.results', { count: results.length })}</strong>
           </p>
         </div>
 
@@ -295,23 +298,23 @@ export function SearchView({
             onClick={() => setShowSearchMap((prev) => !prev)}
             style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', fontWeight: 700, color: '#047857', borderColor: '#a7f3d0', background: showSearchMap ? '#ecfdf5' : '#ffffff' }}
           >
-            <span>{showSearchMap ? '🗺️ Hide Route Map' : '🗺️ Show Route Map'}</span>
+            <span>{t(locale, showSearchMap ? 'search.map.hide' : 'search.map.show')}</span>
           </button>
           <button
             type="button"
             className="btn-secondary btn-sm"
             onClick={() => setShowAlertModal(true)}
-            aria-label="Create a Ride Alert"
+            aria-label={tr("Create a Ride Alert")}
             style={{ borderRadius: '9999px', padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Bell size={16} />
-            <span>{t(locale, 'alert.cta')}</span>
+            <span>{t(locale, 'search.alert.action')}</span>
           </button>
         </div>
       </div>
 
       {/* Origin & Destination Bar with 1-Tap Geolocation */}
-      <div style={{
+      <div className="route-search-fields" style={{
         background: '#ffffff',
         border: '1px solid var(--bbc-border)',
         borderRadius: 'var(--radius-md)',
@@ -323,7 +326,7 @@ export function SearchView({
         gap: '10px',
         boxShadow: 'var(--shadow-sm)',
       }}>
-        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="route-search-field" style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
             <label htmlFor="search-from-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
               {t(locale, 'search.from')}
@@ -361,7 +364,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                {getHubDisplayName(h, locale)}
               </option>
             ))}
           </select>
@@ -371,13 +374,13 @@ export function SearchView({
           type="button"
           onClick={() => updateRoute(toHubId, fromHubId)}
           className="swap-btn"
-          aria-label="Swap Route"
+          aria-label={tr("Swap Route")}
           style={{ alignSelf: 'flex-end', marginBottom: '4px' }}
         >
           <ArrowsLeftRight size={18} weight="bold" />
         </button>
 
-        <div style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="route-search-field" style={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label htmlFor="search-to-select" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--bbc-text-secondary)', textTransform: 'uppercase' }}>
             {t(locale, 'search.to')}
           </label>
@@ -389,7 +392,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                {getHubDisplayName(h, locale)}
               </option>
             ))}
           </select>
@@ -431,7 +434,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🚗 {locale === 'si-LK' ? 'රියදුරු ආසන' : locale === 'ta-LK' ? 'ஓட்டுநர் இருக்கைகள்' : 'Available Driver Seats'}</span>
+            <span>🚗 {locale === 'si-LK' ? 'රියදුරු ආසන' : locale === 'ta-LK' ? 'ஓட்டுநர் இருக்கைகள்' : t(locale, 'search.tab.drivers')}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -465,7 +468,7 @@ export function SearchView({
               transition: 'all 0.15s ease',
             }}
           >
-            <span>🙋‍♂️ {t(locale, 'requests.title')}</span>
+            <span>🙋‍♂️ {t(locale, 'search.tab.requests')}</span>
             <span
               style={{
                 fontSize: '11px',
@@ -509,10 +512,10 @@ export function SearchView({
       {/* Vehicle Tier Selector (Yandex-Style Tariffs) */}
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0 14px', scrollbarWidth: 'none' }}>
         {[
-          { id: 'all', label: 'All Vehicles', icon: '🚘' },
-          { id: 'car', label: 'Standard Saver', icon: '🚗' },
-          { id: 'suv', label: 'Comfort SUV', icon: '🚙' },
-          { id: 'van', label: 'Spacious Van', icon: '🚐' },
+          { id: 'all', label: tr("All Vehicles"), icon: '🚘' },
+          { id: 'car', label: tr("Standard Saver"), icon: '🚗' },
+          { id: 'suv', label: tr("Comfort SUV"), icon: '🚙' },
+          { id: 'van', label: tr("Spacious Van"), icon: '🚐' },
         ].map((tier) => {
           const isActive = vehicleCategory === tier.id;
           return (
@@ -540,14 +543,14 @@ export function SearchView({
               }}
             >
               <span>{tier.icon}</span>
-              <span>{tier.label}</span>
+              <span>{tr(tier.label)}</span>
             </button>
           );
         })}
       </div>
 
       {/* Mobile Quick Filter Strip */}
-      <div className="mobile-quick-filter-strip md:hidden" role="toolbar" aria-label="Quick Filters">
+      <div className="mobile-quick-filter-strip md:hidden" role="toolbar" aria-label={tr("Quick Filters")}>
         <button
           type="button"
           onClick={() => {
@@ -555,10 +558,10 @@ export function SearchView({
             setShowFilterDrawer(true);
           }}
           className={`quick-filter-btn ${activeFilterCount > 0 ? 'active' : ''}`}
-          aria-label="Open Filter Options"
+          aria-label={tr("Open Filter Options")}
         >
           <FadersHorizontal size={18} weight="bold" />
-          <span>Filters</span>
+          <span>{tr("Filters")}</span>
           {activeFilterCount > 0 && <span className="quick-filter-badge">{activeFilterCount}</span>}
         </button>
 
@@ -643,7 +646,7 @@ export function SearchView({
           className={`quick-filter-btn ${quietRideOnly ? 'active' : ''}`}
         >
           <span>🔇</span>
-          <span>Quiet Commute</span>
+          <span>{tr("Quiet Commute")}</span>
         </button>
 
         <button
@@ -655,7 +658,7 @@ export function SearchView({
           className={`quick-filter-btn ${childSeatOnly ? 'active' : ''}`}
         >
           <span>💺</span>
-          <span>Child Seat</span>
+          <span>{tr("Child Seat")}</span>
         </button>
 
         <button
@@ -667,7 +670,7 @@ export function SearchView({
           className={`quick-filter-btn ${wheelchairOnly ? 'active' : ''}`}
         >
           <span>♿</span>
-          <span>Wheelchair</span>
+          <span>{tr("Wheelchair")}</span>
         </button>
 
         <button
@@ -679,7 +682,7 @@ export function SearchView({
           className={`quick-filter-btn ${airportOnly ? 'active' : ''}`}
         >
           <span>✈️</span>
-          <span>Airport</span>
+          <span>{tr("Airport")}</span>
         </button>
       </div>
 
@@ -729,7 +732,7 @@ export function SearchView({
         </aside>
 
         {/* Results List */}
-        <main className="results-container">
+        <section className="results-container">
           {showSearchMap && fromHub && toHub && (
             <div style={{ marginBottom: '16px' }}>
               <LeafletRouteMap
@@ -742,24 +745,22 @@ export function SearchView({
           {activeTab === 'requests' ? (
             matchingRequests.length === 0 ? (
               <div className="empty-results">
-                <h2>No open passenger requests on this corridor</h2>
-                <p>
-                  Be the first passenger to post a request! Verified drivers on this route will see your trip and can offer their empty seats with 1 tap.
-                </p>
+                <h2>{tr("No open passenger requests on this corridor")}</h2>
+                <p>{tr("Be the first passenger to post a request! Verified drivers on this route will see your trip and can offer their empty seats with 1 tap.")}</p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
                   <button
                     type="button"
                     className="btn-primary"
                     onClick={() => setShowRequestModal(true)}
                   >
-                    <span>🙋‍♂️ Post a Seat Request (15 sec)</span>
+                    <span>{t(locale, 'search.request.action')}</span>
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={() => handleTabChange('drivers')}
                   >
-                    <span>Check Available Driver Seats</span>
+                    <span>{tr("Check Available Driver Seats")}</span>
                   </button>
                 </div>
               </div>
@@ -767,14 +768,13 @@ export function SearchView({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', flexWrap: 'wrap', gap: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
-                    {matchingRequests.length} verified passengers looking for seats:
-                  </span>
+                    {matchingRequests.length}{tr("verified passengers looking for seats:")}</span>
                   <button
                     type="button"
                     onClick={() => setShowRequestModal(true)}
                     style={{ fontSize: '13px', fontWeight: 700, color: '#047857', background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    <span>➕ Post a Seat Request</span>
+                    <span>{t(locale, 'search.request.action')}</span>
                   </button>
                 </div>
                 {matchingRequests.map((req) => (
@@ -783,7 +783,7 @@ export function SearchView({
                     request={req}
                     onOfferSeat={(r) => {
                       store.offerSeatToPassengerRequest(r.id);
-                      toast.success(`Opening publisher with ${r.passengerName}'s requested route`);
+                      toast.success(tr("Opening publisher with {0}'s requested route", { "0": r.passengerName }));
                       navigate(
                         `/publish?origin=${encodeURIComponent(r.originHubId)}&destination=${encodeURIComponent(
                           r.destinationHubId
@@ -798,35 +798,33 @@ export function SearchView({
             )
           ) : results.length === 0 ? (
             <div className="empty-results">
-              <h2>No exact rides at this hour</h2>
-              <p>
-                Drivers often post their journeys 1–2 days before departure. Post a Seat Request so drivers see your route, or create a Ride Alert!
-              </p>
+              <h2>{t(locale, 'search.empty.title')}</h2>
+              <p>{t(locale, 'search.empty.body')}</p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
                 <button
                   type="button"
                   className="btn-primary"
                   onClick={() => setShowRequestModal(true)}
-                  aria-label="Post a Seat Request"
+                  aria-label={t(locale, 'search.request.action')}
                 >
-                  <span>🙋‍♂️ Post a Seat Request</span>
+                  <span>{t(locale, 'search.request.action')}</span>
                 </button>
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={() => setShowAlertModal(true)}
-                  aria-label="Create a Ride Alert"
+                  aria-label={tr("Create a Ride Alert")}
                 >
                   <Bell size={18} />
-                  <span>Create a Ride Alert</span>
+                  <span>{tr("Create a Ride Alert")}</span>
                 </button>
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={() => updateRoute('colombo', 'galle')}
-                  aria-label="See popular corridor departures"
+                  aria-label={tr("See popular corridor departures")}
                 >
-                  <span>See Colombo ↔ Galle Rides</span>
+                  <span>{tr("See Colombo ↔ Galle Rides")}</span>
                 </button>
               </div>
             </div>
@@ -841,7 +839,7 @@ export function SearchView({
               ))}
             </div>
           )}
-        </main>
+        </section>
       </div>
 
       {/* Mobile Slide-Up Bottom Sheet Filter Drawer */}
@@ -851,7 +849,7 @@ export function SearchView({
           onClick={() => setShowFilterDrawer(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Filter Rides"
+          aria-label={tr("Filter Rides")}
         >
           <div
             className="bottom-sheet-card"
@@ -861,9 +859,7 @@ export function SearchView({
 
             <div className="bottom-sheet-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-                  Filter Rides
-                </h3>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{tr("Filter Rides")}</h3>
                 {activeFilterCount > 0 && (
                   <span className="quick-filter-badge">{activeFilterCount}</span>
                 )}
@@ -874,9 +870,7 @@ export function SearchView({
                     type="button"
                     onClick={handleResetFilters}
                     style={{ fontSize: '13px', fontWeight: 700, color: 'var(--yamo-emerald, #047857)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
-                  >
-                    Reset All
-                  </button>
+                  >{tr("Reset All")}</button>
                 )}
                 <button
                   type="button"
@@ -895,7 +889,7 @@ export function SearchView({
                     cursor: 'pointer',
                     color: 'var(--bbc-navy)',
                   }}
-                  aria-label="Close filters"
+                  aria-label={tr("Close filters")}
                 >
                   <X size={20} weight="bold" />
                 </button>
@@ -954,8 +948,7 @@ export function SearchView({
                   setShowFilterDrawer(false);
                 }}
                 style={{ width: '100%', minHeight: '48px', fontSize: '16px' }}
-              >
-                View {results.length} {results.length === 1 ? 'Ride' : 'Rides'}
+              >{tr("View")}{results.length} {results.length === 1 ? tr("Ride") : tr("Rides")}
               </button>
             </div>
           </div>
@@ -967,13 +960,11 @@ export function SearchView({
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 71, 82, 0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '28px', maxWidth: '440px', width: '100%', boxShadow: 'var(--shadow-lg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>
-                Create a Ride Alert
-              </h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--bbc-navy)', margin: 0 }}>{tr("Create a Ride Alert")}</h3>
               <button
                 type="button"
                 onClick={() => setShowAlertModal(false)}
-                aria-label="Close dialog"
+                aria-label={tr("Close dialog")}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -992,13 +983,12 @@ export function SearchView({
               </button>
             </div>
 
-            <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginBottom: '20px' }}>
-              We will notify you immediately when a verified driver publishes a seat from <strong>{fromHub?.name.en}</strong> to <strong>{toHub?.name.en}</strong> on {formatColomboDate(`${date}T00:00:00+05:30`)}.
+            <p style={{ fontSize: '14px', color: 'var(--bbc-text-secondary)', marginBottom: '20px' }}>{t(locale, 'search.alert.body', { from: getHubDisplayName(fromHub, locale), to: getHubDisplayName(toHub, locale), date: formatColomboDate(`${date}T12:00:00+05:30`, locale) })}
             </p>
 
             <form onSubmit={handleCreateAlert} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label htmlFor="alert-email-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>Your Email</label>
+                <label htmlFor="alert-email-input" style={{ fontSize: '13px', fontWeight: 700, display: 'block', marginBottom: '6px' }}>{tr("Your Email")}</label>
                 <input
                   id="alert-email-input"
                   type="email"
@@ -1011,12 +1001,8 @@ export function SearchView({
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-                <button type="button" className="btn-secondary btn-sm" onClick={() => setShowAlertModal(false)} style={{ minHeight: '44px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary btn-sm" style={{ minHeight: '44px' }}>
-                  Create Alert
-                </button>
+                <button type="button" className="btn-secondary btn-sm" onClick={() => setShowAlertModal(false)} style={{ minHeight: '44px' }}>{tr("Cancel")}</button>
+                <button type="submit" className="btn-primary btn-sm" style={{ minHeight: '44px' }}>{tr("Create Alert")}</button>
               </div>
             </form>
           </div>

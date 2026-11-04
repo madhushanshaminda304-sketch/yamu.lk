@@ -1,4 +1,5 @@
-import { getHubById } from './corridors.ts';
+import { getHubById, getHubDisplayName } from './corridors.ts';
+import { type LocaleCode } from './i18n.ts';
 import type { Ride } from './matching.ts';
 import type { BookingRecord, ChatMessage } from '../state/types.ts';
 
@@ -24,7 +25,7 @@ export interface ConversationThread {
 /**
  * Formats an ISO timestamp to human-friendly relative time for mobile threads.
  */
-export function formatRelativeTime(timestamp: string): string {
+export function formatRelativeTime(timestamp: string, locale: LocaleCode = 'en-LK'): string {
   if (!timestamp) return '';
   const date = new Date(timestamp);
   if (isNaN(date.getTime())) return timestamp;
@@ -36,12 +37,20 @@ export function formatRelativeTime(timestamp: string): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
+  if (locale !== 'en-LK' && diffDays < 7) {
+    const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (diffMins < 1) return relative.format(0, 'second');
+    if (diffMins < 60) return relative.format(-diffMins, 'minute');
+    if (diffHours < 24) return relative.format(-diffHours, 'hour');
+    return relative.format(-diffDays, 'day');
+  }
+
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString('en-LK', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
 /**
@@ -75,7 +84,8 @@ export function aggregateInboxThreads(
   bookings: any[] = [],
   currentUserName?: string,
   lastReadAtByBooking: Record<string, string> = {},
-  currentUserId?: string
+  currentUserId?: string,
+  locale: LocaleCode = 'en-LK'
 ): ConversationThread[] {
   if (!Array.isArray(messages) || messages.length === 0) {
     return [];
@@ -192,8 +202,8 @@ export function aggregateInboxThreads(
     const destId = booking?.toHubId || ride?.destinationHubId || '';
     const originHub = originId ? getHubById(originId) : undefined;
     const destHub = destId ? getHubById(destId) : undefined;
-    const originName = originHub?.name.en || originId;
-    const destName = destHub?.name.en || destId;
+    const originName = getHubDisplayName(originHub, locale) || originId;
+    const destName = getHubDisplayName(destHub, locale) || destId;
 
     let corridorTitle = 'Ride Coordination';
     if (originName && destName) {

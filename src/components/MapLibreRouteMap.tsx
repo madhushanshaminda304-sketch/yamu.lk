@@ -1,3 +1,4 @@
+import { useUiText } from './useUiText.ts';
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -168,6 +169,7 @@ export function MapLibreRouteMap({
   enableLiveTracking = true,
   journeyStatus = 'scheduled',
 }: MapLibreRouteMapProps) {
+  const { tr, uiLocale } = useUiText();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
@@ -349,7 +351,7 @@ export function MapLibreRouteMap({
       const isDropoff = wp.isSelectedTo || (wp.isDestination && !wp.isSelectedFrom);
       const el = createTaxiWaypointElement(wp, index);
 
-      const timeLabel = wp.departureAt ? formatColomboTime(wp.departureAt) : '';
+      const timeLabel = wp.departureAt ? formatColomboTime(wp.departureAt, uiLocale) : '';
       const roleTag = wp.isSelectedFrom
         ? 'Your Pickup'
         : wp.isSelectedTo
@@ -696,8 +698,8 @@ export function MapLibreRouteMap({
             />
             <strong style={{ fontSize: '12px', letterSpacing: '0.01em' }}>
               {isSharingGps || isSimulating
-                ? 'Live Driver & Rider Motion Active'
-                : 'Live Pickup & Route Radar'}
+                ? tr("Live Driver & Rider Motion Active")
+                : tr("Live Pickup & Route Radar")}
             </strong>
             {proximity && (
               <span
@@ -711,8 +713,8 @@ export function MapLibreRouteMap({
                 }}
               >
                 {proximity.isArrivingSoon
-                  ? `🔔 Arriving! ${proximity.distanceMeters}m away (~1 min)`
-                  : `🚗 ↔ 🧍‍♂️ ${proximity.distanceKm} km (~${proximity.etaMinutes} min)`}
+                  ? tr("🔔 Arriving! {0}m away (~1 min)", { "0": proximity.distanceMeters })
+                  : tr("🚗 ↔ 🧍‍♂️ {0} km (~{1} min)", { "0": proximity.distanceKm, "1": proximity.etaMinutes })}
               </span>
             )}
           </div>
@@ -735,7 +737,7 @@ export function MapLibreRouteMap({
                 color: '#ffffff',
               }}
             >
-              {isSharingGps ? '📡 Sharing My GPS: ON' : '📍 Share My Live Location'}
+              {isSharingGps ? tr("📡 Sharing My GPS: ON") : tr("📍 Share My Live Location")}
             </button>
 
             <button
@@ -754,9 +756,9 @@ export function MapLibreRouteMap({
                 background: isSimulating ? '#f59e0b' : 'transparent',
                 color: isSimulating ? '#0f172a' : '#cbd5e1',
               }}
-              title="Preview live moving Driver car and Passenger pin on the map"
+              title={tr("Preview live moving Driver car and Passenger pin on the map")}
             >
-              {isSimulating ? '⏹ Stop Demo' : '▶️ Demo Live Motion'}
+              {isSimulating ? tr("⏹ Stop Demo") : tr("▶️ Demo Live Motion")}
             </button>
           </div>
         </div>
@@ -778,8 +780,7 @@ export function MapLibreRouteMap({
               textAlign: 'center',
             }}
           >
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#174D3A' }}>
-              📍 Route Preview ({waypoints.length} waypoint{waypoints.length === 1 ? '' : 's'})
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#174D3A' }}>{tr("📍 Route Preview (")}{waypoints.length} {tr("waypoint")}{waypoints.length === 1 ? '' : 's'})
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px', justifyContent: 'center' }}>
               {waypoints.map((wp, i) => (
@@ -809,7 +810,7 @@ export function MapLibreRouteMap({
               background: '#f8fafc',
               zIndex: 1,
             }}
-            aria-label="Interactive Sri Lanka vector navigation & route map"
+            aria-label={tr("Interactive Sri Lanka vector navigation & route map")}
           />
         )}
         {/* Crisp vector map attribution without flags or CARTO notices */}
@@ -853,9 +854,7 @@ export function MapLibreRouteMap({
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
             }}
-          >
-            Quick Status:
-          </span>
+          >{tr("Quick Status:")}</span>
           {quickChips.map((chip) => {
             const isSelected = activeStatusText === chip;
             return (
@@ -898,18 +897,16 @@ export function MapLibreRouteMap({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700, color: '#047857' }}>
-            🟢 Pickup: {pickupWp?.name}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700, color: '#047857' }}>{tr("🟢 Pickup:")}{pickupWp?.name}
           </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700, color: '#0f172a' }}>
-            🏁 Drop-off: {dropoffWp?.name}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700, color: '#0f172a' }}>{tr("🏁 Drop-off:")}{dropoffWp?.name}
           </span>
           <span style={{ color: '#64748b' }}>
             {routeSource === 'osrm'
-              ? '🛣️ Highway Route'
+              ? tr("🛣️ Highway Route")
               : routeSource === 'loading'
-              ? '⏳ Loading route…'
-              : '📍 Corridor Path'}
+              ? tr("⏳ Loading route…")
+              : tr("📍 Corridor Path")}
           </span>
         </div>
 

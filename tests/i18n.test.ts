@@ -11,42 +11,15 @@ import {
 } from '../src/domain/i18n.ts';
 import { HUBS, getHubDisplayName } from '../src/domain/corridors.ts';
 
-test('i18n dictionary parity across en-LK, si-LK, ta-LK, and ru-RU', () => {
-  const enKeys = Object.keys(DICTIONARY['en-LK']).sort();
-  const siKeys = Object.keys(DICTIONARY['si-LK']).sort();
-  const taKeys = Object.keys(DICTIONARY['ta-LK']).sort();
-  const ruKeys = Object.keys(DICTIONARY['ru-RU']).sort();
-
-  // Every en-LK key must exist in si-LK
-  for (const key of enKeys) {
-    assert.ok(
-      DICTIONARY['si-LK'][key] && DICTIONARY['si-LK'][key].trim().length > 0,
-      `Key "${key}" is missing or empty in si-LK`
-    );
+test('i18n dictionary parity across English, Sinhala and Tamil', () => {
+  const keys = Object.keys(DICTIONARY['en-LK']).sort();
+  for (const locale of SUPPORTED_LOCALES) {
+    assert.deepEqual(Object.keys(DICTIONARY[locale]).sort(), keys);
+    for (const key of keys) assert.ok(DICTIONARY[locale][key].trim(), locale + ': ' + key);
   }
-
-  // Every en-LK key must exist in ta-LK
-  for (const key of enKeys) {
-    assert.ok(
-      DICTIONARY['ta-LK'][key] && DICTIONARY['ta-LK'][key].trim().length > 0,
-      `Key "${key}" is missing or empty in ta-LK`
-    );
-  }
-
-  // Every en-LK key must exist in ru-RU
-  for (const key of enKeys) {
-    assert.ok(
-      DICTIONARY['ru-RU'][key] && DICTIONARY['ru-RU'][key].trim().length > 0,
-      `Key "${key}" is missing or empty in ru-RU`
-    );
-  }
-
-  assert.equal(siKeys.length, enKeys.length);
-  assert.equal(taKeys.length, enKeys.length);
-  assert.equal(ruKeys.length, enKeys.length);
 });
 
-test('i18n includes key commuter convenience touchpoints and toast notifications across all 4 locales', () => {
+test('i18n includes key commuter convenience touchpoints and toast notifications across all 3 locales', () => {
   const requiredKeys = [
     'ridepass.title',
     'ridepass.pin',
@@ -83,19 +56,18 @@ test('i18n includes key commuter convenience touchpoints and toast notifications
 });
 
 test('i18n locale helpers and metadata', () => {
-  assert.equal(SUPPORTED_LOCALES.length, 4);
-  assert.ok(isValidLocale('ru-RU'));
+  assert.equal(SUPPORTED_LOCALES.length, 3);
+  assert.ok(!isValidLocale('ru-RU'));
   assert.ok(isValidLocale('en-LK'));
   assert.ok(!isValidLocale('fr-FR'));
 
-  assert.equal(getValidLocale('ru-RU'), 'ru-RU');
-  assert.equal(getValidLocale('ru'), 'ru-RU');
+  assert.equal(getValidLocale('ru-RU'), 'en-LK');
+  assert.equal(getValidLocale('ru'), 'en-LK');
   assert.equal(getValidLocale('si'), 'si-LK');
   assert.equal(getValidLocale('ta'), 'ta-LK');
   assert.equal(getValidLocale(null), 'en-LK');
   assert.equal(getValidLocale('invalid'), 'en-LK');
 
-  assert.equal(LOCALE_META['ru-RU'].label, 'РУС');
   assert.equal(LOCALE_META['en-LK'].label, 'EN');
   assert.equal(LOCALE_META['si-LK'].label, 'සිං');
   assert.equal(LOCALE_META['ta-LK'].label, 'தமிழ்');
@@ -105,7 +77,6 @@ test('i18n t() parameter interpolation and fallback', () => {
   const nonExistent = 'this.key.does.not.exist';
   assert.equal(t('si-LK', nonExistent), nonExistent);
   assert.equal(t('ta-LK', nonExistent), nonExistent);
-  assert.equal(t('ru-RU', nonExistent), nonExistent);
   assert.equal(t('en-LK', nonExistent), nonExistent);
 
   // Parameter replacement test
@@ -120,17 +91,15 @@ test('i18n t() parameter interpolation and fallback', () => {
   delete DICTIONARY['en-LK']['test.cost'];
 });
 
-test('getHubDisplayName localizes hubs across EN, SI, TA, RU with clean fallbacks', () => {
+test('getHubDisplayName localizes hubs across EN, SI, TA with clean fallbacks', () => {
   const colomboHub = HUBS.find((h) => h.id === 'colombo')!;
   assert.ok(colomboHub);
   assert.equal(getHubDisplayName(colomboHub, 'en-LK'), 'Colombo');
   assert.equal(getHubDisplayName(colomboHub, 'si-LK'), 'කොළඹ');
   assert.equal(getHubDisplayName(colomboHub, 'ta-LK'), 'கொழும்பு');
-  assert.equal(getHubDisplayName(colomboHub, 'ru-RU'), 'Коломбо');
 
   const galleHub = HUBS.find((h) => h.id === 'galle')!;
   assert.ok(galleHub);
-  assert.equal(getHubDisplayName(galleHub, 'ru-RU'), 'Галле');
 
   // Fallbacks
   assert.equal(getHubDisplayName(null), '');
