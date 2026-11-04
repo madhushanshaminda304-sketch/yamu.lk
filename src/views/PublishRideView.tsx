@@ -179,11 +179,7 @@ export function PublishRideView({
       });
 
       setPublishedRide(newRide);
-      toast.success(
-        hasReturnRide
-          ? 'Outbound and Return rides published successfully!'
-          : 'Ride published successfully along corridor!'
-      );
+      toast.success(t(state.locale, 'toast.publish_success'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to publish ride.');
     }

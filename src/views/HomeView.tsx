@@ -14,7 +14,7 @@ import {
   MapPin,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS, getHubById } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { t, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
 import { triggerHaptic } from '../native/haptics.ts';
@@ -51,7 +51,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
       const nearest = findNearestHub(coords, ALL_HUBS);
       setFromHubId(nearest.hub.id);
       await triggerHaptic('success');
-      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+      const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
       const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
       toast.success(`${t(locale, 'location.located')}${hubName} (${nearest.distanceKm} km)`);
     } catch {
@@ -114,7 +114,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-from-select" value={fromHubId} onChange={(e) => setFromHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
                     </option>
                   ))}
                 </select>
@@ -129,7 +129,7 @@ export function HomeView({ state }: { state: MarketplaceState }) {
                 <select id="home-to-select" value={toHubId} onChange={(e) => setToHubId(e.target.value)}>
                   {HUBS.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                      {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
                     </option>
                   ))}
                 </select>

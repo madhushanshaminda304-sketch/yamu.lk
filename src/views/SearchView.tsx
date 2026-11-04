@@ -15,7 +15,7 @@ import {
   Users,
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { HUBS, ALL_HUBS, getHubById, resolveHubKey } from '../domain/corridors.ts';
+import { HUBS, ALL_HUBS, getHubById, resolveHubKey, getHubDisplayName } from '../domain/corridors.ts';
 import { searchRides, deduplicateRides, type MatchedRideResult, type VehicleCategory } from '../domain/matching.ts';
 import { t, formatColomboDate, getColomboDateOffset } from '../domain/i18n.ts';
 import { getCurrentLocation, findNearestHub } from '../native/geolocation.ts';
@@ -249,7 +249,7 @@ export function SearchView({
   );
 
   const firstResultStops = results[0]?.ride.stops;
-  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
   const searchMapWaypoints = useMemo(
     () =>
       firstResultStops
@@ -261,7 +261,7 @@ export function SearchView({
   const handleCreateAlert = (e: React.FormEvent) => {
     e.preventDefault();
     if (!alertEmail.trim()) {
-      toast.error('Please enter a valid email address.');
+      toast.error(t(locale, 'toast.alert_invalid_email'));
       return;
     }
     store.createRideAlert({
@@ -270,7 +270,7 @@ export function SearchView({
       date,
       email: alertEmail.trim(),
     });
-    toast.success(`Ride alert activated for ${fromHub?.name.en} → ${toHub?.name.en}. You will receive an email as soon as a driver offers a seat!`);
+    toast.success(t(locale, 'toast.alert_created'));
     setShowAlertModal(false);
   };
 
@@ -279,9 +279,9 @@ export function SearchView({
       <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bbc-border)', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ minWidth: 0, flex: '1 1 240px' }}>
           <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 26px)', fontWeight: 800, color: 'var(--bbc-navy)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', lineHeight: 1.25 }}>
-            <span>{fromHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || fromHub?.name.en || fromHubId}</span>
+            <span>{getHubDisplayName(fromHub, locale)}</span>
             <ArrowRight size={20} color="var(--yamo-emerald)" />
-            <span>{toHub?.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || toHub?.name.en || toHubId}</span>
+            <span>{getHubDisplayName(toHub, locale)}</span>
           </h1>
           <p style={{ color: 'var(--bbc-text-secondary)', fontSize: '13.5px', marginTop: '4px' }}>
             {formatColomboDate(`${date}T12:00:00+05:30`)} · {seats} {seats === 1 ? 'Passenger' : 'Passengers'} · <strong style={{ color: 'var(--yamo-emerald)' }}>{results.length} rides available</strong>
@@ -361,7 +361,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
               </option>
             ))}
           </select>
@@ -389,7 +389,7 @@ export function SearchView({
           >
             {HUBS.map((h) => (
               <option key={h.id} value={h.id}>
-                {h.name[locale.slice(0, 2) as 'en' | 'si' | 'ta'] || h.name.en} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
+                {getHubDisplayName(h, locale)} {h.isExpresswayInterchange ? '⚡ (MMC/Exit)' : ''}
               </option>
             ))}
           </select>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, Handbag, QrCode, Money } from '@phosphor-icons/react';
-import { ALL_HUBS } from '../domain/corridors.ts';
+import { ALL_HUBS, getHubDisplayName } from '../domain/corridors.ts';
 import { getColomboDateOffset, type LocaleCode } from '../domain/i18n.ts';
 import { triggerHaptic } from '../native/haptics.ts';
 import { toast } from 'sonner';
@@ -74,8 +74,8 @@ export function PostSeatRequestModal({
     const fromHub = ALL_HUBS.find((h) => h.id === fromHubId);
     const toHub = ALL_HUBS.find((h) => h.id === toHubId);
 
-    const originName = fromHub?.name[langKey] || fromHub?.name.en || fromHubId;
-    const destinationName = toHub?.name[langKey] || toHub?.name.en || toHubId;
+    const originName = getHubDisplayName(fromHub, locale) || fromHubId;
+    const destinationName = getHubDisplayName(toHub, locale) || toHubId;
 
     onSubmit({
       passengerName: passengerName.trim(),
@@ -204,7 +204,7 @@ export function PostSeatRequestModal({
               >
                 {ALL_HUBS.map((h) => (
                   <option key={h.id} value={h.id}>
-                    {h.name[langKey] || h.name.en}
+                    {getHubDisplayName(h, locale)}
                   </option>
                 ))}
               </select>
@@ -220,7 +220,7 @@ export function PostSeatRequestModal({
               >
                 {ALL_HUBS.map((h) => (
                   <option key={h.id} value={h.id}>
-                    {h.name[langKey] || h.name.en}
+                    {getHubDisplayName(h, locale)}
                   </option>
                 ))}
               </select>

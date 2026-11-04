@@ -11,7 +11,7 @@ import { RidePassModal } from '../components/RidePassModal.tsx';
 import { RouteCorridorMap } from '../components/RouteCorridorMap.tsx';
 import { CarPlateBadge } from '../components/CarPlateBadge.tsx';
 import { CompareAlternativesModal } from '../components/CompareAlternativesModal.tsx';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { canBookLeg } from '../domain/matching.ts';
 import { normalizeSriLankanMobile } from '../domain/auth.ts';
 import { formatLkr, formatColomboDate, formatColomboTime, t } from '../domain/i18n.ts';
@@ -54,11 +54,11 @@ export function RideDetailView({
     );
   }
 
-  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const langKey = state.locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
   const fromHub = getHubById(fromHubId);
   const toHub = getHubById(toHubId);
-  const fromName = fromHub?.name[langKey] || fromHub?.name.en || fromHubId;
-  const toName = toHub?.name[langKey] || toHub?.name.en || toHubId;
+  const fromName = getHubDisplayName(fromHub, state.locale) || fromHubId;
+  const toName = getHubDisplayName(toHub, state.locale) || toHubId;
 
   const legCheck = canBookLeg(ride, fromHubId, toHubId, seats);
   const fromStop = legCheck.fromStop || ride.stops[0];
@@ -94,7 +94,7 @@ export function RideDetailView({
       });
       setBookingConfirmed(record);
       if (record.status === 'accepted') {
-        toast.success(`Booking Confirmed! ${seats} seat(s) reserved with ${ride.driver.name}.`);
+        toast.success(t(state.locale, 'toast.booking_confirmed'));
       } else {
         toast.info(`Request sent to ${ride.driver.name}. You will be notified upon confirmation.`);
       }
@@ -166,7 +166,7 @@ export function RideDetailView({
                 const isSelectedTo = stop.hubId === toHubId;
                 const isBoarding = stop.stopIndex >= (legCheck.fromIndex ?? 0) && stop.stopIndex <= (legCheck.toIndex ?? ride.stops.length - 1);
                 const stopHub = getHubById(stop.hubId);
-                const stopName = stopHub?.name[langKey] || stopHub?.name.en || stop.hubId;
+                const stopName = getHubDisplayName(stopHub, state.locale) || stop.hubId;
 
                 return (
                   <div key={stop.hubId} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>

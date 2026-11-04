@@ -13,7 +13,7 @@ import {
   SuitcaseSimple,
 } from '@phosphor-icons/react';
 import type { MatchedRideResult } from '../domain/matching.ts';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { formatLkr, formatColomboTime, t, type LocaleCode } from '../domain/i18n.ts';
 import { CarPlateBadge } from './CarPlateBadge.tsx';
 import { generateCostSplitBadge, lookupRdaExpresswayToll } from '../utils/sriLankaTollAndFuel.ts';
@@ -42,8 +42,8 @@ export function RideCardItem({
 
   const fromHub = getHubById(fromStop.hubId);
   const toHub = getHubById(toStop.hubId);
-  const fromCity = fromHub?.name[langKey] || fromHub?.name.en || fromStop.hubId;
-  const toCity = toHub?.name[langKey] || toHub?.name.en || toStop.hubId;
+  const fromCity = getHubDisplayName(fromHub, currentLocale) || fromStop.hubId;
+  const toCity = getHubDisplayName(toHub, currentLocale) || toStop.hubId;
 
   const tollLkr = ride.estimatedTollLkr > 0 ? ride.estimatedTollLkr : lookupRdaExpresswayToll(fromStop.hubId, toStop.hubId);
   const distKm = legDistanceKm && legDistanceKm > 0 ? legDistanceKm : Math.max(20, Math.round(legDurationMinutes * 0.95));

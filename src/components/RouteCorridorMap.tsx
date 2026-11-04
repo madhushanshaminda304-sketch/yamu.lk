@@ -8,7 +8,7 @@ interface RouteCorridorMapProps {
   ride: Ride;
   selectedFromHubId?: string;
   selectedToHubId?: string;
-  langKey?: 'en' | 'si' | 'ta';
+  langKey?: 'en' | 'si' | 'ta' | 'ru';
   currentUserId?: string;
   currentUserName?: string;
   userRole?: 'driver' | 'passenger';

@@ -167,7 +167,7 @@ export function resolveUserLocationToHub(
   hubs: readonly Hub[] = ALL_HUBS
 ): ResolvedHubResult {
   const nearest = findNearestHub(coords, hubs);
-  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const langKey = locale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
   const hubName = nearest.hub.name[langKey] || nearest.hub.name.en;
   return {
     hub: nearest.hub,

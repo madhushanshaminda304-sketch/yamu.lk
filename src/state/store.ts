@@ -20,7 +20,7 @@ import {
   resolveRatingVisibility,
 } from '../domain/trust.ts';
 import { inspectChatMessage, type ChatInspectionResult } from '../domain/scamGuard.ts';
-import { getColomboDateOffset, type LocaleCode } from '../domain/i18n.ts';
+import { getColomboDateOffset, getValidLocale, type LocaleCode } from '../domain/i18n.ts';
 import {
   type OtpChallenge,
   normalizeSriLankanMobile,
@@ -71,8 +71,19 @@ export type {
 export function createInitialState(): MarketplaceState {
   const tomorrow = getColomboDateOffset(1);
   const auth = loadPersistedAuth();
+  let initialLocale: LocaleCode = 'en-LK';
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      initialLocale = getValidLocale(window.localStorage.getItem('yamo_locale'));
+    } catch {
+      // localStorage may fail in restricted sandboxes
+    }
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = initialLocale.slice(0, 2);
+  }
   return {
-    locale: 'en-LK',
+    locale: initialLocale,
     currentUser: auth.currentUser,
     registeredUsers: auth.registeredUsers,
     activeOtpChallenge: null,
@@ -119,7 +130,18 @@ export function createMarketplaceStore(initialState?: MarketplaceState) {
     },
 
     setLocale(locale: LocaleCode): void {
-      state = { ...state, locale };
+      const valid = getValidLocale(locale);
+      state = { ...state, locale: valid };
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.setItem('yamo_locale', valid);
+        } catch {
+          // ignore localStorage errors
+        }
+      }
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = valid.slice(0, 2);
+      }
       notify();
     },
 

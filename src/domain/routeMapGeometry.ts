@@ -77,7 +77,7 @@ export function extractRouteMapWaypoints(
   stops: readonly RideStop[],
   selectedFromHubId?: string,
   selectedToHubId?: string,
-  langKey: 'en' | 'si' | 'ta' = 'en'
+  langKey: 'en' | 'si' | 'ta' | 'ru' = 'en'
 ): RouteMapWaypoint[] {
   const waypoints: RouteMapWaypoint[] = [];
 
@@ -111,7 +111,7 @@ export function extractRouteMapWaypoints(
 export function buildHubPairWaypoints(
   fromHubId: string,
   toHubId: string,
-  langKey: 'en' | 'si' | 'ta' = 'en'
+  langKey: 'en' | 'si' | 'ta' | 'ru' = 'en'
 ): RouteMapWaypoint[] {
   const fromHub = getHubById(fromHubId);
   const toHub = getHubById(toHubId);
@@ -153,7 +153,7 @@ export function buildHubPairWaypoints(
 
 export function buildRouteOptionWaypoints(
   stops: readonly RouteOptionStop[],
-  langKey: 'en' | 'si' | 'ta' = 'en'
+  langKey: 'en' | 'si' | 'ta' | 'ru' = 'en'
 ): RouteMapWaypoint[] {
   const waypoints: RouteMapWaypoint[] = [];
 

@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { CaretLeft, UserCheck, SignIn, CheckCircle } from '@phosphor-icons/react';
 import { YamoIcon } from './YamoLogo.tsx';
 import { triggerHaptic } from '../native/haptics.ts';
-import { t, type LocaleCode } from '../domain/i18n.ts';
+import { t, LOCALE_META, SUPPORTED_LOCALES, type LocaleCode } from '../domain/i18n.ts';
 import { useMarketplaceStore, defaultMarketplaceStore, type MarketplaceStore } from '../state/store.ts';
 import type { MarketplaceState } from '../state/types.ts';
 
@@ -172,17 +172,17 @@ export function MobileTopBar({
               border: '1px solid #e2e8f0',
             }}
           >
-            {(['en-LK', 'si-LK', 'ta-LK'] as const).map((code) => {
+            {SUPPORTED_LOCALES.map((code) => {
               const active = locale === code;
-              const label = code === 'en-LK' ? 'EN' : code === 'si-LK' ? 'සිං' : 'தமிழ்';
+              const meta = LOCALE_META[code];
               return (
                 <button
                   key={code}
                   type="button"
                   onClick={() => handleLanguageChange(code)}
                   style={{
-                    padding: '3px 7px',
-                    fontSize: '11px',
+                    padding: '3px 6px',
+                    fontSize: '10.5px',
                     fontWeight: active ? 800 : 600,
                     borderRadius: '9999px',
                     background: active ? '#047857' : 'transparent',
@@ -191,9 +191,10 @@ export function MobileTopBar({
                     cursor: 'pointer',
                     transition: 'background-color 0.15s ease, color 0.15s ease',
                   }}
+                  title={meta.fullLabel}
                   aria-pressed={active}
                 >
-                  {label}
+                  {meta.label}
                 </button>
               );
             })}

@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { Toaster, toast } from 'sonner';
 
-import { t } from './domain/i18n.ts';
+import { t, LOCALE_META, SUPPORTED_LOCALES } from './domain/i18n.ts';
 import { computeUnreadMessagesCount } from './domain/inbox.ts';
 import { createMarketplaceStore } from './state/store.ts';
 import { initRemoteSync } from './state/supabaseSync.ts';
@@ -167,27 +167,22 @@ export default function App() {
             )}
 
             <div className="lang-switch" role="group" aria-label="Language Switcher">
-              <button
-                type="button"
-                className={`lang-btn ${locale === 'en-LK' ? 'active' : ''}`}
-                onClick={() => store.setLocale('en-LK')}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                className={`lang-btn ${locale === 'si-LK' ? 'active' : ''}`}
-                onClick={() => store.setLocale('si-LK')}
-              >
-                සිං
-              </button>
-              <button
-                type="button"
-                className={`lang-btn ${locale === 'ta-LK' ? 'active' : ''}`}
-                onClick={() => store.setLocale('ta-LK')}
-              >
-                தமிழ்
-              </button>
+              {SUPPORTED_LOCALES.map((code) => {
+                const meta = LOCALE_META[code];
+                const active = locale === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    className={`lang-btn ${active ? 'active' : ''}`}
+                    onClick={() => store.setLocale(code)}
+                    title={meta.fullLabel}
+                    aria-pressed={active}
+                  >
+                    {meta.label}
+                  </button>
+                );
+              })}
             </div>
           </nav>
         </div>

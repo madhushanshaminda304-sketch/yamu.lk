@@ -14,7 +14,7 @@ import { YamoIcon } from './YamoLogo.tsx';
 import { CarPlateBadge } from './CarPlateBadge.tsx';
 import { SafetyCenterModal } from './SafetyCenterModal.tsx';
 import { LeafletRouteMap } from './LeafletRouteMap.tsx';
-import { getHubById } from '../domain/corridors.ts';
+import { getHubById, getHubDisplayName } from '../domain/corridors.ts';
 import { extractRouteMapWaypoints } from '../domain/routeMapGeometry.ts';
 import { formatLkr, t, type LocaleCode } from '../domain/i18n.ts';
 import {
@@ -51,11 +51,11 @@ export const RidePassModal: React.FC<RidePassModalProps> = ({
   if (!isOpen) return null;
 
   const currentLocale = locale ?? 'en-LK';
-  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta';
+  const langKey = currentLocale.slice(0, 2) as 'en' | 'si' | 'ta' | 'ru';
   const fromHub = getHubById(booking.fromHubId);
   const toHub = getHubById(booking.toHubId);
-  const fromName = fromHub?.name[langKey] ?? fromHub?.name.en ?? booking.fromHubId;
-  const toName = toHub?.name[langKey] ?? toHub?.name.en ?? booking.toHubId;
+  const fromName = getHubDisplayName(fromHub, currentLocale) || booking.fromHubId;
+  const toName = getHubDisplayName(toHub, currentLocale) || booking.toHubId;
 
   const effectiveDriver: UserProfile = driver ?? {
     id: ride.driver.id,
